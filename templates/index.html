@@ -345,12 +345,16 @@ async function cargarDatos() {
     const d = await r.json();
     RAW_V = d.ventas || [];
     RAW_S = d.stock || [];
-    init();
+    const ua = d.ultima_actualizacion || null;
+    init(ua);
   } catch(e) {
     console.error('Error cargando datos:', e);
     document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444">Error cargando datos. Revisa /api/data y recarga la página.</div>';
   }
 }
+
+// Auto-refresh cada 30 minutos
+setInterval(() => cargarDatos(), 30 * 60 * 1000);
 
 function tc(s){
   if(!s || s.toString().trim()==='') return '';
@@ -498,7 +502,7 @@ function getFilters(){
   };
 }
 
-function init(){
+function init(ultimaActualizacion){
   const wrap = document.getElementById('proy-buttons');
   wrap.innerHTML = '';
 
@@ -613,7 +617,9 @@ function init(){
 
   poblarFiltros();
   renderAll();
-  $('ts').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+  $('ts').textContent = ultimaActualizacion
+    ? 'Datos: ' + ultimaActualizacion
+    : 'Actualizado ' + new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
 }
 
 function getAnios(){
