@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ventas · Padova SAC</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:system-ui,sans-serif;
+  background:#f3f6fc;
+  color:#1e2a4a;
+  font-size:14px
+}
+.nav{
+  background:linear-gradient(135deg,#1e3a8a,#2563eb);
+  display:flex;align-items:center;padding:0 20px;height:56px;gap:2px;
+  box-shadow:0 2px 8px rgba(37,99,235,.25)
+}
+.brand{
+  font-size:13px;font-weight:700;color:#fff;margin-right:24px;
+  display:flex;align-items:center;gap:8px
+}
+.bdot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80}
+.tab{
+  padding:0 18px;height:56px;font-size:12px;font-weight:500;border:none;background:none;
+  cursor:pointer;color:rgba(255,255,255,.65);border-bottom:2px solid transparent;
+  font-family:inherit;transition:all .15s
+}
+.tab.on{color:#fff;border-bottom-color:#fff}
+.tab:hover:not(.on){color:rgba(255,255,255,.9)}
+.nav-r{margin-left:auto;font-size:11px;color:rgba(255,255,255,.55);font-family:monospace}
+
+.fil{
+  background:#fff;border-bottom:1px solid #dbe4ff;padding:12px 20px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.04)
+}
+.fl{
+  font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;white-space:nowrap
+}
+.pill{
+  border:1px solid #dbe4ff;background:#fff;color:#475569;border-radius:20px;
+  padding:6px 12px;font-size:11px;font-family:inherit;cursor:pointer;transition:all .15s
+}
+.pill:hover{border-color:#3b82f6;color:#3b82f6}
+.pill.on{background:#2563eb;color:#fff;border-color:#2563eb;font-weight:600}
+select.pill{
+  appearance:none;padding-right:22px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%2394a3b8' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 6px center
+}
+.dv{width:1px;height:18px;background:#e2e8f0;flex-shrink:0}
+.sw{
+  display:flex;align-items:center;gap:6px;background:#f8faff;border:1px solid #dbe4ff;
+  border-radius:20px;padding:5px 12px
+}
+.sw input{
+  border:none;background:none;font-size:11px;font-family:inherit;color:#475569;
+  outline:none;width:140px
+}
+.sw input::placeholder{color:#94a3b8}
+
+.pg{display:none;padding:24px}
+.pg.on{display:block}
+
+.wrap-wide{width:100%;max-width:1280px;margin:0 auto}
+.single-shell{width:100%;max-width:1180px;margin:0 auto}
+
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:720px}
+thead th{
+  padding:10px 12px;text-align:left;font-size:10px;color:#64748b;font-weight:800;
+  text-transform:uppercase;background:#f8faff;border-bottom:1px solid #e2e8f0;
+  white-space:nowrap;user-select:none
+}
+thead th.sortable{cursor:pointer}
+thead th.sortable:hover{color:#2563eb;background:#eff6ff}
+tbody td{padding:10px 12px;border-bottom:1px solid #f1f5f9;color:#1e2a4a}
+tbody tr:hover td{background:#f8faff}
+
+.bg{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600}
+.b-s{background:#fef3c7;color:#92400e}
+.b-v{background:#dbeafe;color:#1e40af}
+
+.card{
+  background:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;
+  box-shadow:0 6px 18px rgba(15,23,42,.06)
+}
+
+.res-head-grid,.res-sub-grid,.res-row,.res-total{
+  display:grid;
+  grid-template-columns:190px 1.1fr 1.15fr 1.6fr .7fr;
+  gap:12px;
+  align-items:center
+}
+.res-head-grid{margin-bottom:6px}
+.res-sub-grid{margin-bottom:12px}
+.res-row{
+  background:#fff;border-radius:16px;padding:16px 18px;margin-bottom:10px;
+  box-shadow:0 6px 18px rgba(15,23,42,.05)
+}
+.res-total{
+  background:#16233f;color:#fff;border-radius:18px;padding:18px;margin-bottom:22px;
+  box-shadow:0 10px 22px rgba(15,23,42,.12)
+}
+
+.res-proy{font-size:16px;font-weight:800}
+.res-box{text-align:center}
+.res-mini{font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase}
+.res-big{font-size:30px;font-weight:700;line-height:1;font-family:inherit}
+.res-input{
+  width:100%;border:none;background:#eff6ff;border-radius:10px;font-size:22px;
+  font-weight:700;color:#2563eb;text-align:center;padding:8px;outline:none;font-family:inherit
+}
+.res-input-money{
+  flex:1;min-width:0;border:none;background:transparent;border-radius:10px;
+  font-size:22px;font-weight:700;color:#2563eb;text-align:center;
+  font-family:inherit;padding:0;outline:none
+}
+.money-input-wrap{
+  width:100%;
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  background:#eff6ff;
+  border-radius:10px;
+  padding:8px 10px;
+}
+.money-prefix{
+  font-size:22px;
+  font-weight:700;
+  color:#2563eb;
+  font-family:inherit;
+  line-height:1;
+  flex-shrink:0;
+}
+
+.venta-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  align-items:stretch
+}
+.venta-cell{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:86px
+}
+.venta-num,.venta-money{
+  font-size:30px;font-weight:700;line-height:1;font-family:inherit
+}
+.venta-sub{font-size:11px;color:#94a3b8;margin-top:6px}
+.bar{
+  width:100%;height:5px;background:#dbe3ef;border-radius:999px;overflow:hidden;margin-top:10px
+}
+.bar>div{height:100%;border-radius:999px}
+
+.single-header{
+  display:flex;align-items:center;gap:14px;border-left:5px solid #3b82f6;
+  padding-left:16px;margin-bottom:24px
+}
+.single-title{font-size:30px;font-weight:800;line-height:1.1}
+.single-sub{
+  font-size:12px;color:#94a3b8;background:#eef2ff;padding:5px 12px;border-radius:999px;font-weight:600
+}
+.dual-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+.block{
+  background:#fff;border-radius:18px;padding:20px;box-shadow:0 6px 18px rgba(15,23,42,.06)
+}
+.block-head{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:16px
+}
+.block-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.kpi-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kpi-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.kpi{
+  background:#f8fbff;border:1px solid #e2e8f0;border-radius:16px;padding:22px 18px;
+  min-height:170px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center
+}
+.kpi.blue{border-top:4px solid #2563eb}
+.kpi.green{border-top:4px solid #10b981}
+.kpi.purple{border-top:4px solid #7c3aed}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:12px}
+.kpi-value{font-size:42px;line-height:1;font-weight:700}
+.kpi-value.money{
+  font-size:42px;font-family:inherit;line-height:1;font-weight:700
+}
+.kpi-sub{font-size:13px;color:#64748b;margin-top:10px;font-weight:600}
+.meta-input-big{
+  width:100%;border:none;background:#eff6ff;border-radius:10px;font-size:40px;font-weight:700;
+  color:#2563eb;text-align:center;font-family:inherit;outline:none;padding:10px 12px
+}
+.meta-input-money{
+  width:100%;border:none;background:#eff6ff;border-radius:10px;font-size:28px;font-weight:700;
+  color:#2563eb;text-align:center;font-family:inherit;padding:10px 12px;outline:none
+}
+
+.section-title{
+  font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px
+}
+
+@media (max-width:1100px){
+  .res-head-grid,.res-sub-grid,.res-row,.res-total,
+  .dual-grid,.kpi-grid-2,.kpi-grid-3,.venta-grid{
+    grid-template-columns:1fr;
+  }
+  .single-title{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="nav">
+  <div class="brand"><div class="bdot"></div>Padova SAC · Ventas</div>
+  <button class="tab on" onclick="showTab('res',this)">Resumen</button>
+  <button class="tab" onclick="showTab('ops',this)">Operaciones</button>
+  <div class="nav-r" id="ts"></div>
+</div>
+
+<div class="fil">
+  <span class="fl">Año</span>
+  <select class="pill" id="sanio" onchange="onAnioChange()"></select>
+
+  <span class="fl">Mes</span>
+  <select class="pill" id="smes" onchange="renderAll()"></select>
+
+  <div class="dv"></div>
+
+  <span class="fl">Proyecto</span>
+  <div id="proy-buttons" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+
+  <div class="dv"></div>
+
+  <span class="fl">Vista</span>
+  <button class="pill on" data-g="v" data-v="all" onclick="sf('v','all',this)">Todos</button>
+  <button class="pill" data-g="v" data-v="ven" onclick="sf('v','ven',this)">Ventas</button>
+  <button class="pill" data-g="v" data-v="sep" onclick="sf('v','sep',this)">Separaciones</button>
+
+  <div class="dv"></div>
+
+  <span class="fl">Tipo</span>
+  <button class="pill on" data-g="ti" data-v="all" onclick="sf('ti','all',this)">Todos</button>
+  <button class="pill" data-g="ti" data-v="Departamento" onclick="sf('ti','Departamento',this)">Dpto.</button>
+  <button class="pill" data-g="ti" data-v="Azotea" onclick="sf('ti','Azotea',this)">Azotea</button>
+  <button class="pill" data-g="ti" data-v="Estacionamiento" onclick="sf('ti','Estacionamiento',this)">Estac.</button>
+
+  <div class="dv"></div>
+
+  <div class="sw">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="sbusca" placeholder="Buscar cliente..." oninput="renderAll()">
+  </div>
+</div>
+
+<div id="pg-res" class="pg on">
+  <div class="wrap-wide">
+    <div id="vista-todos"></div>
+    <div id="vista-single" style="display:none"></div>
+  </div>
+</div>
+
+<div id="pg-ops" class="pg">
+  <div class="wrap-wide">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700">Listado de operaciones</div>
+        <div style="font-size:11px;color:#94a3b8" id="opc">0 registros</div>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead>
+            <tr>
+              <th class="sortable" onclick="sortOpsBy('pn')">Proyecto</th>
+              <th class="sortable" onclick="sortOpsBy('st')">Estado</th>
+              <th class="sortable" onclick="sortOpsBy('ti')">Tipo</th>
+              <th class="sortable" onclick="sortOpsBy('in')">Inmueble</th>
+              <th class="sortable" onclick="sortOpsBy('cl')">Cliente</th>
+              <th class="sortable" onclick="sortOpsBy('pr')">Precio S/</th>
+              <th class="sortable" onclick="sortOpsBy('fechaSort')">Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let RAW_V = [], RAW_S = [];
+
+// SOLO estos proyectos serán visibles
+let PROJ_MAP = {
+  'HELIO - SANTA BEATRIZ': 'Helio - Santa Beatriz',
+  'LITORAL 900': 'Litoral 900',
+  'LOMAS DE CARABAYLLO': 'Lomas de Carabayllo',
+  'SUNNY': 'Sunny',
+  'DOMINGO ORUE': 'D. Orue'
+};
+
+let PROJ = [
+  'HELIO - SANTA BEATRIZ',
+  'LITORAL 900',
+  'LOMAS DE CARABAYLLO',
+  'SUNNY',
+  'DOMINGO ORUE'
+];
+
+let PC = {
+  'Helio - Santa Beatriz':'#3b82f6',
+  'Litoral 900':'#10b981',
+  'Lomas de Carabayllo':'#ef4444',
+  'Sunny':'#f59e0b',
+  'D. Orue':'#8b5cf6'
+};
+
+function matchWhitelist(pUp){
+  if(!pUp) return null;
+  if(pUp.includes('HELIO')) return 'Helio - Santa Beatriz';
+  if(pUp.includes('LITORAL')) return 'Litoral 900';
+  if(pUp.includes('LOMAS')) return 'Lomas de Carabayllo';
+  if(pUp.includes('SUNNY')) return 'Sunny';
+  if(pUp.includes('DOMINGO ORUE') || pUp.includes('ORUE')) return 'D. Orue';
+  return null;
+}
+
+const METAS_DEFAULT = {
+  'Helio - Santa Beatriz': {und:9, monto:3850000},
+  'Litoral 900': {und:7, monto:3017500},
+  'Sunny': {und:5, monto:4130000},
+  'D. Orue': {und:10, monto:2400000},
+  'Lomas de Carabayllo': {und:10, monto:1530000}
+};
+
+let METAS = JSON.parse(localStorage.getItem('metas_padova') || '{}');
+let V = [], S = [], F = {p:'all',v:'all',ti:'all'};
+let OPS_SORT = { key:'pn', dir:'asc' };
+const $ = id => document.getElementById(id);
+
+async function cargarDatos() {
+  try {
+    const r = await fetch('/api/data');
+    const d = await r.json();
+    RAW_V = d.ventas || [];
+    RAW_S = d.stock || [];
+    init();
+  } catch(e) {
+    console.error('Error cargando datos:', e);
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444">Error cargando datos. Revisa /api/data y recarga la página.</div>';
+  }
+}
+
+function tc(s){
+  if(!s || s.toString().trim()==='') return '';
+  return s.toString().trim().split(' ').map(w => w ? w[0].toUpperCase()+w.slice(1).toLowerCase() : '').join(' ');
+}
+function parsePrecio(v){
+  if(v === null || v === undefined) return 0;
+  const s = v.toString().trim();
+  if(!s) return 0;
+
+  if(/^\d+[\.,]\d{2}$/.test(s)){
+    return parseFloat(s.replace(',', '.')) || 0;
+  }
+
+  if(s.includes(',') && s.includes('.')){
+    if(s.lastIndexOf(',') > s.lastIndexOf('.')){
+      return parseFloat(s.replace(/\./g,'').replace(',', '.')) || 0;
+    }
+    return parseFloat(s.replace(/,/g,'')) || 0;
+  }
+
+  if(s.includes(',') && !s.includes('.')){
+    return parseFloat(s.replace(/,/g,'')) || 0;
+  }
+
+  return parseFloat(s.replace(/[^0-9.\-]/g,'')) || 0;
+}
+function fmt(n){
+  if(!n && n!==0) return '—';
+  return 'S/ ' + Math.round(n).toLocaleString('es-PE');
+}
+function fmtMoneyNoSymbol(n){
+  if(!n && n!==0) return '—';
+  return Math.round(n).toLocaleString('es-PE');
+}
+function fmtMoneyParts(n, color, cls='venta-money'){
+  if(!n && n!==0) return `<div class="${cls}" style="color:${color||'#1e2a4a'}">—</div>`;
+  return `<div class="${cls}" style="color:${color||'#1e2a4a'}">S/ ${fmtMoneyNoSymbol(n)}</div>`;
+}
+function pct(a,b){ return b>0 ? Math.round(a/b*100) : 0; }
+function colPct(p){ return p>=100 ? '#059669' : p>=70 ? '#d97706' : '#dc2626'; }
+function cap(s){ return s ? s[0].toUpperCase()+s.slice(1) : ''; }
+
+function fmtDate(d){
+  if(!d || !(d instanceof Date) || isNaN(d)) return '—';
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear();
+  return `${dd}/${mm}/${yy}`;
+}
+function formatInmueblePorProyecto(proyKey, inmueble, edificio){
+  // Limpiar "502.0" → "502" (Google Sheets exporta enteros como float)
+  const inm = (inmueble || '').toString().trim().replace(/\.0+$/, '');
+  const edi = (edificio || '').toString().trim().toUpperCase();
+
+  if(!inm) return '—';
+
+  if(proyKey === 'LOMAS DE CARABAYLLO'){
+    // Formato largo (stock): "TORRE G - EDIFICIO 27" → "G27 - 502"
+    const torreMatch = edi.match(/TORRE\s+([A-Z])/i);
+    const edificioMatch = edi.match(/EDIFICIO\s+(\d+)/i);
+    const torre = torreMatch ? torreMatch[1].toUpperCase() : '';
+    const edificioNum = edificioMatch ? edificioMatch[1] : '';
+    if(torre && edificioNum) return `${torre}${edificioNum} - ${inm}`;
+    if(torre) return `${torre} - ${inm}`;
+
+    // Formato corto (ventas, col T/M): "F21" → "F21 - 502"
+    const cortoMatch = edi.match(/^([A-Z]\d+)$/);
+    if(cortoMatch) return `${cortoMatch[1]} - ${inm}`;
+  }
+
+  if(proyKey === 'SUNNY'){
+    // Stock: "1" o "2" | Ventas (T/M): "T1" o "T2"
+    const ediTrim = edi.trim();
+    if(ediTrim === '1' || ediTrim === 'T1') return `T1 - ${inm}`;
+    if(ediTrim === '2' || ediTrim === 'T2') return `T2 - ${inm}`;
+  }
+
+  return inm;
+}
+
+function getMeta(pn,mes){
+  const k = pn + '|' + mes;
+  if(!METAS[k]){
+    METAS[k] = METAS_DEFAULT[pn] ? {...METAS_DEFAULT[pn]} : {und:0,monto:0};
+  }
+  return METAS[k];
+}
+function saveMetas(){
+  localStorage.setItem('metas_padova', JSON.stringify(METAS));
+}
+
+function pf(v){
+  if(v===null || v===undefined || v==='') return null;
+  try{
+    if(v instanceof Date) return isNaN(v) ? null : v;
+
+    if(typeof v === 'number'){
+      const epoch = new Date(Date.UTC(1899, 11, 30));
+      const d = new Date(epoch.getTime() + v * 86400000);
+      return isNaN(d) ? null : d;
+    }
+
+    const s = v.toString().trim();
+    if(!s || s==='NaT' || s==='nan' || s==='None') return null;
+
+    if(/^\d+(\.\d+)?$/.test(s)){
+      const num = parseFloat(s);
+      const epoch = new Date(Date.UTC(1899, 11, 30));
+      const d = new Date(epoch.getTime() + num * 86400000);
+      return isNaN(d) ? null : d;
+    }
+
+    if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+      const base = s.slice(0,10).split('-');
+      const d = new Date(+base[0], +base[1]-1, +base[2]);
+      return isNaN(d) ? null : d;
+    }
+
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
+      const p = s.split('/');
+      const d = new Date(+p[2], +p[1]-1, +p[0]);
+      return isNaN(d) ? null : d;
+    }
+
+    const d = new Date(s);
+    return isNaN(d) ? null : d;
+  }catch(e){
+    return null;
+  }
+}
+
+function mesCorto(d){
+  return d.toLocaleString('es-PE',{month:'long'});
+}
+
+function getFilters(){
+  return {
+    yr: $('sanio').value,
+    mes: $('smes').value,
+    p: F.p,
+    v: F.v,
+    ti: F.ti,
+    busca: ($('sbusca').value || '').toLowerCase().trim()
+  };
+}
+
+function init(){
+  const wrap = document.getElementById('proy-buttons');
+  wrap.innerHTML = '';
+
+  const btnTodos = document.createElement('button');
+  btnTodos.className = 'pill on';
+  btnTodos.dataset.g = 'p';
+  btnTodos.dataset.v = 'all';
+  btnTodos.textContent = 'Todos';
+  btnTodos.onclick = function(){ sf('p','all',this); };
+  wrap.appendChild(btnTodos);
+
+  PROJ.forEach(pe => {
+    const btn = document.createElement('button');
+    btn.className = 'pill';
+    btn.dataset.g = 'p';
+    btn.dataset.v = pe;
+    btn.textContent = PROJ_MAP[pe];
+    btn.onclick = function(){ sf('p',pe,this); };
+    wrap.appendChild(btn);
+  });
+
+  const hV = RAW_V[0] || [];
+  const ix = n => hV.findIndex(h => h.toString().trim() === n);
+
+  const iP  = ix('Proyecto');
+  const iE  = ix('Estado');
+  const iTi = ix('TipoInmueble');
+  const iNr = ix('NroInmueble');
+  const iEd = ix('T/M');
+  const iCl = ix('NombresTitular');
+  const iCa = ix('ComoSeEntero');
+  const iPr = ix('PrecioVenta');
+  const iFV = ix('FechaVenta');
+  const iFM = ix('FechaEntrega_Minuta');
+
+  V = RAW_V.slice(1).map(r => {
+    const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
+
+    const proyectoRaw = g(iP);
+    const proyectoCanon = matchWhitelist(proyectoRaw.toUpperCase());
+    if(!proyectoCanon) return null;
+
+    const proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
+    if(!proyKey) return null;
+
+    const est = g(iE).toLowerCase();
+    if(est.includes('cancel')) return null;
+
+    const pr = parsePrecio(g(iPr));
+    const fv = pf(r[iFV]);
+    const fm = pf(r[iFM]);
+    const ref = fv || fm;
+    const yr = ref ? ref.getFullYear() : 0;
+
+    return {
+      p: proyKey,
+      pn: proyectoCanon,
+      ti: tc(g(iTi)),
+      in: formatInmueblePorProyecto(proyKey, g(iNr), g(iEd)),
+      cl: tc(g(iCl)),
+      ca: tc(g(iCa)),
+      pr,
+      fv,
+      fm,
+      ml: ref ? mesCorto(ref) : '',
+      md: ref || new Date(0),
+      yr
+    };
+  }).filter(d => d && d.yr >= 2024);
+
+  const hS = RAW_S[0] || [];
+  const six = n => hS.findIndex(h => h.toString().trim() === n);
+
+  const siP  = six('Proyecto');
+  const siE  = six('Estado');
+  const siT  = six('TipoInmueble');
+  const siN  = six('NroInmuebleActual');
+  const siEd = six('Edificio');
+  const siPr = six('PrecioVenta') >= 0 ? six('PrecioVenta') : six('PrecioLista');
+  const siFD = six('FechaSepDefinitiva');
+  const siCl = six('Nombres');
+  const siCa = six('ComoSeEntero');
+
+  S = RAW_S.slice(1).map(r => {
+    const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
+
+    const proyectoRaw = g(siP);
+    const proyectoCanon = matchWhitelist(proyectoRaw.toUpperCase());
+    if(!proyectoCanon) return null;
+
+    const proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
+    if(!proyKey) return null;
+
+    const pr = parsePrecio(g(siPr));
+    const fd = pf(siFD>=0 ? r[siFD] : null);
+
+    return {
+      p: proyKey,
+      pn: proyectoCanon,
+      e: g(siE).toLowerCase(),
+      t: tc(g(siT)),
+      i: formatInmueblePorProyecto(proyKey, g(siN), g(siEd)),
+      pr,
+      cl: tc(g(siCl)),
+      ca: tc(g(siCa)),
+      fd,
+      ml: fd ? mesCorto(fd) : '',
+      md: fd || new Date(0),
+      yr: fd ? fd.getFullYear() : 0
+    };
+  }).filter(Boolean);
+
+  poblarFiltros();
+  renderAll();
+  $('ts').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+}
+
+function getAnios(){
+  return [...new Set(V.map(d => d.yr))].filter(Boolean).sort();
+}
+function getMesesPorAnio(yr){
+  const seen = {}, res = [];
+  const add = d => {
+    if(d.ml && !seen[d.ml]){
+      seen[d.ml] = true;
+      res.push({ml:d.ml, md:d.md});
+    }
+  };
+
+  V.filter(d => yr==='todos' || d.yr===+yr).forEach(add);
+  S.filter(d => d.ml && (yr==='todos' || d.yr===+yr)).forEach(add);
+
+  return res.sort((a,b) => a.md-b.md).map(x => x.ml);
+}
+function poblarFiltros(){
+  const anios = getAnios();
+  const sa = $('sanio');
+  sa.innerHTML = '<option value="todos">Todos</option>';
+
+  anios.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a;
+    o.textContent = a;
+    sa.appendChild(o);
+  });
+
+  if(anios.length) sa.value = anios[anios.length-1];
+  actualizarMeses();
+}
+function actualizarMeses(){
+  const yr = $('sanio').value;
+  const ms = getMesesPorAnio(yr);
+  const sel = $('smes');
+  const prev = sel.value;
+
+  sel.innerHTML = '<option value="todos">Todos</option>';
+
+  ms.forEach(m => {
+    const o = document.createElement('option');
+    o.value = m;
+    o.textContent = cap(m);
+    sel.appendChild(o);
+  });
+
+  if(ms.includes(prev)) sel.value = prev;
+  else if(ms.length) sel.value = ms[ms.length-1];
+}
+function onAnioChange(){
+  actualizarMeses();
+  renderAll();
+}
+
+function gfV(){
+  const f = getFilters();
+  return V.filter(d => {
+    if(f.yr!=='todos' && d.yr!==+f.yr) return false;
+    if(f.mes!=='todos' && d.ml!==f.mes) return false;
+    if(f.p!=='all' && d.p!==f.p) return false;
+    if(f.ti!=='all' && !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    if(f.busca && !d.cl.toLowerCase().includes(f.busca)) return false;
+    return true;
+  });
+}
+
+function gfS(){
+  const f = getFilters();
+  return S.filter(d => {
+    if(!d.e.includes('separac')) return false;
+    if(f.p!=='all' && d.p!==f.p) return false;
+    if(f.yr!=='todos' && d.yr && d.yr!==+f.yr) return false;
+    if(f.mes!=='todos' && d.ml && d.ml!==f.mes) return false;
+    if(f.ti!=='all' && !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    if(f.busca && !(d.cl || '').toLowerCase().includes(f.busca)) return false;
+    return true;
+  });
+}
+
+function sf(g,v,btn){
+  F[g] = v;
+  document.querySelectorAll('[data-g="'+g+'"]').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderAll();
+}
+function showTab(id,btn){
+  ['res','ops'].forEach(t => $('pg-'+t).classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  $('pg-'+id).classList.add('on');
+  btn.classList.add('on');
+  renderAll();
+}
+function renderAll(){
+  if(F.p==='all'){
+    $('vista-todos').style.display = 'block';
+    $('vista-single').style.display = 'none';
+    renderTodos();
+  } else {
+    $('vista-todos').style.display = 'none';
+    $('vista-single').style.display = 'block';
+    renderSingle(F.p);
+  }
+  rOps();
+}
+
+function getProyData(pe){
+  const f = getFilters();
+  const pn = PROJ_MAP[pe] || pe;
+
+  const ventas = V.filter(d => {
+    if(d.p!==pe) return false;
+    if(f.yr!=='todos' && d.yr!==+f.yr) return false;
+    if(f.mes!=='todos' && d.ml!==f.mes) return false;
+    if(f.ti!=='all' && !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    return true;
+  });
+
+  const seps = S.filter(d => {
+    if(d.p!==pe || !d.e.includes('separac')) return false;
+    if(f.yr!=='todos' && d.yr && d.yr!==+f.yr) return false;
+    if(f.mes!=='todos' && d.ml && d.ml!==f.mes) return false;
+    if(f.ti!=='all' && !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    return true;
+  });
+
+  const mes = f.mes;
+  const meta = getMeta(pn, mes);
+
+  return {
+    pn,
+    ventas,
+    seps,
+    meta,
+    undR: ventas.length,
+    mtoR: ventas.reduce((t,x) => t + x.pr, 0),
+    sepTot: seps.length,
+    mes
+  };
+}
+
+function renderTodos(){
+  const wrap = $('vista-todos');
+  let html = '';
+
+  html += `
+  <div class="res-head-grid">
+    <div></div>
+    <div style="text-align:center;font-size:11px;font-weight:800;color:#2563eb;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #bfdbfe">Meta</div>
+    <div style="text-align:center;font-size:11px;font-weight:800;color:#2563eb;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #bfdbfe">Monto Meta</div>
+    <div style="text-align:center;font-size:11px;font-weight:800;color:#059669;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #bbf7d0">Venta Real</div>
+    <div style="text-align:center;font-size:11px;font-weight:800;color:#7c3aed;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #e9d5ff">Sep Total</div>
+  </div>
+
+  <div class="res-sub-grid">
+    <div></div>
+    <div class="res-mini" style="text-align:center">Proyectado</div>
+    <div class="res-mini" style="text-align:center">Monto editable</div>
+    <div class="res-mini" style="text-align:center">Und / Monto</div>
+    <div class="res-mini" style="text-align:center">Und</div>
+  </div>`;
+
+  let totUndM=0, totMtoM=0, totUndR=0, totMtoR=0, totSep=0;
+
+  PROJ.forEach(pe=>{
+    const {pn,undR,mtoR,sepTot,meta,mes} = getProyData(pe);
+    const col = PC[pn] || '#64748b';
+    const pU = pct(undR,meta.und);
+    const pM = pct(mtoR,meta.monto);
+    const mk = pn+'|'+mes;
+
+    totUndM += meta.und;
+    totMtoM += meta.monto;
+    totUndR += undR;
+    totMtoR += mtoR;
+    totSep += sepTot;
+
+    html += `
+    <div class="res-row" style="border-left:4px solid ${col}">
+      <div class="res-proy">${pn}</div>
+
+      <div class="res-box">
+        <input class="res-input" type="number" value="${meta.und}" onchange="updateMeta('${mk}','und',this.value)">
+      </div>
+
+      <div class="res-box">
+        <div class="money-input-wrap">
+          <span class="money-prefix">S/</span>
+          <input class="res-input-money" type="number" value="${meta.monto}" onchange="updateMeta('${mk}','monto',this.value)">
+        </div>
+      </div>
+
+      <div class="res-box">
+        <div class="venta-grid">
+          <div class="venta-cell">
+            <div class="venta-num" style="color:${colPct(pU)}">${undR}</div>
+            <div class="venta-sub">${undR}/${meta.und} · ${pU}%</div>
+            <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+          </div>
+          <div class="venta-cell">
+            ${fmtMoneyParts(mtoR, colPct(pM), 'venta-money')}
+            <div class="venta-sub">${pM}%</div>
+            <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="res-box">
+        <div class="res-big" style="color:#7c3aed">${sepTot}</div>
+      </div>
+    </div>`;
+  });
+
+  const tpU = pct(totUndR,totUndM);
+  const tpM = pct(totMtoR,totMtoM);
+
+  html += `
+  <div class="res-total">
+    <div style="font-size:16px;font-weight:800">TOTAL</div>
+
+    <div style="text-align:center">
+      <div style="font-size:30px;font-weight:700;color:#93c5fd">${totUndM}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.55)">meta total</div>
+    </div>
+
+    <div style="text-align:center">
+      <div style="font-size:30px;font-weight:700;color:#93c5fd;font-family:monospace;line-height:1">S/ ${fmtMoneyNoSymbol(totMtoM)}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.55)">monto meta</div>
+    </div>
+
+    <div style="text-align:center">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:30px;font-weight:700;color:#6ee7b7">${totUndR}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.55)">${tpU}% unidades</div>
+        </div>
+        <div>
+          <div style="font-size:30px;font-weight:700;color:#6ee7b7;font-family:monospace;line-height:1">S/ ${fmtMoneyNoSymbol(totMtoR)}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.55)">${tpM}% monto</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center">
+      <div style="font-size:30px;font-weight:700;color:#c4b5fd">${totSep}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.55)">separaciones</div>
+    </div>
+  </div>`;
+
+  html += renderStock();
+  wrap.innerHTML = html;
+}
+
+function renderSingle(pe){
+  const {pn,undR,mtoR,sepTot,meta,mes} = getProyData(pe);
+  const col = PC[pn] || '#64748b';
+  const pU = pct(undR,meta.und);
+  const pM = pct(mtoR,meta.monto);
+  const mk = pn+'|'+mes;
+
+  $('vista-single').innerHTML = `
+  <div class="single-shell">
+    <div class="single-header" style="border-left-color:${col}">
+      <div class="single-title">${pn}</div>
+      <div class="single-sub">${cap(mes)}</div>
+    </div>
+
+    <div class="dual-grid">
+      <div class="block">
+        <div class="block-head">
+          <div class="block-label" style="color:#2563eb">Meta</div>
+        </div>
+        <div class="kpi-grid-2">
+          <div class="kpi blue">
+            <div class="kpi-label">Proyectado</div>
+            <input class="meta-input-big" type="number" value="${meta.und}" onchange="updateMeta('${mk}','und',this.value)">
+            <div class="kpi-sub">unidades</div>
+          </div>
+
+          <div class="kpi blue">
+            <div class="kpi-label">Monto</div>
+            <div class="money-input-wrap" style="padding:10px 14px">
+              <span class="money-prefix" style="font-size:28px">S/</span>
+              <input class="meta-input-money" type="number" value="${meta.monto}" onchange="updateMeta('${mk}','monto',this.value)">
+            </div>
+            <div class="kpi-sub">monto meta</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <div class="block-label" style="color:#059669">Venta real</div>
+        </div>
+        <div class="kpi-grid-2">
+          <div class="kpi green">
+            <div class="kpi-label">Unidades vendidas</div>
+            <div class="kpi-value" style="color:${colPct(pU)}">${undR}</div>
+            <div class="kpi-sub">${undR}/${meta.und} · ${pU}%</div>
+            <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+          </div>
+
+          <div class="kpi green">
+            <div class="kpi-label">Monto vendido</div>
+            ${fmtMoneyParts(mtoR, colPct(pM), 'kpi-value money')}
+            <div class="kpi-sub">${pM}% de meta</div>
+            <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <div class="block-label" style="color:#7c3aed">Separaciones</div>
+      </div>
+      <div class="kpi-grid-3">
+        <div class="kpi purple">
+          <div class="kpi-label">Total separaciones</div>
+          <div class="kpi-value" style="color:#7c3aed">${sepTot}</div>
+          <div class="kpi-sub">en stock actual</div>
+        </div>
+
+        <div class="kpi purple">
+          <div class="kpi-label">Monto sep.</div>
+          ${fmtMoneyParts(meta.und>0 ? sepTot*(meta.monto/meta.und) : null, '#7c3aed', 'kpi-value money')}
+          <div class="kpi-sub">estimado</div>
+        </div>
+
+        <div class="kpi purple">
+          <div class="kpi-label">Sep + venta</div>
+          <div class="kpi-value" style="color:#7c3aed">${sepTot+undR}</div>
+          <div class="kpi-sub">operaciones totales</div>
+        </div>
+      </div>
+    </div>
+
+    ${renderStock(pe)}
+  </div>`;
+}
+
+function updateMeta(mk,campo,val){
+  if(!METAS[mk]) METAS[mk] = {und:0,monto:0};
+  METAS[mk][campo] = parseFloat(val) || 0;
+  saveMetas();
+  renderAll();
+}
+
+function renderStock(filtroProy){
+  const proys = filtroProy ? [filtroProy] : PROJ;
+  let html = `
+  <div class="section-title">Stock</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">`;
+
+  proys.forEach(pe => {
+    const pn = PROJ_MAP[pe] || pe;
+    const f = getFilters();
+
+    const st = S.filter(x => {
+      if(x.p!==pe) return false;
+      if(f.yr!=='todos' && x.yr && x.yr!==+f.yr) return false;
+      if(f.mes!=='todos' && x.ml && x.ml!==f.mes) return false;
+      if(f.ti!=='all' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
+      return true;
+    });
+
+    const di = st.filter(x => x.e.includes('disponible')).length;
+    const se = st.filter(x => x.e.includes('separac')).length;
+    const ve = st.filter(x => x.e.includes('minuta') || x.e.includes('venta') || x.e.includes('entrega')).length;
+    const otros = Math.max(0, st.length - di - se - ve);
+    const tot = st.length || 1;
+    const pD = Math.round(di/tot*100);
+    const pS = Math.round(se/tot*100);
+    const pV = Math.round(ve/tot*100);
+
+    html += `
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between">
+        <span>${pn}</span>
+        <span style="font-size:10px;color:#94a3b8;font-weight:600">${st.length} unids.</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
+        <div style="text-align:center;background:#f8faff;border-radius:10px;padding:10px 4px">
+          <div style="font-size:18px;font-weight:700;color:#10b981">${di}</div>
+          <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;margin-top:2px">Disp.</div>
+        </div>
+        <div style="text-align:center;background:#f8faff;border-radius:10px;padding:10px 4px">
+          <div style="font-size:18px;font-weight:700;color:#f59e0b">${se}</div>
+          <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;margin-top:2px">Sep.</div>
+        </div>
+        <div style="text-align:center;background:#f8faff;border-radius:10px;padding:10px 4px">
+          <div style="font-size:18px;font-weight:700;color:#3b82f6">${ve}</div>
+          <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;margin-top:2px">Vend.</div>
+        </div>
+        <div style="text-align:center;background:#f8faff;border-radius:10px;padding:10px 4px">
+          <div style="font-size:18px;font-weight:700;color:#94a3b8">${otros}</div>
+          <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;margin-top:2px">Otros</div>
+        </div>
+      </div>
+
+      <div class="bar" style="margin-top:0;margin-bottom:6px"><div style="width:${pD}%;background:#10b981"></div></div>
+      <div class="bar" style="margin-top:0;margin-bottom:6px"><div style="width:${pS}%;background:#f59e0b"></div></div>
+      <div class="bar" style="margin-top:0"><div style="width:${pV}%;background:#3b82f6"></div></div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:10px;color:#94a3b8;margin-top:10px">
+        <span>Disp. ${pD}%</span>
+        <span>Sep. ${pS}%</span>
+        <span>Vend. ${pV}%</span>
+      </div>
+    </div>`;
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function sortOpsBy(key){
+  if(OPS_SORT.key === key){
+    OPS_SORT.dir = OPS_SORT.dir === 'asc' ? 'desc' : 'asc';
+  }else{
+    OPS_SORT.key = key;
+    OPS_SORT.dir = 'asc';
+  }
+  rOps();
+}
+
+function sortRows(rows){
+  const dir = OPS_SORT.dir === 'asc' ? 1 : -1;
+
+  rows.sort((a,b)=>{
+    let av = a[OPS_SORT.key];
+    let bv = b[OPS_SORT.key];
+
+    if(OPS_SORT.key === 'pr' || OPS_SORT.key === 'fechaSort'){
+      av = Number(av || 0);
+      bv = Number(bv || 0);
+      return (av - bv) * dir;
+    }
+
+    av = (av || '').toString().toLowerCase().trim();
+    bv = (bv || '').toString().toLowerCase().trim();
+
+    if(av < bv) return -1 * dir;
+    if(av > bv) return 1 * dir;
+    return 0;
+  });
+
+  return rows;
+}
+
+function rOps(){
+  const f = getFilters();
+  let rows = [];
+
+  if(f.v==='all' || f.v==='ven'){
+    gfV().forEach(x => {
+      const dt = x.fv || x.fm || null;
+      rows.push({
+        pn: x.pn,
+        st: 'Venta',
+        ti: x.ti,
+        in: x.in,
+        cl: x.cl,
+        pr: x.pr,
+        fecha: fmtDate(dt),
+        fechaSort: dt ? dt.getTime() : 0
+      });
+    });
+  }
+
+  if(f.v==='all' || f.v==='sep'){
+    gfS().forEach(x => {
+      const dt = x.fd || null;
+      rows.push({
+        pn: x.pn,
+        st: 'Separación',
+        ti: x.t,
+        in: x.i || '—',
+        cl: x.cl || '—',
+        pr: x.pr,
+        fecha: dt ? fmtDate(dt) : 'En stock',
+        fechaSort: dt ? dt.getTime() : 0
+      });
+    });
+  }
+
+  rows = sortRows(rows);
+  $('opc').textContent = rows.length + ' registros';
+
+  const bg = {
+    'Venta':'<span class="bg b-v">Venta</span>',
+    'Separación':'<span class="bg b-s">Separación</span>'
+  };
+
+  $('tbody').innerHTML =
+    rows.map(x =>
+      `<tr>
+        <td style="font-weight:700">${x.pn || '—'}</td>
+        <td>${bg[x.st] || x.st}</td>
+        <td style="color:#64748b">${x.ti || '—'}</td>
+        <td style="font-family:monospace;color:#94a3b8">${x.in || '—'}</td>
+        <td>${x.cl || '—'}</td>
+        <td style="font-family:monospace;font-weight:700;color:#2563eb">${x.pr ? 'S/ '+Math.round(x.pr).toLocaleString('es-PE') : '—'}</td>
+        <td style="color:#94a3b8">${x.fecha}</td>
+      </tr>`
+    ).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
+}
+
+cargarDatos();
+</script>
+</body>
+</html>
