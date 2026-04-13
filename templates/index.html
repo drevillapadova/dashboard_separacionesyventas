@@ -89,91 +89,125 @@ tbody tr:hover td{background:#f8faff}
   box-shadow:0 6px 18px rgba(15,23,42,.06)
 }
 
+/* ── KPI SUMMARY ── */
 .kpi-summary{
   display:grid;
   grid-template-columns:repeat(4,1fr);
   gap:14px;
-  margin-bottom:22px;
+  margin-bottom:24px;
 }
 .kpi-sum-card{
   background:#fff;border-radius:16px;padding:22px 18px;
-  box-shadow:0 6px 18px rgba(15,23,42,.06);text-align:center;
+  box-shadow:0 4px 14px rgba(15,23,42,.07);text-align:center;
 }
 .kpi-sum-label{
   font-size:10px;font-weight:800;text-transform:uppercase;
-  letter-spacing:.08em;color:#2563eb;margin-bottom:10px;
+  letter-spacing:.08em;margin-bottom:10px;
 }
 .kpi-sum-value{font-size:48px;font-weight:700;line-height:1}
-.kpi-sum-money{font-size:26px}
+.kpi-sum-money{font-size:24px}
 
-.res-head-grid,.res-sub-grid,.res-row,.res-total{
+/* ── TABLA RESUMEN ── */
+.res-table{margin-bottom:24px}
+.res-head-row{
   display:grid;
-  grid-template-columns:180px .75fr 1fr 1.5fr 1fr 1.5fr;
-  gap:10px;
-  align-items:center
+  grid-template-columns:170px 1fr 2fr 2fr;
+  gap:8px;
+  margin-bottom:3px;
+  padding:0 4px;
 }
-.res-head-grid{margin-bottom:4px}
-.res-sub-grid{margin-bottom:10px}
-.res-row{
-  background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:8px;
-  box-shadow:0 6px 18px rgba(15,23,42,.05)
+.res-head-group{
+  text-align:center;font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.07em;
+  padding-bottom:5px;border-bottom:2px solid transparent;
 }
-.res-total{
-  background:#16233f;color:#fff;border-radius:18px;padding:16px;margin-bottom:22px;
-  box-shadow:0 10px 22px rgba(15,23,42,.12)
+.res-sub-row{
+  display:grid;
+  grid-template-columns:170px repeat(5,1fr);
+  gap:8px;
+  margin-bottom:10px;
+  padding:0 4px;
 }
-
-.res-proy{font-size:16px;font-weight:800}
-.res-box{text-align:center}
-.res-mini{font-size:10px;color:#94a3b8;font-weight:800;text-transform:uppercase}
-.res-big{font-size:30px;font-weight:700;line-height:1;font-family:inherit}
-.res-input{
-  width:100%;border:none;background:#eff6ff;border-radius:10px;font-size:22px;
-  font-weight:700;color:#2563eb;text-align:center;padding:8px;outline:none;font-family:inherit
+.res-sub-label{
+  text-align:center;font-size:9px;font-weight:800;
+  color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;
 }
-.res-input-money{
-  flex:1;min-width:0;border:none;background:transparent;border-radius:10px;
-  font-size:22px;font-weight:700;color:#2563eb;text-align:center;
-  font-family:inherit;padding:0;outline:none
-}
-.money-input-wrap{
-  width:100%;
-  display:flex;
-  flex-wrap:nowrap;
+.res-proy-row{
+  display:grid;
+  grid-template-columns:170px repeat(5,1fr);
+  gap:8px;
+  margin-bottom:10px;
   align-items:center;
-  justify-content:center;
-  gap:4px;
-  background:#eff6ff;
-  border-radius:10px;
-  padding:8px 10px;
+  border-left:4px solid #e2e8f0;
+  border-radius:14px;
+  background:#fff;
+  padding:12px 8px 12px 12px;
+  box-shadow:0 4px 14px rgba(15,23,42,.05);
 }
-.money-prefix{
-  font-size:22px;
-  font-weight:700;
-  color:#2563eb;
-  font-family:inherit;
-  line-height:1;
-  flex-shrink:0;
+.res-proy-name{font-size:15px;font-weight:700;padding-right:4px}
+.res-cell{
+  background:#f8faff;border-radius:10px;padding:10px 6px;
+  text-align:center;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;min-height:72px;
 }
+.res-cell-num{font-size:26px;font-weight:700;line-height:1}
+.res-cell-sub{font-size:10px;color:#94a3b8;margin-top:5px}
+.res-cell-input{
+  width:100%;border:none;background:transparent;font-size:24px;
+  font-weight:700;color:#2563eb;text-align:center;outline:none;font-family:inherit;
+  padding:0;
+}
+.res-cell-money-wrap{
+  display:flex;align-items:center;justify-content:center;gap:3px;width:100%
+}
+.res-cell-money-prefix{
+  font-size:13px;font-weight:700;color:#2563eb;flex-shrink:0;align-self:flex-start;margin-top:4px
+}
+.res-cell-money-input{
+  flex:1;min-width:0;border:none;background:transparent;
+  font-size:18px;font-weight:700;color:#2563eb;text-align:center;
+  outline:none;font-family:inherit;padding:0;
+}
+.res-cell-money-val{font-size:16px;font-weight:700;line-height:1.2}
 
-.venta-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  align-items:stretch
-}
-.venta-cell{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:86px
-}
-.venta-num,.venta-money{
-  font-size:30px;font-weight:700;line-height:1;font-family:inherit
-}
-.venta-sub{font-size:11px;color:#94a3b8;margin-top:6px}
+.venta-num,.venta-money{font-size:26px;font-weight:700;line-height:1;font-family:inherit}
+.venta-sub{font-size:10px;color:#94a3b8;margin-top:5px}
 .bar{
-  width:100%;height:5px;background:#dbe3ef;border-radius:999px;overflow:hidden;margin-top:10px
+  width:100%;height:4px;background:#dbe3ef;border-radius:999px;overflow:hidden;margin-top:8px
 }
 .bar>div{height:100%;border-radius:999px}
+
+/* Mobile card por proyecto */
+.res-mobile-card{
+  display:none;
+  background:#fff;border-radius:16px;margin-bottom:12px;
+  box-shadow:0 4px 14px rgba(15,23,42,.06);overflow:hidden;
+}
+.res-mobile-header{
+  display:flex;align-items:center;gap:10px;padding:14px 16px 10px;
+  border-bottom:1px solid #f1f5f9;
+}
+.res-mobile-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.res-mobile-name{font-size:16px;font-weight:700}
+.res-mobile-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px;
+}
+.res-mobile-box{
+  background:#f8faff;border-radius:10px;padding:10px 6px;
+  text-align:center;
+}
+.res-mobile-label{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:5px}
+.res-mobile-val{font-size:22px;font-weight:700;line-height:1}
+.res-mobile-val.money{font-size:14px}
+.res-mobile-sub{font-size:9px;color:#94a3b8;margin-top:3px}
+.res-mobile-input{
+  width:100%;border:none;background:transparent;font-size:20px;
+  font-weight:700;color:#2563eb;text-align:center;outline:none;font-family:inherit;padding:0;
+}
+.res-mobile-money-input{
+  width:100%;border:none;background:transparent;font-size:13px;
+  font-weight:700;color:#2563eb;text-align:center;outline:none;font-family:inherit;padding:0;
+}
 
 .single-header{
   display:flex;align-items:center;gap:14px;border-left:5px solid #3b82f6;
@@ -219,16 +253,26 @@ tbody tr:hover td{background:#f8faff}
   font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px
 }
 
-@media (max-width:1100px){
+@media (max-width:900px){
   .kpi-summary{grid-template-columns:1fr 1fr}
-  .res-head-grid,.res-sub-grid,.res-row,.res-total,
-  .dual-grid,.kpi-grid-2,.kpi-grid-3,.venta-grid{
-    grid-template-columns:1fr;
-  }
-  .res-head-grid,.res-sub-grid{display:none}
   .kpi-sum-value{font-size:36px}
   .kpi-sum-money{font-size:20px}
-  .single-title{font-size:24px}
+  /* Ocultar tabla desktop, mostrar tarjetas mobile */
+  .res-table-desktop{display:none !important}
+  .res-mobile-card{display:block !important}
+  /* Vista single */
+  .dual-grid,.kpi-grid-2,.kpi-grid-3{grid-template-columns:1fr}
+  .single-title{font-size:22px}
+  .pg{padding:14px}
+  .wrap-wide{padding:0}
+}
+@media (max-width:480px){
+  .kpi-summary{grid-template-columns:1fr 1fr}
+  .kpi-sum-value{font-size:28px}
+  .kpi-sum-money{font-size:16px}
+  .kpi-sum-card{padding:16px 12px}
+  .res-mobile-grid{grid-template-columns:1fr 1fr}
+  .fil{padding:8px 12px;gap:6px}
 }
 </style>
 </head>
@@ -788,17 +832,17 @@ function renderTodos(){
   const wrap = $('vista-todos');
   let html = '';
 
-  // Pre-calcular totales para los KPI cards
+  // Pre-calcular totales
   let totUndM=0, totMtoM=0, totUndR=0, totMtoR=0, totSep=0;
-  PROJ.forEach(pe => {
-    const {undR,mtoR,sepTot,meta} = getProyData(pe);
-    totUndM += meta.und; totMtoM += meta.monto;
-    totUndR += undR; totMtoR += mtoR; totSep += sepTot;
+  const proyData = PROJ.map(pe => {
+    const d = getProyData(pe);
+    totUndM += d.meta.und; totMtoM += d.meta.monto;
+    totUndR += d.undR; totMtoR += d.mtoR; totSep += d.sepTot;
+    return d;
   });
-  const tpU = pct(totUndR,totUndM);
-  const tpM = pct(totMtoR,totMtoM);
+  const tpU = pct(totUndR, totUndM);
 
-  // ── KPI SUMMARY CARDS ──
+  // ── KPI CARDS ──
   html += `
   <div class="kpi-summary">
     <div class="kpi-sum-card">
@@ -815,98 +859,122 @@ function renderTodos(){
     </div>
     <div class="kpi-sum-card" style="background:linear-gradient(135deg,#eff6ff,#e0e7ff)">
       <div class="kpi-sum-label" style="color:#1d4ed8">Gráfico de Meta</div>
-      <div style="margin-top:12px">
-        <div style="height:10px;background:#dbeafe;border-radius:999px;overflow:hidden;margin-bottom:10px">
-          <div style="height:100%;width:${Math.min(100,tpU)}%;background:#2563eb;border-radius:999px;transition:width .4s"></div>
+      <div style="margin-top:10px">
+        <div style="height:8px;background:#dbeafe;border-radius:999px;overflow:hidden;margin-bottom:10px">
+          <div style="height:100%;width:${Math.min(100,tpU)}%;background:#2563eb;border-radius:999px"></div>
         </div>
-        <div style="font-size:28px;font-weight:700;color:#2563eb;line-height:1">${tpU}%</div>
-        <div style="font-size:11px;color:#93c5fd;margin-top:4px">${totUndR} / ${totUndM} und</div>
+        <div style="font-size:32px;font-weight:700;color:#2563eb;line-height:1">${tpU}%</div>
+        <div style="font-size:11px;color:#93c5fd;margin-top:5px">${totUndR} / ${totUndM} unidades</div>
       </div>
     </div>
   </div>`;
 
-  // ── CABECERA DE TABLA ──
-  html += `
-  <div class="res-head-grid">
-    <div></div>
-    <div style="text-align:center;font-size:10px;font-weight:800;color:#7c3aed;text-transform:uppercase;padding-bottom:5px;border-bottom:2px solid #e9d5ff">Separaciones</div>
-    <div style="grid-column:span 2;text-align:center;font-size:10px;font-weight:800;color:#2563eb;text-transform:uppercase;padding-bottom:5px;border-bottom:2px solid #bfdbfe">Meta</div>
-    <div style="grid-column:span 2;text-align:center;font-size:10px;font-weight:800;color:#059669;text-transform:uppercase;padding-bottom:5px;border-bottom:2px solid #bbf7d0">Venta Real</div>
-  </div>
-  <div class="res-sub-grid">
-    <div></div>
-    <div class="res-mini" style="text-align:center">Total</div>
-    <div class="res-mini" style="text-align:center">Proyectado</div>
-    <div class="res-mini" style="text-align:center">Monto</div>
-    <div class="res-mini" style="text-align:center">Unidades</div>
-    <div class="res-mini" style="text-align:center">Monto</div>
-  </div>`;
+  // ── TABLA DESKTOP ──
+  html += `<div class="res-table res-table-desktop">
+    <div class="res-head-row">
+      <div></div>
+      <div class="res-head-group" style="color:#7c3aed;border-bottom-color:#e9d5ff">Separaciones</div>
+      <div class="res-head-group" style="color:#2563eb;border-bottom-color:#bfdbfe">Meta</div>
+      <div class="res-head-group" style="color:#059669;border-bottom-color:#bbf7d0">Venta Real</div>
+    </div>
+    <div class="res-sub-row">
+      <div></div>
+      <div class="res-sub-label">Total</div>
+      <div class="res-sub-label">Proyectado</div>
+      <div class="res-sub-label">Monto</div>
+      <div class="res-sub-label">Unidades</div>
+      <div class="res-sub-label">Monto</div>
+    </div>`;
 
-  // ── FILAS POR PROYECTO ──
-  PROJ.forEach(pe => {
-    const {pn,undR,mtoR,sepTot,meta,mes} = getProyData(pe);
+  proyData.forEach(({pn,undR,mtoR,sepTot,meta,mes},i) => {
     const col = PC[pn] || '#64748b';
-    const pU = pct(undR,meta.und);
-    const pM = pct(mtoR,meta.monto);
+    const pU = pct(undR, meta.und);
+    const pM = pct(mtoR, meta.monto);
     const mk = pn+'|'+mes;
 
     html += `
-    <div class="res-row" style="border-left:4px solid ${col}">
-      <div class="res-proy">${pn}</div>
+    <div class="res-proy-row" style="border-left-color:${col}">
+      <div class="res-proy-name">${pn}</div>
 
-      <div class="res-box">
-        <div class="res-big" style="color:#7c3aed">${sepTot}</div>
+      <div class="res-cell">
+        <div class="res-cell-num" style="color:#7c3aed">${sepTot}</div>
       </div>
 
-      <div class="res-box">
-        <input class="res-input" type="number" value="${meta.und}" onchange="updateMeta('${mk}','und',this.value)">
+      <div class="res-cell" style="background:#eff6ff">
+        <input class="res-cell-input" type="number" value="${meta.und}"
+          onchange="updateMeta('${mk}','und',this.value)">
       </div>
 
-      <div class="res-box">
-        <div class="money-input-wrap">
-          <span class="money-prefix">S/.</span>
-          <input class="res-input-money" type="number" value="${meta.monto}" onchange="updateMeta('${mk}','monto',this.value)">
+      <div class="res-cell" style="background:#eff6ff">
+        <div class="res-cell-money-wrap">
+          <span class="res-cell-money-prefix">S/.</span>
+          <input class="res-cell-money-input" type="number" value="${meta.monto}"
+            onchange="updateMeta('${mk}','monto',this.value)">
         </div>
       </div>
 
-      <div class="res-box">
-        <div class="venta-num" style="color:${colPct(pU)}">${undR}</div>
-        <div class="venta-sub">${undR}/${meta.und} · ${pU}%</div>
+      <div class="res-cell">
+        <div class="res-cell-num" style="color:${colPct(pU)}">${undR}</div>
+        <div class="res-cell-sub">${undR}/${meta.und} · ${pU}%</div>
         <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
       </div>
 
-      <div class="res-box">
-        ${fmtMoneyParts(mtoR, colPct(pM), 'venta-money')}
-        <div class="venta-sub">${pM}%</div>
+      <div class="res-cell">
+        <div class="res-cell-money-val" style="color:${colPct(pM)}">${fmt(mtoR)}</div>
+        <div class="res-cell-sub">${pM}%</div>
         <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
       </div>
     </div>`;
   });
 
-  // ── FILA TOTAL ──
-  html += `
-  <div class="res-total">
-    <div style="font-size:14px;font-weight:800">TOTAL</div>
-    <div style="text-align:center">
-      <div style="font-size:28px;font-weight:700;color:#c4b5fd">${totSep}</div>
-    </div>
-    <div style="text-align:center">
-      <div style="font-size:28px;font-weight:700;color:#93c5fd">${totUndM}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">und meta</div>
-    </div>
-    <div style="text-align:center">
-      <div style="font-size:15px;font-weight:700;color:#93c5fd">${fmt(totMtoM)}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">monto meta</div>
-    </div>
-    <div style="text-align:center">
-      <div style="font-size:28px;font-weight:700;color:#6ee7b7">${totUndR}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">${tpU}%</div>
-    </div>
-    <div style="text-align:center">
-      <div style="font-size:15px;font-weight:700;color:#6ee7b7">${fmt(totMtoR)}</div>
-      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">${tpM}%</div>
-    </div>
-  </div>`;
+  html += `</div>`; // end res-table-desktop
+
+  // ── TARJETAS MOBILE ──
+  proyData.forEach(({pn,undR,mtoR,sepTot,meta,mes}) => {
+    const col = PC[pn] || '#64748b';
+    const pU = pct(undR, meta.und);
+    const pM = pct(mtoR, meta.monto);
+    const mk = pn+'|'+mes;
+
+    html += `
+    <div class="res-mobile-card">
+      <div class="res-mobile-header" style="border-left:4px solid ${col}">
+        <div class="res-mobile-dot" style="background:${col}"></div>
+        <div class="res-mobile-name">${pn}</div>
+      </div>
+      <div class="res-mobile-grid">
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#7c3aed">Separaciones</div>
+          <div class="res-mobile-val" style="color:#7c3aed">${sepTot}</div>
+        </div>
+        <div class="res-mobile-box" style="background:#eff6ff">
+          <div class="res-mobile-label" style="color:#2563eb">Meta Und</div>
+          <input class="res-mobile-input" type="number" value="${meta.und}"
+            onchange="updateMeta('${mk}','und',this.value)">
+        </div>
+        <div class="res-mobile-box" style="background:#eff6ff">
+          <div class="res-mobile-label" style="color:#2563eb">Meta Monto</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+            <span style="font-size:10px;font-weight:700;color:#2563eb">S/.</span>
+            <input class="res-mobile-money-input" type="number" value="${meta.monto}"
+              onchange="updateMeta('${mk}','monto',this.value)">
+          </div>
+        </div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:${colPct(pU)}">V. Unidades</div>
+          <div class="res-mobile-val" style="color:${colPct(pU)}">${undR}</div>
+          <div class="res-mobile-sub">${pU}%</div>
+          <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+        </div>
+        <div class="res-mobile-box" style="grid-column:span 2">
+          <div class="res-mobile-label" style="color:${colPct(pM)}">V. Monto</div>
+          <div class="res-mobile-val money" style="color:${colPct(pM)}">${fmt(mtoR)}</div>
+          <div class="res-mobile-sub">${pM}%</div>
+          <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
+        </div>
+      </div>
+    </div>`;
+  });
 
   html += renderStock();
   wrap.innerHTML = html;
