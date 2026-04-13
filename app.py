@@ -4,7 +4,7 @@ import csv
 import io
 import os
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 import pytz
 
 app = Flask(__name__)
@@ -40,12 +40,10 @@ def actualizar_cache():
     else:
         print('Error: no se pudo actualizar el caché')
 
-# Scheduler: 8am, 1pm, 7pm hora Lima
+# Scheduler: cada 1 hora
 tz_lima = pytz.timezone('America/Lima')
 scheduler = BackgroundScheduler(timezone=tz_lima)
-scheduler.add_job(actualizar_cache, CronTrigger(hour=8,  minute=0, timezone=tz_lima))
-scheduler.add_job(actualizar_cache, CronTrigger(hour=13, minute=0, timezone=tz_lima))
-scheduler.add_job(actualizar_cache, CronTrigger(hour=19, minute=0, timezone=tz_lima))
+scheduler.add_job(actualizar_cache, IntervalTrigger(hours=1))
 scheduler.start()
 
 # Carga inicial al arrancar
@@ -60,6 +58,14 @@ def api_data():
     return jsonify({
         'ventas': _cache['ventas'],
         'stock':  _cache['stock'],
+        'ultima_actualizacion': _cache['ultima_actualizacion']
+    })
+
+@app.route('/api/refresh', methods=['POST'])
+def api_refresh():
+    actualizar_cache()
+    return jsonify({
+        'ok': True,
         'ultima_actualizacion': _cache['ultima_actualizacion']
     })
 

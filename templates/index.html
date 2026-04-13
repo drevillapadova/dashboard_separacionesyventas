@@ -285,6 +285,14 @@ tbody tr:hover td{background:#f8faff}
   <button class="tab on" onclick="showTab('res',this)">Resumen</button>
   <button class="tab" onclick="showTab('ops',this)">Operaciones</button>
   <div class="nav-r" id="ts"></div>
+  <button id="btn-refresh" onclick="forzarActualizacion()" style="
+    margin-left:12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+    color:#fff;border-radius:20px;padding:5px 14px;font-size:11px;font-weight:600;
+    cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap
+  " onmouseover="this.style.background='rgba(255,255,255,.25)'"
+     onmouseout="this.style.background='rgba(255,255,255,.15)'">
+    ↻ Actualizar
+  </button>
 </div>
 
 <div class="fil">
@@ -406,6 +414,20 @@ let METAS = JSON.parse(localStorage.getItem('metas_padova') || '{}');
 let V = [], S = [], F = {p:'all',v:'all',ti:'all'};
 let OPS_SORT = { key:'pn', dir:'asc' };
 const $ = id => document.getElementById(id);
+
+async function forzarActualizacion() {
+  const btn = document.getElementById('btn-refresh');
+  btn.textContent = '⟳ Actualizando...';
+  btn.disabled = true;
+  try {
+    await fetch('/api/refresh', {method:'POST'});
+    await cargarDatos();
+  } catch(e) {
+    console.error('Error al actualizar:', e);
+  }
+  btn.textContent = '↻ Actualizar';
+  btn.disabled = false;
+}
 
 async function cargarDatos() {
   try {
