@@ -89,20 +89,37 @@ tbody tr:hover td{background:#f8faff}
   box-shadow:0 6px 18px rgba(15,23,42,.06)
 }
 
+.kpi-summary{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:22px;
+}
+.kpi-sum-card{
+  background:#fff;border-radius:16px;padding:22px 18px;
+  box-shadow:0 6px 18px rgba(15,23,42,.06);text-align:center;
+}
+.kpi-sum-label{
+  font-size:10px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.08em;color:#2563eb;margin-bottom:10px;
+}
+.kpi-sum-value{font-size:48px;font-weight:700;line-height:1}
+.kpi-sum-money{font-size:26px}
+
 .res-head-grid,.res-sub-grid,.res-row,.res-total{
   display:grid;
-  grid-template-columns:190px 1.1fr 1.15fr 1.6fr .7fr;
-  gap:12px;
+  grid-template-columns:180px .75fr 1fr 1.5fr 1fr 1.5fr;
+  gap:10px;
   align-items:center
 }
-.res-head-grid{margin-bottom:6px}
-.res-sub-grid{margin-bottom:12px}
+.res-head-grid{margin-bottom:4px}
+.res-sub-grid{margin-bottom:10px}
 .res-row{
-  background:#fff;border-radius:16px;padding:16px 18px;margin-bottom:10px;
+  background:#fff;border-radius:16px;padding:14px 16px;margin-bottom:8px;
   box-shadow:0 6px 18px rgba(15,23,42,.05)
 }
 .res-total{
-  background:#16233f;color:#fff;border-radius:18px;padding:18px;margin-bottom:22px;
+  background:#16233f;color:#fff;border-radius:18px;padding:16px;margin-bottom:22px;
   box-shadow:0 10px 22px rgba(15,23,42,.12)
 }
 
@@ -203,10 +220,14 @@ tbody tr:hover td{background:#f8faff}
 }
 
 @media (max-width:1100px){
+  .kpi-summary{grid-template-columns:1fr 1fr}
   .res-head-grid,.res-sub-grid,.res-row,.res-total,
   .dual-grid,.kpi-grid-2,.kpi-grid-3,.venta-grid{
     grid-template-columns:1fr;
   }
+  .res-head-grid,.res-sub-grid{display:none}
+  .kpi-sum-value{font-size:36px}
+  .kpi-sum-money{font-size:20px}
   .single-title{font-size:24px}
 }
 </style>
@@ -767,41 +788,75 @@ function renderTodos(){
   const wrap = $('vista-todos');
   let html = '';
 
+  // Pre-calcular totales para los KPI cards
+  let totUndM=0, totMtoM=0, totUndR=0, totMtoR=0, totSep=0;
+  PROJ.forEach(pe => {
+    const {undR,mtoR,sepTot,meta} = getProyData(pe);
+    totUndM += meta.und; totMtoM += meta.monto;
+    totUndR += undR; totMtoR += mtoR; totSep += sepTot;
+  });
+  const tpU = pct(totUndR,totUndM);
+  const tpM = pct(totMtoR,totMtoM);
+
+  // ── KPI SUMMARY CARDS ──
+  html += `
+  <div class="kpi-summary">
+    <div class="kpi-sum-card">
+      <div class="kpi-sum-label" style="color:#7c3aed">Separaciones Totales</div>
+      <div class="kpi-sum-value" style="color:#7c3aed">${totSep}</div>
+    </div>
+    <div class="kpi-sum-card">
+      <div class="kpi-sum-label" style="color:#2563eb">Ventas Totales</div>
+      <div class="kpi-sum-value" style="color:#2563eb">${totUndR}</div>
+    </div>
+    <div class="kpi-sum-card">
+      <div class="kpi-sum-label" style="color:#059669">Monto Total</div>
+      <div class="kpi-sum-value kpi-sum-money" style="color:#059669">${fmt(totMtoR)}</div>
+    </div>
+    <div class="kpi-sum-card" style="background:linear-gradient(135deg,#eff6ff,#e0e7ff)">
+      <div class="kpi-sum-label" style="color:#1d4ed8">Gráfico de Meta</div>
+      <div style="margin-top:12px">
+        <div style="height:10px;background:#dbeafe;border-radius:999px;overflow:hidden;margin-bottom:10px">
+          <div style="height:100%;width:${Math.min(100,tpU)}%;background:#2563eb;border-radius:999px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:28px;font-weight:700;color:#2563eb;line-height:1">${tpU}%</div>
+        <div style="font-size:11px;color:#93c5fd;margin-top:4px">${totUndR} / ${totUndM} und</div>
+      </div>
+    </div>
+  </div>`;
+
+  // ── CABECERA DE TABLA ──
   html += `
   <div class="res-head-grid">
     <div></div>
-    <div style="text-align:center;font-size:11px;font-weight:800;color:#2563eb;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #bfdbfe">Meta</div>
-    <div style="text-align:center;font-size:11px;font-weight:800;color:#2563eb;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #bfdbfe">Monto Meta</div>
-    <div style="text-align:center;font-size:11px;font-weight:800;color:#059669;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #bbf7d0">Venta Real</div>
-    <div style="text-align:center;font-size:11px;font-weight:800;color:#7c3aed;text-transform:uppercase;padding-bottom:6px;border-bottom:2px solid #e9d5ff">Sep Total</div>
+    <div style="text-align:center;font-size:10px;font-weight:800;color:#7c3aed;text-transform:uppercase;padding-bottom:5px;border-bottom:2px solid #e9d5ff">Separaciones</div>
+    <div style="grid-column:span 2;text-align:center;font-size:10px;font-weight:800;color:#2563eb;text-transform:uppercase;padding-bottom:5px;border-bottom:2px solid #bfdbfe">Meta</div>
+    <div style="grid-column:span 2;text-align:center;font-size:10px;font-weight:800;color:#059669;text-transform:uppercase;padding-bottom:5px;border-bottom:2px solid #bbf7d0">Venta Real</div>
   </div>
-
   <div class="res-sub-grid">
     <div></div>
+    <div class="res-mini" style="text-align:center">Total</div>
     <div class="res-mini" style="text-align:center">Proyectado</div>
-    <div class="res-mini" style="text-align:center">Monto editable</div>
-    <div class="res-mini" style="text-align:center">Und / Monto</div>
-    <div class="res-mini" style="text-align:center">Und</div>
+    <div class="res-mini" style="text-align:center">Monto</div>
+    <div class="res-mini" style="text-align:center">Unidades</div>
+    <div class="res-mini" style="text-align:center">Monto</div>
   </div>`;
 
-  let totUndM=0, totMtoM=0, totUndR=0, totMtoR=0, totSep=0;
-
-  PROJ.forEach(pe=>{
+  // ── FILAS POR PROYECTO ──
+  PROJ.forEach(pe => {
     const {pn,undR,mtoR,sepTot,meta,mes} = getProyData(pe);
     const col = PC[pn] || '#64748b';
     const pU = pct(undR,meta.und);
     const pM = pct(mtoR,meta.monto);
     const mk = pn+'|'+mes;
 
-    totUndM += meta.und;
-    totMtoM += meta.monto;
-    totUndR += undR;
-    totMtoR += mtoR;
-    totSep += sepTot;
-
     html += `
     <div class="res-row" style="border-left:4px solid ${col}">
       <div class="res-proy">${pn}</div>
+
+      <div class="res-box">
+        <div class="res-big" style="color:#7c3aed">${sepTot}</div>
+      </div>
 
       <div class="res-box">
         <input class="res-input" type="number" value="${meta.und}" onchange="updateMeta('${mk}','und',this.value)">
@@ -809,65 +864,47 @@ function renderTodos(){
 
       <div class="res-box">
         <div class="money-input-wrap">
-          <span class="money-prefix">S/</span>
+          <span class="money-prefix">S/.</span>
           <input class="res-input-money" type="number" value="${meta.monto}" onchange="updateMeta('${mk}','monto',this.value)">
         </div>
       </div>
 
       <div class="res-box">
-        <div class="venta-grid">
-          <div class="venta-cell">
-            <div class="venta-num" style="color:${colPct(pU)}">${undR}</div>
-            <div class="venta-sub">${undR}/${meta.und} · ${pU}%</div>
-            <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
-          </div>
-          <div class="venta-cell">
-            ${fmtMoneyParts(mtoR, colPct(pM), 'venta-money')}
-            <div class="venta-sub">${pM}%</div>
-            <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
-          </div>
-        </div>
+        <div class="venta-num" style="color:${colPct(pU)}">${undR}</div>
+        <div class="venta-sub">${undR}/${meta.und} · ${pU}%</div>
+        <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
       </div>
 
       <div class="res-box">
-        <div class="res-big" style="color:#7c3aed">${sepTot}</div>
+        ${fmtMoneyParts(mtoR, colPct(pM), 'venta-money')}
+        <div class="venta-sub">${pM}%</div>
+        <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
       </div>
     </div>`;
   });
 
-  const tpU = pct(totUndR,totUndM);
-  const tpM = pct(totMtoR,totMtoM);
-
+  // ── FILA TOTAL ──
   html += `
   <div class="res-total">
-    <div style="font-size:16px;font-weight:800">TOTAL</div>
-
+    <div style="font-size:14px;font-weight:800">TOTAL</div>
     <div style="text-align:center">
-      <div style="font-size:30px;font-weight:700;color:#93c5fd">${totUndM}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.55)">meta total</div>
+      <div style="font-size:28px;font-weight:700;color:#c4b5fd">${totSep}</div>
     </div>
-
     <div style="text-align:center">
-      <div style="font-size:30px;font-weight:700;color:#93c5fd;font-family:monospace;line-height:1">S/ ${fmtMoneyNoSymbol(totMtoM)}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.55)">monto meta</div>
+      <div style="font-size:28px;font-weight:700;color:#93c5fd">${totUndM}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">und meta</div>
     </div>
-
     <div style="text-align:center">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div>
-          <div style="font-size:30px;font-weight:700;color:#6ee7b7">${totUndR}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.55)">${tpU}% unidades</div>
-        </div>
-        <div>
-          <div style="font-size:30px;font-weight:700;color:#6ee7b7;font-family:monospace;line-height:1">S/ ${fmtMoneyNoSymbol(totMtoR)}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.55)">${tpM}% monto</div>
-        </div>
-      </div>
+      <div style="font-size:15px;font-weight:700;color:#93c5fd">${fmt(totMtoM)}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">monto meta</div>
     </div>
-
     <div style="text-align:center">
-      <div style="font-size:30px;font-weight:700;color:#c4b5fd">${totSep}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.55)">separaciones</div>
+      <div style="font-size:28px;font-weight:700;color:#6ee7b7">${totUndR}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">${tpU}%</div>
+    </div>
+    <div style="text-align:center">
+      <div style="font-size:15px;font-weight:700;color:#6ee7b7">${fmt(totMtoR)}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:3px">${tpM}%</div>
     </div>
   </div>`;
 
