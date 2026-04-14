@@ -659,7 +659,8 @@ function init(ultimaActualizacion){
   const siT  = six('TipoInmueble');
   const siN  = six('NroInmuebleActual');
   const siEd = six('Edificio');
-  const siPr = six('PrecioVenta') >= 0 ? six('PrecioVenta') : six('PrecioLista');
+  const siPrV = six('PrecioVenta');
+  const siPrL = six('PrecioLista');
   const siFD = six('FechaSepDefinitiva');
   const siCl = six('Nombres');
   const siCa = six('ComoSeEntero');
@@ -674,7 +675,8 @@ function init(ultimaActualizacion){
     const proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
     if(!proyKey) return null;
 
-    const pr = parsePrecio(g(siPr));
+    const prV = parsePrecio(g(siPrV));
+    const pr = (prV > 0) ? prV : parsePrecio(g(siPrL));
     const fd = pf(siFD>=0 ? r[siFD] : null);
 
     return {
