@@ -105,7 +105,9 @@ tbody tr:hover td{background:#f8faff}
   letter-spacing:.08em;margin-bottom:10px;
 }
 .kpi-sum-value{font-size:48px;font-weight:700;line-height:1}
-.kpi-sum-money{font-size:24px}
+.kpi-sum-money{font-size:48px;font-weight:700;line-height:1}
+.kpi-sum-money .sym{font-size:22px;font-weight:700;vertical-align:baseline;margin-right:3px}
+.kpi-sum-money .amt{font-size:48px;font-weight:700}
 
 /* ── TABLA RESUMEN ── */
 /* Todas las filas usan el mismo grid: nombre + 5 celdas */
@@ -239,17 +241,24 @@ tbody tr:hover td{background:#f8faff}
 .kpi.purple{border-top:4px solid #7c3aed}
 .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:12px}
 .kpi-value{font-size:42px;line-height:1;font-weight:700}
-.kpi-value.money{
-  font-size:42px;font-family:inherit;line-height:1;font-weight:700
-}
+.kpi-value.money{font-size:42px;font-family:inherit;line-height:1;font-weight:700}
+.money-inline{display:flex;align-items:baseline;justify-content:center;gap:4px;white-space:nowrap;flex-wrap:nowrap}
+.money-inline .sym{font-size:18px;font-weight:700;flex-shrink:0}
+.money-inline .amt{font-weight:700;line-height:1}
 .kpi-sub{font-size:13px;color:#64748b;margin-top:10px;font-weight:600}
 .meta-input-big{
   width:100%;border:none;background:#eff6ff;border-radius:10px;font-size:40px;font-weight:700;
   color:#2563eb;text-align:center;font-family:inherit;outline:none;padding:10px 12px
 }
+.meta-money-wrap{
+  display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+  background:#eff6ff;border-radius:10px;padding:4px 12px;
+}
+.meta-money-sym{font-size:22px;font-weight:700;color:#2563eb;flex-shrink:0}
 .meta-input-money{
-  width:100%;border:none;background:#eff6ff;border-radius:10px;font-size:28px;font-weight:700;
-  color:#2563eb;text-align:center;font-family:inherit;padding:10px 12px;outline:none
+  border:none;background:transparent;font-size:28px;font-weight:700;
+  color:#2563eb;text-align:center;font-family:inherit;outline:none;
+  width:100%;min-width:0;padding:6px 0;
 }
 
 .section-title{
@@ -259,23 +268,41 @@ tbody tr:hover td{background:#f8faff}
 @media (max-width:900px){
   .kpi-summary{grid-template-columns:1fr 1fr}
   .kpi-sum-value{font-size:36px}
-  .kpi-sum-money{font-size:20px}
+  .kpi-sum-money{font-size:36px}
+  .kpi-sum-money .sym{font-size:16px}
+  .kpi-sum-money .amt{font-size:36px}
   /* Ocultar tabla desktop, mostrar tarjetas mobile */
   .res-table-desktop{display:none !important}
   .res-mobile-card{display:block !important}
   /* Vista single */
-  .dual-grid,.kpi-grid-2,.kpi-grid-3{grid-template-columns:1fr}
+  .dual-grid{grid-template-columns:1fr}
+  .kpi-grid-2,.kpi-grid-3{grid-template-columns:1fr 1fr}
+  .kpi{min-height:130px;padding:16px 12px}
+  .kpi-value{font-size:34px}
+  .kpi-value.money{font-size:28px}
+  .money-inline .sym{font-size:14px}
   .single-title{font-size:22px}
   .pg{padding:14px}
   .wrap-wide{padding:0}
 }
 @media (max-width:480px){
   .kpi-summary{grid-template-columns:1fr 1fr}
-  .kpi-sum-value{font-size:28px}
-  .kpi-sum-money{font-size:16px}
-  .kpi-sum-card{padding:16px 12px}
+  .kpi-sum-value{font-size:26px}
+  .kpi-sum-money{font-size:26px}
+  .kpi-sum-money .sym{font-size:13px}
+  .kpi-sum-money .amt{font-size:26px}
+  .kpi-sum-card{padding:14px 10px}
+  .kpi-grid-2,.kpi-grid-3{grid-template-columns:1fr 1fr}
+  .kpi{min-height:110px;padding:12px 8px}
+  .kpi-value{font-size:28px}
+  .kpi-value.money{font-size:22px}
+  .money-inline .sym{font-size:12px}
+  .meta-input-big{font-size:28px}
+  .meta-money-sym{font-size:16px}
+  .meta-input-money{font-size:20px}
   .res-mobile-grid{grid-template-columns:1fr 1fr}
   .fil{padding:8px 12px;gap:6px}
+  .block{padding:14px 12px}
 }
 </style>
 </head>
@@ -470,7 +497,7 @@ function fmtMoneyNoSymbol(n){
 }
 function fmtMoneyParts(n, color, cls='venta-money'){
   if(!n && n!==0) return `<div class="${cls}" style="color:${color||'#1e2a4a'}">—</div>`;
-  return `<div class="${cls}" style="color:${color||'#1e2a4a'}">S/ ${fmtMoneyNoSymbol(n)}</div>`;
+  return `<div class="${cls} money-inline" style="color:${color||'#1e2a4a'}"><span class="sym">S/</span><span class="amt">${fmtMoneyNoSymbol(n)}</span></div>`;
 }
 function pct(a,b){ return b>0 ? Math.round(a/b*100) : 0; }
 function colPct(p){ return p>=100 ? '#059669' : p>=70 ? '#d97706' : '#dc2626'; }
@@ -874,7 +901,7 @@ function renderTodos(){
     </div>
     <div class="kpi-sum-card">
       <div class="kpi-sum-label" style="color:#059669">Monto Total</div>
-      <div class="kpi-sum-value kpi-sum-money" style="color:#059669">${fmt(totMtoR)}</div>
+      <div class="kpi-sum-money money-inline" style="color:#059669"><span class="sym">S/</span><span class="amt">${fmtMoneyNoSymbol(totMtoR)}</span></div>
     </div>
     <div class="kpi-sum-card" style="background:linear-gradient(135deg,#eff6ff,#e0e7ff)">
       <div class="kpi-sum-label" style="color:#1d4ed8">Gráfico de Meta</div>
@@ -1040,8 +1067,8 @@ function renderSingle(pe){
 
           <div class="kpi blue">
             <div class="kpi-label">Monto</div>
-            <div class="money-input-wrap" style="padding:10px 14px">
-              <span class="money-prefix" style="font-size:28px">S/</span>
+            <div class="meta-money-wrap">
+              <span class="meta-money-sym">S/</span>
               <input class="meta-input-money" type="number" value="${meta.monto}" onchange="updateMeta('${mk}','monto',this.value)">
             </div>
             <div class="kpi-sub">monto meta</div>
