@@ -1264,6 +1264,18 @@ function rOps(){
     ).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
 }
 
+async function forzarActualizacion() {
+  const btn = document.getElementById('btn-refresh');
+  btn.textContent = '⟳ Actualizando...';
+  btn.disabled = true;
+  try {
+    await fetch('/api/refresh', {method:'POST'});
+    await cargarDatos();
+  } catch(e) { console.error('Error al actualizar:', e); }
+  btn.textContent = '↻ Actualizar';
+  btn.disabled = false;
+}
+
 cargarDatos();
 </script>
 </body>
