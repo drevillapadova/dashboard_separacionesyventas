@@ -615,6 +615,7 @@ function init(ultimaActualizacion){
   const iPr = ix('PrecioVenta');
   const iFV = ix('FechaVenta');
   const iFM = ix('FechaEntrega_Minuta');
+  const iEO = ix('EstadoOC');
 
   V = RAW_V.slice(1).map(r => {
     const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
@@ -628,6 +629,9 @@ function init(ultimaActualizacion){
 
     const est = g(iE).toLowerCase();
     if(est.includes('cancel')) return null;
+
+    const estadoOC = g(iEO).toLowerCase();
+    if(estadoOC === 'devuelto') return null;
 
     const pr = parsePrecio(g(iPr));
     const fv = pf(r[iFV]);
