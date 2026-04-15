@@ -655,7 +655,7 @@ function init(ultimaActualizacion){
     if(!proyKey) return null;
 
     const est = g(iE).toLowerCase();
-    if(est.includes('cancel')) return null;
+    if(est === 'disponible' || est === 'bloqueado') return null;
 
     const estadoOC = g(iEO).toLowerCase();
     if(estadoOC === 'devuelto') return null;
