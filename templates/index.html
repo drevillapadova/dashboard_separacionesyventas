@@ -505,6 +505,14 @@ function fmtMoneyParts(n, color, cls='venta-money'){
 function pct(a,b){ return b>0 ? Math.round(a/b*100) : 0; }
 function colPct(p){ return p>=100 ? '#059669' : p>=70 ? '#d97706' : '#dc2626'; }
 function cap(s){ return s ? s[0].toUpperCase()+s.slice(1) : ''; }
+function fmtVendedor(s){
+  // "Anthony Junior Nolasco Mayorca" → "Anthony Nolasco"
+  // Toma la 1ra palabra (nombre) y la penúltima (apellido paterno)
+  if(!s) return '';
+  const w = s.trim().split(/\s+/).filter(Boolean);
+  if(w.length <= 2) return w.join(' ');
+  return w[0] + ' ' + w[w.length - 2];
+}
 
 function fmtDate(d){
   if(!d || !(d instanceof Date) || isNaN(d)) return '—';
@@ -677,7 +685,7 @@ function init(ultimaActualizacion){
       in: formatInmueblePorProyecto(proyKey, g(iNr), g(iEd)),
       cl: tc(g(iCl)),
       ca: tc(g(iCa)),
-      vnd: tc(g(iVnd)),
+      vnd: fmtVendedor(tc(g(iVnd))),
       pr,
       fv,
       fm,
@@ -729,7 +737,7 @@ function init(ultimaActualizacion){
       pr,
       cl: tc(g(siCl)),
       ca: tc(g(siCa)),
-      vnd: tc(g(siVnd)),
+      vnd: fmtVendedor(tc(g(siVnd))),
       isTem,
       fd,
       ml: fd ? mesCorto(fd) : '',
