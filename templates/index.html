@@ -447,7 +447,7 @@ const $ = id => document.getElementById(id);
 
 async function cargarDatos() {
   try {
-    const r = await fetch('/api/data');
+    const r = await fetch('/api/data?t=' + Date.now());
     const d = await r.json();
     RAW_V = d.ventas || [];
     RAW_S = d.stock || [];
