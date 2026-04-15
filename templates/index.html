@@ -691,7 +691,7 @@ function init(ultimaActualizacion){
   const siT  = six('TipoInmueble');
   const siN  = six('NroInmuebleActual');
   const siEd = six('Edificio');
-  const siPrV = six('PrecioVenta');
+  const siPrV = six('PrecioVentaSoles') >= 0 ? six('PrecioVentaSoles') : six('PrecioVenta');
   const siPrL = six('PrecioLista');
   const siFD = six('FechaSepDefinitiva');
   const siCl = six('Nombres');
