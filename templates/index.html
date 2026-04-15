@@ -640,7 +640,7 @@ function init(ultimaActualizacion){
   const iEd = ix('T/M');
   const iCl = ix('NombresTitular');
   const iCa = ix('ComoSeEntero');
-  const iPr = ix('PrecioVenta');
+  const iPr = ix('PrecioVentaSoles') >= 0 ? ix('PrecioVentaSoles') : ix('PrecioVenta');
   const iFV = ix('FechaVenta');
   const iFM = ix('FechaEntrega_Minuta');
   const iEO = ix('EstadoOC');
