@@ -284,9 +284,16 @@ def get_driver(download_dir):
         "profile.default_content_setting_values.automatic_downloads": 1
     }
     options.add_experimental_option("prefs", prefs)
-    
-    service = Service(ChromeDriverManager().install())
-    return webdriver.Chrome(service=service, options=options)
+
+    if IS_CLOUD:
+        # En nube (GitHub Actions): Selenium Manager (built-in en Selenium 4.6+)
+        # detecta automáticamente el ChromeDriver compatible con el Chrome instalado.
+        # NO usar webdriver-manager aquí — puede descargar una versión incorrecta.
+        return webdriver.Chrome(options=options)
+    else:
+        # En local Windows: webdriver-manager descarga el ChromeDriver
+        service = Service(ChromeDriverManager().install())
+        return webdriver.Chrome(service=service, options=options)
 
 
 def clean_environment(directory, extension="*.xlsx"):
