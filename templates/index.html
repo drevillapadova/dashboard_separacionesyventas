@@ -83,6 +83,7 @@ tbody tr:hover td{background:#f8faff}
 .bg{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600}
 .b-s{background:#fef3c7;color:#92400e}
 .b-v{background:#dbeafe;color:#1e40af}
+.b-st{background:#fde8d8;color:#9a3412}
 
 .card{
   background:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;
@@ -384,6 +385,7 @@ tbody tr:hover td{background:#f8faff}
               <th class="sortable" onclick="sortOpsBy('in')">Inmueble</th>
               <th class="sortable" onclick="sortOpsBy('cl')">Cliente</th>
               <th class="sortable" onclick="sortOpsBy('pr')">Precio S/</th>
+              <th class="sortable" onclick="sortOpsBy('vnd')">Asesor</th>
               <th class="sortable" onclick="sortOpsBy('fechaSort')">Fecha</th>
             </tr>
           </thead>
@@ -644,6 +646,7 @@ function init(ultimaActualizacion){
   const iFV = ix('FechaVenta');
   const iFM = ix('FechaEntrega_Minuta');
   const iEO = ix('EstadoOC');
+  const iVnd = ix('Vendedor');
 
   V = RAW_V.slice(1).map(r => {
     const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
@@ -674,6 +677,7 @@ function init(ultimaActualizacion){
       in: formatInmueblePorProyecto(proyKey, g(iNr), g(iEd)),
       cl: tc(g(iCl)),
       ca: tc(g(iCa)),
+      vnd: tc(g(iVnd)),
       pr,
       fv,
       fm,
@@ -696,6 +700,8 @@ function init(ultimaActualizacion){
   const siFD = six('FechaSepDefinitiva');
   const siCl = six('Nombres');
   const siCa = six('ComoSeEntero');
+  const siFT  = six('FechaSepTemporal');
+  const siVnd = six('Vendedor');
 
   S = RAW_S.slice(1).map(r => {
     const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
@@ -709,7 +715,10 @@ function init(ultimaActualizacion){
 
     const prV = parsePrecio(g(siPrV));
     const pr = (prV > 0) ? prV : parsePrecio(g(siPrL));
-    const fd = pf(siFD>=0 ? r[siFD] : null);
+    const fdDef = pf(siFD>=0 ? r[siFD] : null);
+    const fdTem = pf(siFT>=0 ? r[siFT] : null);
+    const isTem = !fdDef && !!fdTem;
+    const fd = fdDef || fdTem;
 
     return {
       p: proyKey,
@@ -720,6 +729,8 @@ function init(ultimaActualizacion){
       pr,
       cl: tc(g(siCl)),
       ca: tc(g(siCa)),
+      vnd: tc(g(siVnd)),
+      isTem,
       fd,
       ml: fd ? mesCorto(fd) : '',
       md: fd || new Date(0),
@@ -871,6 +882,7 @@ function getProyData(pe){
     undR: ventas.length,
     mtoR: ventas.reduce((t,x) => t + x.pr, 0),
     sepTot: seps.length,
+    sepMto: seps.reduce((t,x) => t + (x.pr||0), 0),
     mes
   };
 }
@@ -1041,7 +1053,7 @@ function renderTodos(){
 }
 
 function renderSingle(pe){
-  const {pn,undR,mtoR,sepTot,meta,mes} = getProyData(pe);
+  const {pn,undR,mtoR,sepTot,sepMto,meta,mes} = getProyData(pe);
   const col = PC[pn] || '#64748b';
   const pU = pct(undR,meta.und);
   const pM = pct(mtoR,meta.monto);
@@ -1112,8 +1124,8 @@ function renderSingle(pe){
 
         <div class="kpi purple">
           <div class="kpi-label">Monto sep.</div>
-          ${fmtMoneyParts(meta.und>0 ? sepTot*(meta.monto/meta.und) : null, '#7c3aed', 'kpi-value money')}
-          <div class="kpi-sub">estimado</div>
+          ${fmtMoneyParts(sepMto||0, '#7c3aed', 'kpi-value money')}
+          <div class="kpi-sub">monto real</div>
         </div>
 
         <div class="kpi purple">
@@ -1252,6 +1264,7 @@ function rOps(){
         in: x.in,
         cl: x.cl,
         pr: x.pr,
+        vnd: x.vnd || '—',
         fecha: fmtDate(dt),
         fechaSort: dt ? dt.getTime() : 0
       });
@@ -1263,11 +1276,12 @@ function rOps(){
       const dt = x.fd || null;
       rows.push({
         pn: x.pn,
-        st: 'Separación',
+        st: x.isTem ? 'Separación Tem.' : 'Separación',
         ti: x.t,
         in: x.i || '—',
         cl: x.cl || '—',
         pr: x.pr,
+        vnd: x.vnd || '—',
         fecha: dt ? fmtDate(dt) : 'En stock',
         fechaSort: dt ? dt.getTime() : 0
       });
@@ -1279,7 +1293,8 @@ function rOps(){
 
   const bg = {
     'Venta':'<span class="bg b-v">Venta</span>',
-    'Separación':'<span class="bg b-s">Separación</span>'
+    'Separación':'<span class="bg b-s">Separación</span>',
+    'Separación Tem.':'<span class="bg b-st">Sep. Tem.</span>'
   };
 
   $('tbody').innerHTML =
@@ -1291,9 +1306,10 @@ function rOps(){
         <td style="font-family:monospace;color:#94a3b8">${x.in || '—'}</td>
         <td>${x.cl || '—'}</td>
         <td style="font-family:monospace;font-weight:700;color:#2563eb">${x.pr ? 'S/ '+Math.round(x.pr).toLocaleString('es-PE') : '—'}</td>
+        <td style="color:#64748b">${x.vnd||'—'}</td>
         <td style="color:#94a3b8">${x.fecha}</td>
       </tr>`
-    ).join('') || '<tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
+    ).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
 }
 
 async function forzarActualizacion() {
