@@ -110,9 +110,17 @@ def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=Non
     Agrega columna PrecioVentaSoles convirtiendo USD a PEN.
     Si col_fecha está definida, usa el TC histórico de la fecha de cada registro.
     Si tc está definido (sin col_fecha), usa ese TC fijo para todos.
+
+    Validación anti-error-CRM: si un precio marcado como USD supera
+    USD_MAX_RAZONABLE, se asume que el CRM etiquetó mal la moneda y
+    el precio ya está en soles (se deja sin convertir).
+    Ningún inmueble de estos proyectos cuesta más de $300,000 USD reales.
     """
+    USD_MAX_RAZONABLE = 300_000  # umbral: > esto → el precio ya está en soles
+
     df = df.copy()
     convertidos = 0
+    corregidos = 0
     precios_soles = []
 
     for idx, row in df.iterrows():
@@ -125,22 +133,30 @@ def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=Non
         es_usd = "DOLAR" in moneda or "USD" in moneda
 
         if es_usd:
-            # Determinar TC a usar
-            if col_fecha and col_fecha in df.columns:
-                fecha_registro = row[col_fecha]
-                tc_usar = get_tipo_cambio(fecha_registro)
-            elif tc is not None:
-                tc_usar = tc
+            if precio > USD_MAX_RAZONABLE:
+                # Precio demasiado alto para ser USD real → el CRM lo etiquetó mal
+                # Se conserva el valor como soles sin convertir
+                precios_soles.append(round(precio, 2))
+                corregidos += 1
+                print(f"   -> [TC] AVISO: precio {precio:,.0f} marcado USD pero supera "
+                      f"${USD_MAX_RAZONABLE:,} → se trata como soles (posible error CRM)")
             else:
-                tc_usar = get_tipo_cambio()
-            precios_soles.append(round(precio * tc_usar, 2))
-            convertidos += 1
+                # Determinar TC a usar
+                if col_fecha and col_fecha in df.columns:
+                    fecha_registro = row[col_fecha]
+                    tc_usar = get_tipo_cambio(fecha_registro)
+                elif tc is not None:
+                    tc_usar = tc
+                else:
+                    tc_usar = get_tipo_cambio()
+                precios_soles.append(round(precio * tc_usar, 2))
+                convertidos += 1
         else:
             precios_soles.append(round(precio, 2))
 
     df["PrecioVentaSoles"] = precios_soles
-    en_soles = len(df) - convertidos
-    print(f"   -> [TC] {en_soles} en soles + {convertidos} en dólares convertidos con TC histórico por fecha")
+    en_soles = len(df) - convertidos - corregidos
+    print(f"   -> [TC] {en_soles} en soles + {convertidos} en USD convertidos + {corregidos} corregidos (USD mal etiquetado)")
     return df
 
 
