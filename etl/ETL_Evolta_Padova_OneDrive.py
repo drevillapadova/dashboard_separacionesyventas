@@ -110,17 +110,9 @@ def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=Non
     Agrega columna PrecioVentaSoles convirtiendo USD a PEN.
     Si col_fecha está definida, usa el TC histórico de la fecha de cada registro.
     Si tc está definido (sin col_fecha), usa ese TC fijo para todos.
-
-    Validación anti-error-CRM: si un precio marcado como USD supera
-    USD_MAX_RAZONABLE, se asume que el CRM etiquetó mal la moneda y
-    el precio ya está en soles (se deja sin convertir).
-    Ningún inmueble de estos proyectos cuesta más de $300,000 USD reales.
     """
-    USD_MAX_RAZONABLE = 300_000  # umbral: > esto → el precio ya está en soles
-
     df = df.copy()
     convertidos = 0
-    corregidos = 0
     precios_soles = []
 
     for idx, row in df.iterrows():
@@ -133,31 +125,101 @@ def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=Non
         es_usd = "DOLAR" in moneda or "USD" in moneda
 
         if es_usd:
-            if precio > USD_MAX_RAZONABLE:
-                # Precio demasiado alto para ser USD real → el CRM lo etiquetó mal
-                # Se conserva el valor como soles sin convertir
-                precios_soles.append(round(precio, 2))
-                corregidos += 1
-                print(f"   -> [TC] AVISO: precio {precio:,.0f} marcado USD pero supera "
-                      f"${USD_MAX_RAZONABLE:,} → se trata como soles (posible error CRM)")
+            if col_fecha and col_fecha in df.columns:
+                fecha_registro = row[col_fecha]
+                tc_usar = get_tipo_cambio(fecha_registro)
+            elif tc is not None:
+                tc_usar = tc
             else:
-                # Determinar TC a usar
-                if col_fecha and col_fecha in df.columns:
-                    fecha_registro = row[col_fecha]
-                    tc_usar = get_tipo_cambio(fecha_registro)
-                elif tc is not None:
-                    tc_usar = tc
-                else:
-                    tc_usar = get_tipo_cambio()
-                precios_soles.append(round(precio * tc_usar, 2))
-                convertidos += 1
+                tc_usar = get_tipo_cambio()
+            precios_soles.append(round(precio * tc_usar, 2))
+            convertidos += 1
         else:
             precios_soles.append(round(precio, 2))
 
     df["PrecioVentaSoles"] = precios_soles
-    en_soles = len(df) - convertidos - corregidos
-    print(f"   -> [TC] {en_soles} en soles + {convertidos} en USD convertidos + {corregidos} corregidos (USD mal etiquetado)")
+    en_soles = len(df) - convertidos
+    print(f"   -> [TC] {en_soles} en soles + {convertidos} en dólares convertidos con TC histórico por fecha")
     return df
+
+
+def corregir_moneda_con_stock(df_ventas, df_stock):
+    """
+    Corrige TipoMoneda en VENTAS usando STOCK como fuente de verdad.
+
+    Evolta a veces exporta la moneda equivocada en el reporte de ventas.
+    El reporte de stock es más confiable: si un inmueble aparece en STOCK
+    con moneda SOLES pero en VENTAS dice DOLAR, se corrige antes de convertir,
+    evitando que el precio se triplique al multiplicar por el TC.
+
+    Clave de cruce: (Proyecto.upper(), NroInmueble normalizado)
+    """
+    if df_stock is None or len(df_stock) == 0:
+        return df_ventas
+
+    df_stock = df_stock.copy()
+    df_stock.columns = df_stock.columns.str.strip()
+
+    # Columnas necesarias en STOCK
+    col_proy_s   = next((c for c in df_stock.columns if c.strip() == 'Proyecto'), None)
+    col_nro_s    = next((c for c in df_stock.columns if c.strip() == 'NroInmuebleActual'), None) \
+                or next((c for c in df_stock.columns if 'NroInmueble' in c), None)
+    col_moneda_s = next((c for c in df_stock.columns if c.strip() == 'Moneda'), None)
+
+    if not col_proy_s or not col_nro_s or not col_moneda_s:
+        print(f"   -> [MONEDA] Sin columnas para cruce stock/ventas "
+              f"(proy={col_proy_s}, nro={col_nro_s}, moneda={col_moneda_s})")
+        return df_ventas
+
+    def norm_nro(v):
+        """Normaliza NroInmueble: '1407.0' → '1407'"""
+        s = str(v).strip()
+        if s.endswith('.0'):
+            s = s[:-2]
+        return s.upper()
+
+    # Construir lookup: (proyecto_upper, nro_normalizado) → moneda_stock
+    lookup = {}
+    for _, row in df_stock.iterrows():
+        proy = str(row[col_proy_s]).strip().upper()
+        nro  = norm_nro(row[col_nro_s])
+        mon  = str(row[col_moneda_s]).strip().upper()
+        if proy and nro and nro not in ('', 'NAN', 'NONE'):
+            lookup[(proy, nro)] = mon
+
+    print(f"   -> [MONEDA] Lookup stock construido: {len(lookup)} unidades")
+
+    # Columnas necesarias en VENTAS
+    col_proy_v   = 'Proyecto'    if 'Proyecto'    in df_ventas.columns else None
+    col_nro_v    = 'NroInmueble' if 'NroInmueble' in df_ventas.columns else None
+    col_moneda_v = 'TipoMoneda'  if 'TipoMoneda'  in df_ventas.columns else None
+
+    if not col_proy_v or not col_nro_v or not col_moneda_v:
+        print(f"   -> [MONEDA] Sin columnas en ventas para cruce. Saltando.")
+        return df_ventas
+
+    df_ventas = df_ventas.copy()
+    corregidos = 0
+
+    for idx, row in df_ventas.iterrows():
+        moneda_v = str(row[col_moneda_v]).upper().strip()
+        if 'DOLAR' not in moneda_v and 'USD' not in moneda_v:
+            continue  # Solo corregir los marcados como USD
+
+        proy_v = str(row[col_proy_v]).strip().upper()
+        nro_v  = norm_nro(row[col_nro_v])
+        moneda_stock = lookup.get((proy_v, nro_v))
+
+        if moneda_stock and 'DOLAR' not in moneda_stock and 'USD' not in moneda_stock:
+            # STOCK dice SOLES → el precio en ventas ya está en soles, corregir etiqueta
+            df_ventas.at[idx, col_moneda_v] = moneda_stock
+            corregidos += 1
+            precio_val = row.get('PrecioVenta', '')
+            print(f"   -> [MONEDA] Corregido {proy_v} · {nro_v}: "
+                  f"DOLAR→{moneda_stock} (precio {precio_val})")
+
+    print(f"   -> [MONEDA] Total corregidos: {corregidos} registros")
+    return df_ventas
 
 
 
@@ -809,8 +871,9 @@ def normalizar_ventas_unpivot(df):
         return df
 
 
-def process_ventas_data():
-    """Normaliza y consolida los reportes de ventas. Retorna DataFrame consolidado."""
+def process_ventas_data(df_stock=None):
+    """Normaliza y consolida los reportes de ventas. Retorna DataFrame consolidado.
+    df_stock: DataFrame crudo del reporte de stock para corregir moneda antes de convertir."""
     print("\n>> [TRANSFORMATION VENTAS] Normalizando y consolidando datos de ventas...")
     
     dataframes = {}
@@ -879,6 +942,11 @@ def process_ventas_data():
             print("    Precios individuales por ítem aplicados desde TotalLista.")
         except Exception as e:
             print(f"    [Warning] No se pudo aplicar TotalLista a PrecioVenta: {e}")
+
+    # Corregir TipoMoneda usando STOCK como fuente de verdad (antes de convertir)
+    if df_stock is not None and "TipoMoneda" in df_consolidado.columns:
+        print("\n    Corrigiendo moneda con datos de STOCK...")
+        df_consolidado = corregir_moneda_con_stock(df_consolidado, df_stock)
 
     # Convertir precios a soles usando TC histórico por fecha de cada registro
     if "PrecioVenta" in df_consolidado.columns and "TipoMoneda" in df_consolidado.columns:
@@ -1173,20 +1241,32 @@ def main():
     finally:
         driver.quit()
     
-    # 5. PROCESAR DATOS DE VENTAS (consolidar)
+    # 5. LEER STOCK CRUDO para corrección de moneda en ventas
+    df_stock_crudo = None
     try:
-        df_ventas = process_ventas_data()
+        list_stock = glob.glob(os.path.join(DOWNLOAD_DIR, '*.xlsx'))
+        if list_stock:
+            latest_stock = max(list_stock, key=os.path.getctime)
+            df_stock_crudo = pd.read_excel(latest_stock)
+            df_stock_crudo.columns = df_stock_crudo.columns.str.strip()
+            print(f"\n>> [MONEDA] Stock crudo cargado ({len(df_stock_crudo)} filas) para validar moneda")
+    except Exception as e:
+        print(f"!! Warning: no se pudo leer stock crudo para corrección de moneda: {e}")
+
+    # 6. PROCESAR DATOS DE VENTAS (consolida + corrige moneda con stock)
+    try:
+        df_ventas = process_ventas_data(df_stock=df_stock_crudo)
     except Exception as e:
         print(f"!! DATA ERROR (Ventas): {e}")
         df_ventas = None
     
-    # 6. PROCESAR DATOS DE STOCK (incluye pestaña VENTAS)
+    # 7. PROCESAR DATOS DE STOCK (incluye pestaña VENTAS)
     try:
         final_file = process_stock_data(df_ventas)
     except Exception as e:
         print(f"!! DATA ERROR (Stock): {e}")
     
-    # 7. ENVIAR CORREO (un solo archivo)
+    # 8. ENVIAR CORREO (un solo archivo)
     if final_file:
         try:
             dispatch_report(final_file)
