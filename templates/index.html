@@ -781,6 +781,7 @@ function getMesesPorAnio(yr){
 function poblarFiltros(){
   const anios = getAnios();
   const sa = $('sanio');
+  const prevAnio = sa.value; // preservar selección actual antes de reconstruir
   sa.innerHTML = '<option value="todos">Todos</option>';
 
   anios.forEach(a => {
@@ -790,7 +791,12 @@ function poblarFiltros(){
     sa.appendChild(o);
   });
 
-  if(anios.length) sa.value = anios[anios.length-1];
+  // Si el año que tenía seleccionado sigue existiendo, mantenerlo.
+  // Solo cambiar al más reciente en la primera carga (prevAnio vacío).
+  const opValues = [...sa.options].map(o => o.value);
+  if(prevAnio && opValues.includes(prevAnio)) sa.value = prevAnio;
+  else if(anios.length) sa.value = anios[anios.length-1];
+
   actualizarMeses();
 }
 function actualizarMeses(){
