@@ -243,7 +243,8 @@ TARGET_PROJECTS = [
     'SUNNY',
     'LITORAL 900',
     'HELIO - SANTA BEATRIZ',
-    'LOMAS DE CARABAYLLO'
+    'LOMAS DE CARABAYLLO',
+    'DOMINGO ORUE'
 ]
 
 # Detectar entorno: nube (Linux) o local (Windows)
