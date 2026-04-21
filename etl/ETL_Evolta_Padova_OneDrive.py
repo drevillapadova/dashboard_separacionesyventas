@@ -222,6 +222,44 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
     return df_ventas
 
 
+def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda', col_proyecto='Proyecto'):
+    """
+    Corrección específica para SUNNY: precios < S/ 600,000 marcados como SOLES
+    son en realidad USD (error sistemático del CRM para este proyecto).
+
+    Regla: Proyecto=SUNNY + moneda != DOLAR + PrecioVenta < 600,000 → tratar como DOLAR.
+    """
+    UMBRAL = 600_000
+
+    cols_ok = all(c in df.columns for c in [col_precio, col_moneda, col_proyecto])
+    if not cols_ok:
+        return df
+
+    df = df.copy()
+    corregidos = 0
+
+    for idx, row in df.iterrows():
+        if 'SUNNY' not in str(row[col_proyecto]).upper():
+            continue
+
+        moneda = str(row[col_moneda]).upper().strip()
+        if 'DOLAR' in moneda or 'USD' in moneda:
+            continue  # ya marcado como USD, no tocar
+
+        try:
+            precio = float(str(row[col_precio]).replace(',', '')) if row[col_precio] else 0
+        except:
+            precio = 0
+
+        if 0 < precio < UMBRAL:
+            df.at[idx, col_moneda] = 'DOLAR'
+            corregidos += 1
+            print(f"   -> [MONEDA] Sunny: {precio:,.0f} 'SOLES' → DOLAR (< {UMBRAL:,})")
+
+    print(f"   -> [MONEDA] Sunny: {corregidos} registros corregidos a DOLAR")
+    return df
+
+
 
 # --- CONFIGURACIÓN DE CREDENCIALES ---
 # En nube (GitHub Actions): se leen desde variables de entorno (Secrets)
@@ -949,6 +987,11 @@ def process_ventas_data(df_stock=None):
         print("\n    Corrigiendo moneda con datos de STOCK...")
         df_consolidado = corregir_moneda_con_stock(df_consolidado, df_stock)
 
+    # Corrección específica Sunny: precios < 600k en 'SOLES' son en realidad USD
+    if "TipoMoneda" in df_consolidado.columns:
+        print("\n    Aplicando corrección de moneda Sunny...")
+        df_consolidado = corregir_moneda_sunny(df_consolidado, col_moneda='TipoMoneda')
+
     # Convertir precios a soles usando TC histórico por fecha de cada registro
     if "PrecioVenta" in df_consolidado.columns and "TipoMoneda" in df_consolidado.columns:
         print("\n    Convirtiendo precios a soles con TC histórico por fecha...")
@@ -988,6 +1031,10 @@ def process_stock_data(df_ventas=None):
         
     print(f"   -> Filas tras filtros: {len(df)}")
     
+    # Corrección específica Sunny en STOCK: precios < 600k en 'SOLES' son USD
+    if "Moneda" in df.columns:
+        df = corregir_moneda_sunny(df, col_moneda='Moneda')
+
     # Convertir precios a soles usando TC histórico por fecha
     if "Moneda" in df.columns:
         col_fecha_stock = None
