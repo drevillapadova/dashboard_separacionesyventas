@@ -549,6 +549,11 @@ function formatInmueblePorProyecto(proyKey, inmueble, edificio){
     if(ediTrim === '2' || ediTrim === 'T2') return `T2 - ${inm}`;
   }
 
+  if(proyKey === 'DOMINGO ORUE'){
+    // Usa el valor de T/M directamente: "T1" → "T1 - 201"
+    if(edi) return `${edi} - ${inm}`;
+  }
+
   return inm;
 }
 
