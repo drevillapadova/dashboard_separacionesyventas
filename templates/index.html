@@ -312,6 +312,7 @@ tbody tr:hover td{background:#f8faff}
   <div class="brand"><div class="bdot"></div>Padova SAC · Ventas</div>
   <button class="tab on" onclick="showTab('res',this)">Resumen</button>
   <button class="tab" onclick="showTab('ops',this)">Operaciones</button>
+  <button class="tab" onclick="showTab('avance',this)">Avance</button>
   <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
     <div class="nav-r" id="ts"></div>
     <button id="btn-refresh" onclick="forzarActualizacion()" style="
@@ -365,6 +366,14 @@ tbody tr:hover td{background:#f8faff}
   <div class="wrap-wide">
     <div id="vista-todos"></div>
     <div id="vista-single" style="display:none"></div>
+  </div>
+</div>
+
+<div id="pg-avance" class="pg">
+  <div class="wrap-wide">
+    <div class="card">
+      <div id="avance-table"></div>
+    </div>
   </div>
 </div>
 
@@ -443,6 +452,7 @@ const METAS_DEFAULT = {
 };
 
 let METAS = JSON.parse(localStorage.getItem('metas_padova') || '{}');
+let MINUTAS_PF = JSON.parse(localStorage.getItem('minutas_pf') || '{}');
 let V = [], S = [], F = {p:'all',v:'all',ti:'all'};
 let OPS_SORT = { key:'pn', dir:'asc' };
 const $ = id => document.getElementById(id);
@@ -569,6 +579,20 @@ function getMeta(pn,mes){
 }
 function saveMetas(){
   localStorage.setItem('metas_padova', JSON.stringify(METAS));
+}
+function getMinutasPF(pn, yr, mes){
+  const k = pn + '|' + yr + '|' + mes;
+  if(!MINUTAS_PF[k]) MINUTAS_PF[k] = {und:0, monto:0};
+  return MINUTAS_PF[k];
+}
+function saveMinutasPF(){
+  localStorage.setItem('minutas_pf', JSON.stringify(MINUTAS_PF));
+}
+function updPF(pn, yr, mes, campo, val){
+  const k = pn + '|' + yr + '|' + mes;
+  if(!MINUTAS_PF[k]) MINUTAS_PF[k] = {und:0, monto:0};
+  MINUTAS_PF[k][campo] = parseFloat(val) || 0;
+  saveMinutasPF();
 }
 
 function pf(v){
@@ -701,7 +725,7 @@ function init(ultimaActualizacion){
       md: ref || new Date(0),
       yr
     };
-  }).filter(d => d && d.yr >= 2024);
+  }).filter(d => d && d.yr >= 2023);
 
   const hS = RAW_S[0] || [];
   const six = n => hS.findIndex(h => h.toString().trim() === n);
@@ -854,7 +878,7 @@ function sf(g,v,btn){
   renderAll();
 }
 function showTab(id,btn){
-  ['res','ops'].forEach(t => $('pg-'+t).classList.remove('on'));
+  ['res','ops','avance'].forEach(t => $('pg-'+t).classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   $('pg-'+id).classList.add('on');
   btn.classList.add('on');
@@ -871,6 +895,7 @@ function renderAll(){
     renderSingle(F.p);
   }
   rOps();
+  renderAvance();
 }
 
 function getProyData(pe){
@@ -1332,6 +1357,150 @@ function rOps(){
         <td style="color:#94a3b8">${x.fecha}</td>
       </tr>`
     ).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
+}
+
+function renderAvance(){
+  const f = getFilters();
+  const mesLabel = f.mes !== 'todos' ? cap(f.mes) : 'Todos';
+
+  const rows = PROJ.map(pe => {
+    const pn = PROJ_MAP[pe] || pe;
+
+    // Separaciones Vivas: todas las separaciones vigentes del proyecto, sin filtro de fecha
+    const sepVivas = S.filter(d => d.p===pe && d.e.includes('separac'));
+    const sepVivCount = sepVivas.length;
+    const sepVivMto = sepVivas.reduce((t,x) => t + (x.pr||0), 0);
+
+    // Minutas Firmadas: ventas filtradas por año/mes seleccionado
+    const firmadas = V.filter(d => {
+      if(d.p !== pe) return false;
+      if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
+      if(f.mes !== 'todos' && d.ml !== f.mes) return false;
+      return true;
+    });
+    const firmCount = firmadas.length;
+    const firmMto = firmadas.reduce((t,x) => t + (x.pr||0), 0);
+
+    // Minutas Por Firmar: editable por proyecto/año/mes
+    const pfData = getMinutasPF(pn, f.yr, f.mes);
+
+    const meta = getMeta(pn, f.mes);
+    const metaMk = pn + '|' + f.mes;
+
+    const totUnd = pfData.und + firmCount;
+    const totMto = pfData.monto + firmMto;
+    const avancePct = pct(firmCount, meta.und);
+
+    return { pn, metaMk, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta, yr: f.yr, mes: f.mes };
+  });
+
+  const totSepV = rows.reduce((t,r) => t + r.sepVivCount, 0);
+  const totSepM = rows.reduce((t,r) => t + r.sepVivMto, 0);
+  const totPFU  = rows.reduce((t,r) => t + r.pfData.und, 0);
+  const totPFM  = rows.reduce((t,r) => t + r.pfData.monto, 0);
+  const totFU   = rows.reduce((t,r) => t + r.firmCount, 0);
+  const totFM   = rows.reduce((t,r) => t + r.firmMto, 0);
+  const totTU   = rows.reduce((t,r) => t + r.totUnd, 0);
+  const totTM   = rows.reduce((t,r) => t + r.totMto, 0);
+  const totMU   = rows.reduce((t,r) => t + r.meta.und, 0);
+  const totMM   = rows.reduce((t,r) => t + r.meta.monto, 0);
+
+  const thSep  = 'background:#f3e8ff;color:#7c3aed';
+  const thPF   = 'background:#fff7ed;color:#c2410c';
+  const thFirm = 'background:#eff6ff;color:#1d4ed8';
+  const thTot  = 'background:#f0fdf4;color:#15803d';
+  const thMeta = 'background:#e0e7ff;color:#4338ca';
+
+  let html = `
+  <div style="font-size:13px;font-weight:700;margin-bottom:16px">Avance · ${mesLabel}</div>
+  <div class="tbl">
+  <table style="min-width:960px">
+    <thead>
+      <tr>
+        <th rowspan="2" style="min-width:150px">Proyecto</th>
+        <th colspan="2" style="text-align:center;${thSep}">Separaciones Vivas</th>
+        <th colspan="2" style="text-align:center;${thPF}">Minutas Por Firmar</th>
+        <th colspan="2" style="text-align:center;${thFirm}">Minutas Firmadas</th>
+        <th colspan="2" style="text-align:center;${thTot}">Total Minutas</th>
+        <th colspan="2" style="text-align:center;${thMeta}">Meta</th>
+      </tr>
+      <tr>
+        <th style="${thSep}">Und</th>
+        <th style="${thSep}">Monto</th>
+        <th style="${thPF}">Und</th>
+        <th style="${thPF}">Monto Proy.</th>
+        <th style="${thFirm}">Und</th>
+        <th style="${thFirm}">Avance</th>
+        <th style="${thTot}">Und</th>
+        <th style="${thTot}">Monto</th>
+        <th style="${thMeta}">Unidades</th>
+        <th style="${thMeta}">Monto</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  rows.forEach(({pn, metaMk, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta, yr, mes}) => {
+    const col = PC[pn] || '#64748b';
+    html += `
+    <tr>
+      <td style="font-weight:700;border-left:3px solid ${col};padding-left:10px">${pn}</td>
+      <td style="text-align:center;color:#7c3aed;font-weight:700">${sepVivCount}</td>
+      <td style="font-family:monospace;color:#7c3aed;font-size:11px">${fmt(sepVivMto)}</td>
+      <td style="text-align:center">
+        <input type="number" value="${pfData.und}" min="0"
+          onchange="updPF('${pn.replace(/'/g,"\\'")}','${yr}','${mes}','und',this.value)"
+          style="width:55px;text-align:center;border:1px solid #fed7aa;border-radius:6px;padding:4px 2px;font-size:12px;font-family:inherit;color:#c2410c;font-weight:700;background:#fff7ed">
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:2px">
+          <span style="font-size:10px;color:#c2410c;font-weight:600">S/</span>
+          <input type="number" value="${pfData.monto}" min="0"
+            onchange="updPF('${pn.replace(/'/g,"\\'")}','${yr}','${mes}','monto',this.value)"
+            style="width:88px;border:1px solid #fed7aa;border-radius:6px;padding:4px;font-size:11px;font-family:monospace;color:#c2410c;background:#fff7ed">
+        </div>
+      </td>
+      <td style="text-align:center;color:#2563eb;font-weight:700">${firmCount}</td>
+      <td>
+        <div style="font-size:11px;color:${colPct(avancePct)};font-weight:700">${avancePct}%</div>
+        <div class="bar" style="margin-top:4px"><div style="width:${Math.min(100,avancePct)}%;background:${colPct(avancePct)}"></div></div>
+      </td>
+      <td style="text-align:center;font-weight:700;color:#15803d">${totUnd}</td>
+      <td style="font-family:monospace;font-size:11px;color:#15803d">${fmt(totMto)}</td>
+      <td style="text-align:center">
+        <input type="number" value="${meta.und}" min="0"
+          onchange="updateMeta('${metaMk.replace(/'/g,"\\'")}','und',this.value)"
+          style="width:55px;text-align:center;border:1px solid #c7d2fe;border-radius:6px;padding:4px 2px;font-size:12px;font-family:inherit;color:#4338ca;font-weight:700;background:#e0e7ff">
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:2px">
+          <span style="font-size:10px;color:#4338ca;font-weight:600">S/</span>
+          <input type="number" value="${meta.monto}" min="0"
+            onchange="updateMeta('${metaMk.replace(/'/g,"\\'")}','monto',this.value)"
+            style="width:88px;border:1px solid #c7d2fe;border-radius:6px;padding:4px;font-size:11px;font-family:monospace;color:#4338ca;background:#e0e7ff">
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  html += `
+    <tr style="background:#f8faff;border-top:2px solid #e2e8f0">
+      <td style="font-weight:800;padding-left:10px">TOTAL</td>
+      <td style="text-align:center;color:#7c3aed;font-weight:700">${totSepV}</td>
+      <td style="font-family:monospace;color:#7c3aed;font-size:11px">${fmt(totSepM)}</td>
+      <td style="text-align:center;font-weight:700">${totPFU}</td>
+      <td style="font-family:monospace;font-size:11px">${fmt(totPFM)}</td>
+      <td style="text-align:center;color:#2563eb;font-weight:700">${totFU}</td>
+      <td></td>
+      <td style="text-align:center;color:#15803d;font-weight:700">${totTU}</td>
+      <td style="font-family:monospace;font-size:11px;color:#15803d">${fmt(totTM)}</td>
+      <td style="text-align:center;color:#4338ca;font-weight:700">${totMU}</td>
+      <td style="font-family:monospace;font-size:11px;color:#4338ca">${fmt(totMM)}</td>
+    </tr>
+  </tbody>
+  </table>
+  </div>`;
+
+  $('avance-table').innerHTML = html;
 }
 
 async function forzarActualizacion() {

@@ -329,7 +329,7 @@ for dir_path in [DOWNLOAD_DIR, DOWNLOAD_DIR_VENTAS]:
         os.makedirs(dir_path)
 
 # Configuración de años para reporte de ventas (máximo 1 año por descarga)
-AÑOS_VENTAS = [2024, 2025, 2026]
+AÑOS_VENTAS = [2023, 2024, 2025, 2026]
 
 # ============================================================================
 # DEFINICIÓN DE COLUMNAS MAESTRAS PARA NORMALIZACIÓN
