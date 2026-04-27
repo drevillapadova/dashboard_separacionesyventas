@@ -1376,14 +1376,15 @@ function renderAvance(){
   const rows = PROJ.map(pe => {
     const pn = PROJ_MAP[pe] || pe;
 
-    // Separaciones Vivas: totales del proyecto, sin filtro de fecha
-    const sepVivas = S.filter(d => d.p===pe && d.e.includes('separac'));
+    // Separaciones Vivas: totales del proyecto, sin filtro de fecha, solo departamentos
+    const sepVivas = S.filter(d => d.p===pe && d.e.includes('separac') && d.t.toLowerCase().includes('departamento'));
     const sepVivCount = sepVivas.length;
     const sepVivMto = sepVivas.reduce((t,x) => t + (x.pr||0), 0);
 
-    // Minutas Firmadas: filtradas por año/mes seleccionado
+    // Minutas Firmadas: filtradas por año/mes seleccionado, solo departamentos
     const firmadas = V.filter(d => {
       if(d.p !== pe) return false;
+      if(!d.ti.toLowerCase().includes('departamento')) return false;
       if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
       if(f.mes !== 'todos' && d.ml !== f.mes) return false;
       return true;
