@@ -1359,6 +1359,16 @@ function rOps(){
     ).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
 }
 
+function parseMonto(s){ return parseInt(String(s).replace(/[^0-9]/g,''), 10) || 0; }
+function fmtMonto(n){ return Math.round(n||0).toLocaleString('es-PE'); }
+function commitMonto(el){
+  const n = parseMonto(el.value);
+  const d = el.dataset;
+  if(d.tipo === 'pf') updPF(d.pn, d.yr, d.mes, 'monto', n);
+  else updateMeta(d.mk, 'monto', n);
+  el.value = fmtMonto(n);
+}
+
 function renderAvance(){
   const f = getFilters();
   const mesLabel = f.mes !== 'todos' ? cap(f.mes) : 'Todos';
@@ -1366,12 +1376,12 @@ function renderAvance(){
   const rows = PROJ.map(pe => {
     const pn = PROJ_MAP[pe] || pe;
 
-    // Separaciones Vivas: todas las separaciones vigentes del proyecto, sin filtro de fecha
+    // Separaciones Vivas: totales del proyecto, sin filtro de fecha
     const sepVivas = S.filter(d => d.p===pe && d.e.includes('separac'));
     const sepVivCount = sepVivas.length;
     const sepVivMto = sepVivas.reduce((t,x) => t + (x.pr||0), 0);
 
-    // Minutas Firmadas: ventas filtradas por año/mes seleccionado
+    // Minutas Firmadas: filtradas por año/mes seleccionado
     const firmadas = V.filter(d => {
       if(d.p !== pe) return false;
       if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
@@ -1405,24 +1415,39 @@ function renderAvance(){
   const totMU   = rows.reduce((t,r) => t + r.meta.und, 0);
   const totMM   = rows.reduce((t,r) => t + r.meta.monto, 0);
 
-  const thSep  = 'background:#f3e8ff;color:#7c3aed';
-  const thPF   = 'background:#fff7ed;color:#c2410c';
-  const thFirm = 'background:#eff6ff;color:#1d4ed8';
-  const thTot  = 'background:#f0fdf4;color:#15803d';
-  const thMeta = 'background:#e0e7ff;color:#4338ca';
+  const C = 'text-align:center;vertical-align:middle;';
+  const thSep  = `${C}background:#f3e8ff;color:#7c3aed`;
+  const thPF   = `${C}background:#fff7ed;color:#c2410c`;
+  const thFirm = `${C}background:#eff6ff;color:#1d4ed8`;
+  const thTot  = `${C}background:#f0fdf4;color:#15803d`;
+  const thMeta = `${C}background:#e0e7ff;color:#4338ca`;
+
+  const inpUnd = (val, onch, bdr, bg, clr) =>
+    `<input type="number" value="${val}" min="0" onchange="${onch}"
+      style="width:54px;text-align:center;border:1px solid ${bdr};border-radius:6px;
+             padding:4px 2px;font-size:12px;font-family:inherit;font-weight:700;
+             color:${clr};background:${bg}">`;
+
+  const inpMto = (val, pn, yr, mes, tipo, mk) =>
+    `<input type="text" value="${fmtMonto(val)}"
+      data-tipo="${tipo}" data-pn="${pn}" data-yr="${yr}" data-mes="${mes}" data-mk="${mk||''}"
+      onblur="commitMonto(this)" onkeydown="if(event.key==='Enter'){commitMonto(this);this.blur()}"
+      style="width:100px;text-align:center;border:1px solid ${tipo==='pf'?'#fed7aa':'#c7d2fe'};
+             border-radius:6px;padding:4px 6px;font-size:12px;font-family:inherit;font-weight:600;
+             color:${tipo==='pf'?'#c2410c':'#4338ca'};background:${tipo==='pf'?'#fff7ed':'#e0e7ff'}">`;
 
   let html = `
   <div style="font-size:13px;font-weight:700;margin-bottom:16px">Avance · ${mesLabel}</div>
   <div class="tbl">
-  <table style="min-width:960px">
+  <table style="min-width:980px">
     <thead>
       <tr>
         <th rowspan="2" style="min-width:150px">Proyecto</th>
-        <th colspan="2" style="text-align:center;${thSep}">Separaciones Vivas</th>
-        <th colspan="2" style="text-align:center;${thPF}">Minutas Por Firmar</th>
-        <th colspan="2" style="text-align:center;${thFirm}">Minutas Firmadas</th>
-        <th colspan="2" style="text-align:center;${thTot}">Total Minutas</th>
-        <th colspan="2" style="text-align:center;${thMeta}">Meta</th>
+        <th colspan="2" style="${thSep}">Separaciones Vivas</th>
+        <th colspan="2" style="${thPF}">Minutas Por Firmar</th>
+        <th colspan="2" style="${thFirm}">Minutas Firmadas</th>
+        <th colspan="2" style="${thTot}">Total Minutas</th>
+        <th colspan="2" style="${thMeta}">Meta</th>
       </tr>
       <tr>
         <th style="${thSep}">Und</th>
@@ -1444,57 +1469,43 @@ function renderAvance(){
     html += `
     <tr>
       <td style="font-weight:700;border-left:3px solid ${col};padding-left:10px">${pn}</td>
-      <td style="text-align:center;color:#7c3aed;font-weight:700">${sepVivCount}</td>
-      <td style="font-family:monospace;color:#7c3aed;font-size:11px">${fmt(sepVivMto)}</td>
-      <td style="text-align:center">
-        <input type="number" value="${pfData.und}" min="0"
-          onchange="updPF('${pn.replace(/'/g,"\\'")}','${yr}','${mes}','und',this.value)"
-          style="width:55px;text-align:center;border:1px solid #fed7aa;border-radius:6px;padding:4px 2px;font-size:12px;font-family:inherit;color:#c2410c;font-weight:700;background:#fff7ed">
+      <td style="${C}color:#7c3aed;font-weight:700;font-size:16px">${sepVivCount}</td>
+      <td style="${C}color:#7c3aed;font-size:12px">S/ ${fmtMonto(sepVivMto)}</td>
+      <td style="${C}">
+        ${inpUnd(pfData.und, `updPF('${pn.replace(/'/g,"\\'")}','${yr}','${mes}','und',this.value)`, '#fed7aa', '#fff7ed', '#c2410c')}
       </td>
-      <td>
-        <div style="display:flex;align-items:center;gap:2px">
-          <span style="font-size:10px;color:#c2410c;font-weight:600">S/</span>
-          <input type="number" value="${pfData.monto}" min="0"
-            onchange="updPF('${pn.replace(/'/g,"\\'")}','${yr}','${mes}','monto',this.value)"
-            style="width:88px;border:1px solid #fed7aa;border-radius:6px;padding:4px;font-size:11px;font-family:monospace;color:#c2410c;background:#fff7ed">
-        </div>
+      <td style="${C}">
+        ${inpMto(pfData.monto, pn, yr, mes, 'pf', '')}
       </td>
-      <td style="text-align:center;color:#2563eb;font-weight:700">${firmCount}</td>
-      <td>
-        <div style="font-size:11px;color:${colPct(avancePct)};font-weight:700">${avancePct}%</div>
+      <td style="${C}color:#2563eb;font-weight:700;font-size:16px">${firmCount}</td>
+      <td style="${C}">
+        <div style="font-size:12px;font-weight:700;color:${colPct(avancePct)}">${avancePct}%</div>
         <div class="bar" style="margin-top:4px"><div style="width:${Math.min(100,avancePct)}%;background:${colPct(avancePct)}"></div></div>
       </td>
-      <td style="text-align:center;font-weight:700;color:#15803d">${totUnd}</td>
-      <td style="font-family:monospace;font-size:11px;color:#15803d">${fmt(totMto)}</td>
-      <td style="text-align:center">
-        <input type="number" value="${meta.und}" min="0"
-          onchange="updateMeta('${metaMk.replace(/'/g,"\\'")}','und',this.value)"
-          style="width:55px;text-align:center;border:1px solid #c7d2fe;border-radius:6px;padding:4px 2px;font-size:12px;font-family:inherit;color:#4338ca;font-weight:700;background:#e0e7ff">
+      <td style="${C}color:#15803d;font-weight:700;font-size:16px">${totUnd}</td>
+      <td style="${C}color:#15803d;font-size:12px">S/ ${fmtMonto(totMto)}</td>
+      <td style="${C}">
+        ${inpUnd(meta.und, `updateMeta('${metaMk.replace(/'/g,"\\'")}','und',this.value)`, '#c7d2fe', '#e0e7ff', '#4338ca')}
       </td>
-      <td>
-        <div style="display:flex;align-items:center;gap:2px">
-          <span style="font-size:10px;color:#4338ca;font-weight:600">S/</span>
-          <input type="number" value="${meta.monto}" min="0"
-            onchange="updateMeta('${metaMk.replace(/'/g,"\\'")}','monto',this.value)"
-            style="width:88px;border:1px solid #c7d2fe;border-radius:6px;padding:4px;font-size:11px;font-family:monospace;color:#4338ca;background:#e0e7ff">
-        </div>
+      <td style="${C}">
+        ${inpMto(meta.monto, pn, yr, mes, 'meta', metaMk)}
       </td>
     </tr>`;
   });
 
   html += `
-    <tr style="background:#f8faff;border-top:2px solid #e2e8f0">
-      <td style="font-weight:800;padding-left:10px">TOTAL</td>
-      <td style="text-align:center;color:#7c3aed;font-weight:700">${totSepV}</td>
-      <td style="font-family:monospace;color:#7c3aed;font-size:11px">${fmt(totSepM)}</td>
-      <td style="text-align:center;font-weight:700">${totPFU}</td>
-      <td style="font-family:monospace;font-size:11px">${fmt(totPFM)}</td>
-      <td style="text-align:center;color:#2563eb;font-weight:700">${totFU}</td>
+    <tr style="background:#f8faff;border-top:2px solid #e2e8f0;font-weight:800">
+      <td style="padding-left:10px">TOTAL</td>
+      <td style="${C}color:#7c3aed;font-size:16px">${totSepV}</td>
+      <td style="${C}color:#7c3aed;font-size:12px">S/ ${fmtMonto(totSepM)}</td>
+      <td style="${C}">${totPFU}</td>
+      <td style="${C}font-size:12px">S/ ${fmtMonto(totPFM)}</td>
+      <td style="${C}color:#2563eb;font-size:16px">${totFU}</td>
       <td></td>
-      <td style="text-align:center;color:#15803d;font-weight:700">${totTU}</td>
-      <td style="font-family:monospace;font-size:11px;color:#15803d">${fmt(totTM)}</td>
-      <td style="text-align:center;color:#4338ca;font-weight:700">${totMU}</td>
-      <td style="font-family:monospace;font-size:11px;color:#4338ca">${fmt(totMM)}</td>
+      <td style="${C}color:#15803d;font-size:16px">${totTU}</td>
+      <td style="${C}color:#15803d;font-size:12px">S/ ${fmtMonto(totTM)}</td>
+      <td style="${C}color:#4338ca;font-size:16px">${totMU}</td>
+      <td style="${C}color:#4338ca;font-size:12px">S/ ${fmtMonto(totMM)}</td>
     </tr>
   </tbody>
   </table>
