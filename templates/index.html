@@ -406,7 +406,7 @@ tbody tr:hover td{background:#f8faff}
 </div>
 
 <script>
-let RAW_V = [], RAW_S = [];
+let RAW_V = [], RAW_S = [], RAW_PF = [];
 
 // SOLO estos proyectos serán visibles
 let PROJ_MAP = {
@@ -452,10 +452,29 @@ const METAS_DEFAULT = {
 };
 
 let METAS = JSON.parse(localStorage.getItem('metas_padova') || '{}');
-let MINUTAS_PF = JSON.parse(localStorage.getItem('minutas_pf') || '{}');
+let PF_MAP = {};
 let V = [], S = [], F = {p:'all',v:'all',ti:'all'};
 let OPS_SORT = { key:'pn', dir:'asc' };
 const $ = id => document.getElementById(id);
+
+function parsePFData(raw){
+  PF_MAP = {};
+  if(!raw || raw.length < 2) return;
+  const h = raw[0];
+  const iP = h.findIndex(c => c.toString().trim().toUpperCase() === 'PROYECTO');
+  const iU = h.findIndex(c => c.toString().trim().toUpperCase() === 'UNIDADES');
+  const iM = h.findIndex(c => c.toString().trim().toUpperCase() === 'MONTO');
+  if(iP < 0 || iU < 0 || iM < 0) return;
+  raw.slice(1).forEach(r => {
+    const pRaw = (r[iP] || '').toString().trim();
+    const pn = matchWhitelist(pRaw.toUpperCase());
+    if(!pn) return;
+    PF_MAP[pn] = {
+      und: parseInt(r[iU]) || 0,
+      monto: parsePrecio(r[iM]) || 0
+    };
+  });
+}
 
 async function cargarDatos() {
   try {
@@ -463,6 +482,8 @@ async function cargarDatos() {
     const d = await r.json();
     RAW_V = d.ventas || [];
     RAW_S = d.stock || [];
+    RAW_PF = d.minutas_pf || [];
+    parsePFData(RAW_PF);
     const ua = d.ultima_actualizacion || null;
     init(ua);
   } catch(e) {
@@ -580,20 +601,6 @@ function getMeta(pn,mes){
 function saveMetas(){
   localStorage.setItem('metas_padova', JSON.stringify(METAS));
 }
-function getMinutasPF(pn, yr, mes){
-  const k = pn + '|' + yr + '|' + mes;
-  if(!MINUTAS_PF[k]) MINUTAS_PF[k] = {und:0, monto:0};
-  return MINUTAS_PF[k];
-}
-function saveMinutasPF(){
-  localStorage.setItem('minutas_pf', JSON.stringify(MINUTAS_PF));
-}
-function updPF(pn, yr, mes, campo, val){
-  const k = pn + '|' + yr + '|' + mes;
-  if(!MINUTAS_PF[k]) MINUTAS_PF[k] = {und:0, monto:0};
-  MINUTAS_PF[k][campo] = parseFloat(val) || 0;
-  saveMinutasPF();
-}
 
 function pf(v){
   if(v===null || v===undefined || v==='') return null;
@@ -687,6 +694,7 @@ function init(ultimaActualizacion){
   const iFM = ix('FechaEntrega_Minuta');
   const iEO = ix('EstadoOC');
   const iVnd = ix('Vendedor');
+  const iInd = ix('Indice_Inmueble');
 
   V = RAW_V.slice(1).map(r => {
     const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
@@ -697,6 +705,10 @@ function init(ultimaActualizacion){
 
     const proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
     if(!proyKey) return null;
+
+    // Solo contar la unidad principal de cada proforma (Indice_Inmueble=1)
+    // Las unidades accesorias (estacionamientos/depósitos bundled) tienen índice 2,3...
+    if(iInd >= 0 && parseInt(g(iInd)) !== 1) return null;
 
     const est = g(iE).toLowerCase();
     if(est === 'disponible' || est === 'bloqueado') return null;
@@ -1363,9 +1375,7 @@ function parseMonto(s){ return parseInt(String(s).replace(/[^0-9]/g,''), 10) || 
 function fmtMonto(n){ return Math.round(n||0).toLocaleString('es-PE'); }
 function commitMonto(el){
   const n = parseMonto(el.value);
-  const d = el.dataset;
-  if(d.tipo === 'pf') updPF(d.pn, d.yr, d.mes, 'monto', n);
-  else updateMeta(d.mk, 'monto', n);
+  updateMeta(el.dataset.mk, 'monto', n);
   el.value = fmtMonto(n);
 }
 
@@ -1392,8 +1402,8 @@ function renderAvance(){
     const firmCount = firmadas.length;
     const firmMto = firmadas.reduce((t,x) => t + (x.pr||0), 0);
 
-    // Minutas Por Firmar: editable por proyecto/año/mes
-    const pfData = getMinutasPF(pn, f.yr, f.mes);
+    // Minutas Por Firmar: viene del Google Sheets
+    const pfData = PF_MAP[pn] || {und:0, monto:0};
 
     const meta = getMeta(pn, f.mes);
     const metaMk = pn + '|' + f.mes;
@@ -1425,6 +1435,7 @@ function renderAvance(){
 
   const inpUnd = (val, onch, bdr, bg, clr) =>
     `<input type="number" value="${val}" min="0" onchange="${onch}"
+      onkeydown="if(event.key==='Enter')this.blur()"
       style="width:54px;text-align:center;border:1px solid ${bdr};border-radius:6px;
              padding:4px 2px;font-size:12px;font-family:inherit;font-weight:700;
              color:${clr};background:${bg}">`;
@@ -1434,7 +1445,7 @@ function renderAvance(){
       <span style="font-size:10px;font-weight:700;color:${tipo==='pf'?'#c2410c':'#4338ca'}">S/</span>
       <input type="text" value="${fmtMonto(val)}"
         data-tipo="${tipo}" data-pn="${pn}" data-yr="${yr}" data-mes="${mes}" data-mk="${mk||''}"
-        onblur="commitMonto(this)" onkeydown="if(event.key==='Enter'){commitMonto(this);this.blur()}"
+        onblur="commitMonto(this)" onkeydown="if(event.key==='Enter')this.blur()"
         style="width:90px;text-align:center;border:1px solid ${tipo==='pf'?'#fed7aa':'#c7d2fe'};
                border-radius:6px;padding:4px 6px;font-size:12px;font-family:inherit;font-weight:600;
                color:${tipo==='pf'?'#c2410c':'#4338ca'};background:${tipo==='pf'?'#fff7ed':'#e0e7ff'}">
@@ -1476,12 +1487,8 @@ function renderAvance(){
       <td style="font-weight:700;border-left:3px solid ${col};padding-left:10px">${pn}</td>
       <td style="${C}color:#7c3aed;font-weight:700;font-size:16px">${sepVivCount}</td>
       <td style="${C}color:#7c3aed;font-size:12px">S/ ${fmtMonto(sepVivMto)}</td>
-      <td style="${C}">
-        ${inpUnd(pfData.und, `updPF('${pn.replace(/'/g,"\\'")}','${yr}','${mes}','und',this.value)`, '#fed7aa', '#fff7ed', '#c2410c')}
-      </td>
-      <td style="${C}">
-        ${inpMto(pfData.monto, pn, yr, mes, 'pf', '')}
-      </td>
+      <td style="${C}color:#c2410c;font-weight:700;font-size:16px">${pfData.und}</td>
+      <td style="${C}color:#c2410c;font-size:12px">S/ ${fmtMonto(pfData.monto)}</td>
       <td style="${C}color:#2563eb;font-weight:700;font-size:16px">${firmCount}</td>
       <td style="${C}color:#1d4ed8;font-size:12px">S/ ${fmtMonto(firmMto)}</td>
       <td style="${C}">

@@ -9,11 +9,12 @@ import pytz
 
 app = Flask(__name__)
 
-URL_VENTAS = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3Vnd6iNuxVhaxVIvvoD9AW4s_sgzqXillGeWiqL8CV0ha9L8WdX1D7KEBbcHYDTF7T9PCmOTCoC68/pub?gid=1351036806&single=true&output=csv'
-URL_STOCK  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3Vnd6iNuxVhaxVIvvoD9AW4s_sgzqXillGeWiqL8CV0ha9L8WdX1D7KEBbcHYDTF7T9PCmOTCoC68/pub?gid=1599060189&single=true&output=csv'
+URL_VENTAS     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3Vnd6iNuxVhaxVIvvoD9AW4s_sgzqXillGeWiqL8CV0ha9L8WdX1D7KEBbcHYDTF7T9PCmOTCoC68/pub?gid=1351036806&single=true&output=csv'
+URL_STOCK      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3Vnd6iNuxVhaxVIvvoD9AW4s_sgzqXillGeWiqL8CV0ha9L8WdX1D7KEBbcHYDTF7T9PCmOTCoC68/pub?gid=1599060189&single=true&output=csv'
+URL_MINUTAS_PF = 'https://docs.google.com/spreadsheets/d/15slphQ1xs7pkG4zH5mVwsnc1XKgGtLKah8-FHm7HMEM/export?format=csv&gid=GID_MINUTAS_PF'
 
 # Cache en memoria
-_cache = {'ventas': [], 'stock': [], 'ultima_actualizacion': None}
+_cache = {'ventas': [], 'stock': [], 'minutas_pf': [], 'ultima_actualizacion': None}
 
 def fetch_csv(url):
     try:
@@ -28,11 +29,13 @@ def fetch_csv(url):
 
 def actualizar_cache():
     print('Actualizando caché desde Google Sheets...')
-    ventas = fetch_csv(URL_VENTAS)
-    stock  = fetch_csv(URL_STOCK)
+    ventas     = fetch_csv(URL_VENTAS)
+    stock      = fetch_csv(URL_STOCK)
+    minutas_pf = fetch_csv(URL_MINUTAS_PF)
     if ventas or stock:
-        _cache['ventas'] = ventas
-        _cache['stock']  = stock
+        _cache['ventas']     = ventas
+        _cache['stock']      = stock
+        _cache['minutas_pf'] = minutas_pf
         from datetime import datetime
         tz_lima = pytz.timezone('America/Lima')
         _cache['ultima_actualizacion'] = datetime.now(tz_lima).strftime('%d/%m/%Y %H:%M')
@@ -56,8 +59,9 @@ def index():
 @app.route('/api/data')
 def api_data():
     return jsonify({
-        'ventas': _cache['ventas'],
-        'stock':  _cache['stock'],
+        'ventas':     _cache['ventas'],
+        'stock':      _cache['stock'],
+        'minutas_pf': _cache['minutas_pf'],
         'ultima_actualizacion': _cache['ultima_actualizacion']
     })
 
