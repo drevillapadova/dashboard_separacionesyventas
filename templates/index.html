@@ -737,15 +737,6 @@ function init(ultimaActualizacion){
   const iFM = ix('FechaEntrega_Minuta');
   const iEO = ix('EstadoOC');
   const iVnd = ix('Vendedor');
-  const iInd = ix('Indice_Inmueble');
-  const iCOC = ix('CorrelativoOC');
-
-  const _tipoPrio = t => {
-    const tl = t.toLowerCase();
-    if(tl.includes('departamento')) return 0;
-    if(tl.includes('azotea'))       return 1;
-    return 2;
-  };
 
   V = RAW_V.slice(1).map(r => {
     const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
@@ -756,15 +747,6 @@ function init(ultimaActualizacion){
 
     const proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
     if(!proyKey) return null;
-
-    // Excluir unidades accesorias (estac/depósito bundled): Indice_Inmueble > 1
-    if(iInd >= 0) {
-      const idx = parseInt(g(iInd));
-      if(!isNaN(idx) && idx !== 1) return null;
-    }
-
-    const est = g(iE).toLowerCase();
-    if(est === 'disponible' || est === 'bloqueado') return null;
 
     const estadoOC = g(iEO).toLowerCase();
     if(estadoOC !== 'activo') return null;
@@ -788,23 +770,9 @@ function init(ultimaActualizacion){
       fm,
       ml: ref ? mesCorto(ref) : '',
       md: ref || new Date(0),
-      yr,
-      coc: g(iCOC)
+      yr
     };
   }).filter(d => d && d.yr >= 2023);
-
-  // Deduplicar por CorrelativoOC: una sola fila por proforma (prioridad: departamento > azotea > otros)
-  {
-    const byCorr = new Map();
-    V.forEach(d => {
-      if(!d.coc) return;
-      const key = d.p + '|' + d.yr + '|' + d.coc;
-      const prev = byCorr.get(key);
-      if(!prev || _tipoPrio(d.ti) < _tipoPrio(prev.ti)) byCorr.set(key, d);
-    });
-    const noCoc = V.filter(d => !d.coc);
-    V = [...byCorr.values(), ...noCoc];
-  }
 
   const hS = RAW_S[0] || [];
   const six = n => hS.findIndex(h => h.toString().trim() === n);
