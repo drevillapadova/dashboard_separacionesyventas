@@ -798,7 +798,7 @@ function init(ultimaActualizacion){
     const byCorr = new Map();
     V.forEach(d => {
       if(!d.coc) return;
-      const key = d.p + '|' + d.coc;
+      const key = d.p + '|' + d.yr + '|' + d.coc;
       const prev = byCorr.get(key);
       if(!prev || _tipoPrio(d.ti) < _tipoPrio(prev.ti)) byCorr.set(key, d);
     });
