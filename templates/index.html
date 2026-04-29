@@ -780,7 +780,7 @@ function init(ultimaActualizacion){
       md: ref || new Date(0),
       yr
     };
-  }).filter(d => d && d.yr >= 2023);
+  }).filter(d => d && d.yr > 0);
 
   const hS = RAW_S[0] || [];
   const six = n => hS.findIndex(h => h.toString().trim() === n);
@@ -841,7 +841,9 @@ function init(ultimaActualizacion){
 }
 
 function getAnios(){
-  return [...new Set(V.map(d => d.yr))].filter(Boolean).sort();
+  const vy = V.map(d => d.yr);
+  const sy = S.map(d => d.yr);
+  return [...new Set([...vy, ...sy])].filter(Boolean).sort();
 }
 function getMesesPorAnio(yr){
   const seen = {}, res = [];
