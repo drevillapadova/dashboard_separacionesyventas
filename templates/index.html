@@ -65,6 +65,13 @@ select.pill{
 
 .pg{display:none;padding:24px}
 .pg.on{display:block}
+.fil-toggle{
+  display:none;align-items:center;gap:6px;
+  background:none;border:1px solid #dbe4ff;border-radius:20px;
+  padding:6px 14px;font-size:11px;font-weight:700;color:#475569;
+  cursor:pointer;font-family:inherit;
+}
+.fil-body{display:contents}
 
 .wrap-wide{width:100%;max-width:1280px;margin:0 auto}
 .single-shell{width:100%;max-width:1180px;margin:0 auto}
@@ -151,7 +158,7 @@ tbody tr:hover td{background:#f8faff}
   align-items:center;justify-content:center;
   min-height:64px;
 }
-.res-cell.meta{background:#eff6ff}
+.res-cell.meta{background:#f1f5fb}
 .res-cell-money-row{display:flex;align-items:baseline;justify-content:center;gap:4px}
 .res-cell-num{font-size:22px;font-weight:700;line-height:1}
 .res-cell-sub{font-size:10px;color:#94a3b8;margin-top:4px}
@@ -268,11 +275,16 @@ tbody tr:hover td{background:#f8faff}
   /* Ocultar tabla desktop, mostrar tarjetas mobile */
   .res-table-desktop{display:none !important}
   .res-mobile-card{display:block !important}
-  /* Nav responsive */
+  /* Nav responsive: tabs arriba, datos+actualizar abajo */
   .nav{flex-wrap:wrap;height:auto;padding:6px 12px 0}
-  .brand{padding:4px 0;margin-right:16px}
+  .brand{padding:4px 0;margin-right:12px}
   .tab{height:44px;padding:0 12px;font-size:11px}
-  .nav-actions{padding:6px 0 8px}
+  .nav-actions{
+    width:100%;margin-left:0;justify-content:flex-end;
+    padding:6px 0 8px;
+    border-top:1px solid rgba(255,255,255,.15);
+    margin-top:2px;
+  }
   /* Vista single */
   .dual-grid{grid-template-columns:1fr}
   .kpi-grid-2,.kpi-grid-3{grid-template-columns:1fr 1fr}
@@ -302,6 +314,14 @@ tbody tr:hover td{background:#f8faff}
   .res-mobile-grid{grid-template-columns:1fr 1fr}
   .fil{padding:8px 12px;gap:6px}
   .block{padding:14px 12px}
+  /* Filtros desplegables en mobile */
+  .fil-toggle{display:flex}
+  .fil-body{
+    display:none;flex-wrap:wrap;gap:6px;
+    width:100%;padding-top:8px;border-top:1px solid #e2e8f0;margin-top:2px;
+  }
+  .fil.open .fil-body{display:flex}
+  .dv{display:none}
 }
 </style>
 </head>
@@ -324,39 +344,42 @@ tbody tr:hover td{background:#f8faff}
   </div>
 </div>
 
-<div class="fil">
-  <span class="fl">Año</span>
-  <select class="pill" id="sanio" onchange="onAnioChange()"></select>
+<div class="fil" id="fil">
+  <button class="fil-toggle" onclick="document.getElementById('fil').classList.toggle('open');this.textContent=document.getElementById('fil').classList.contains('open')?'▲ Filtros':'☰ Filtros'">☰ Filtros</button>
+  <div class="fil-body">
+    <span class="fl">Año</span>
+    <select class="pill" id="sanio" onchange="onAnioChange()"></select>
 
-  <span class="fl">Mes</span>
-  <select class="pill" id="smes" onchange="renderAll()"></select>
+    <span class="fl">Mes</span>
+    <select class="pill" id="smes" onchange="renderAll()"></select>
 
-  <div class="dv"></div>
+    <div class="dv"></div>
 
-  <span class="fl">Proyecto</span>
-  <div id="proy-buttons" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    <span class="fl">Proyecto</span>
+    <div id="proy-buttons" style="display:flex;gap:8px;flex-wrap:wrap"></div>
 
-  <div class="dv"></div>
+    <div class="dv"></div>
 
-  <span class="fl">Vista</span>
-  <button class="pill on" data-g="v" data-v="all" onclick="sf('v','all',this)">Todos</button>
-  <button class="pill" data-g="v" data-v="ven" onclick="sf('v','ven',this)">Ventas</button>
-  <button class="pill" data-g="v" data-v="sep" onclick="sf('v','sep',this)">Separaciones</button>
+    <span class="fl">Vista</span>
+    <button class="pill on" data-g="v" data-v="all" onclick="sf('v','all',this)">Todos</button>
+    <button class="pill" data-g="v" data-v="ven" onclick="sf('v','ven',this)">Ventas</button>
+    <button class="pill" data-g="v" data-v="sep" onclick="sf('v','sep',this)">Separaciones</button>
 
-  <div class="dv"></div>
+    <div class="dv"></div>
 
-  <span class="fl">Tipo</span>
-  <button class="pill on" data-g="ti" data-v="all" onclick="sf('ti','all',this)">Todos</button>
-  <button class="pill" data-g="ti" data-v="Departamento" onclick="sf('ti','Departamento',this)">Dpto.</button>
-  <button class="pill" data-g="ti" data-v="Azotea" onclick="sf('ti','Azotea',this)">Azotea</button>
-  <button class="pill" data-g="ti" data-v="Estacionamiento" onclick="sf('ti','Estacionamiento',this)">Estac.</button>
-  <button class="pill" data-g="ti" data-v="Depósito" onclick="sf('ti','Depósito',this)">Depósito</button>
+    <span class="fl">Tipo</span>
+    <button class="pill on" data-g="ti" data-v="all" onclick="sf('ti','all',this)">Todos</button>
+    <button class="pill" data-g="ti" data-v="Departamento" onclick="sf('ti','Departamento',this)">Dpto.</button>
+    <button class="pill" data-g="ti" data-v="Azotea" onclick="sf('ti','Azotea',this)">Azotea</button>
+    <button class="pill" data-g="ti" data-v="Estacionamiento" onclick="sf('ti','Estacionamiento',this)">Estac.</button>
+    <button class="pill" data-g="ti" data-v="Depósito" onclick="sf('ti','Depósito',this)">Depósito</button>
 
-  <div class="dv"></div>
+    <div class="dv"></div>
 
-  <div class="sw">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="sbusca" placeholder="Buscar cliente..." oninput="renderAll()">
+    <div class="sw">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="sbusca" placeholder="Buscar cliente..." oninput="renderAll()">
+    </div>
   </div>
 </div>
 
@@ -977,14 +1000,14 @@ function renderTodos(){
       <div class="kpi-sum-label" style="color:#059669">Monto Total</div>
       <div class="kpi-sum-money money-inline" style="color:#059669"><span class="sym">S/</span><span class="amt">${fmtMoneyNoSymbol(totMtoR)}</span></div>
     </div>
-    <div class="kpi-sum-card" style="background:linear-gradient(135deg,#eff6ff,#e0e7ff)">
+    <div class="kpi-sum-card">
       <div class="kpi-sum-label" style="color:#1d4ed8">Gráfico de Meta</div>
       <div style="margin-top:10px">
         <div style="height:8px;background:#dbeafe;border-radius:999px;overflow:hidden;margin-bottom:10px">
           <div style="height:100%;width:${Math.min(100,tpU)}%;background:#2563eb;border-radius:999px"></div>
         </div>
         <div style="font-size:32px;font-weight:700;color:#2563eb;line-height:1">${tpU}%</div>
-        <div style="font-size:11px;color:#93c5fd;margin-top:5px">${totUndR} / ${totUndM} unidades</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:5px">${totUndR} / ${totUndM} unidades</div>
       </div>
     </div>
   </div>`;
@@ -1105,13 +1128,13 @@ function renderTodos(){
           <div class="res-mobile-val" style="color:${colPct(pU)}">${pU}%</div>
           <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
         </div>
-        <div class="res-mobile-box" style="background:#eff6ff">
+        <div class="res-mobile-box">
           <div class="res-mobile-label" style="color:#ea580c">Meta</div>
           <input class="res-mobile-input" type="number" value="${meta.und}"
             style="color:#ea580c"
             onchange="updateMeta('${mk}','und',this.value)">
         </div>
-        <div class="res-mobile-box" style="background:#eff6ff">
+        <div class="res-mobile-box">
           <div class="res-mobile-label" style="color:#ea580c">Monto Meta</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:4px">
             <span style="font-size:13px;font-weight:700;color:#ea580c">S/</span>
