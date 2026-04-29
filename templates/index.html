@@ -831,7 +831,7 @@ function init(ultimaActualizacion){
       md: fd || new Date(0),
       yr: fd ? fd.getFullYear() : 0
     };
-  }).filter(Boolean);
+  }).filter(d => d && d.yr >= 2023);
 
   poblarFiltros();
   renderAll();
