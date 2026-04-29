@@ -780,7 +780,7 @@ function init(ultimaActualizacion){
       md: ref || new Date(0),
       yr
     };
-  }).filter(d => d && d.yr > 0);
+  }).filter(d => d && d.yr >= 2023);
 
   const hS = RAW_S[0] || [];
   const six = n => hS.findIndex(h => h.toString().trim() === n);
