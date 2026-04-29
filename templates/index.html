@@ -65,13 +65,7 @@ select.pill{
 
 .pg{display:none;padding:24px}
 .pg.on{display:block}
-.fil-toggle{
-  display:none;align-items:center;gap:6px;
-  background:none;border:1px solid #dbe4ff;border-radius:20px;
-  padding:6px 14px;font-size:11px;font-weight:700;color:#475569;
-  cursor:pointer;font-family:inherit;
-}
-.fil-body{display:contents}
+.fil-sel{display:none}
 
 .wrap-wide{width:100%;max-width:1280px;margin:0 auto}
 .single-shell{width:100%;max-width:1180px;margin:0 auto}
@@ -314,13 +308,10 @@ tbody tr:hover td{background:#f8faff}
   .res-mobile-grid{grid-template-columns:1fr 1fr}
   .fil{padding:8px 12px;gap:6px}
   .block{padding:14px 12px}
-  /* Filtros desplegables en mobile */
-  .fil-toggle{display:flex}
-  .fil-body{
-    display:none;flex-wrap:wrap;gap:6px;
-    width:100%;padding-top:8px;border-top:1px solid #e2e8f0;margin-top:2px;
-  }
-  .fil.open .fil-body{display:flex}
+  /* Filtros: ocultar botones y separadores, mostrar selects */
+  .fil-pills{display:none !important}
+  .fil-sel{display:block}
+  .fil-lbl{display:none}
   .dv{display:none}
 }
 </style>
@@ -344,42 +335,56 @@ tbody tr:hover td{background:#f8faff}
   </div>
 </div>
 
-<div class="fil" id="fil">
-  <button class="fil-toggle" onclick="document.getElementById('fil').classList.toggle('open');this.textContent=document.getElementById('fil').classList.contains('open')?'▲ Filtros':'☰ Filtros'">☰ Filtros</button>
-  <div class="fil-body">
-    <span class="fl">Año</span>
-    <select class="pill" id="sanio" onchange="onAnioChange()"></select>
+<div class="fil">
+  <span class="fl">Año</span>
+  <select class="pill" id="sanio" onchange="onAnioChange()"></select>
 
-    <span class="fl">Mes</span>
-    <select class="pill" id="smes" onchange="renderAll()"></select>
+  <span class="fl">Mes</span>
+  <select class="pill" id="smes" onchange="renderAll()"></select>
 
-    <div class="dv"></div>
+  <div class="dv"></div>
 
-    <span class="fl">Proyecto</span>
-    <div id="proy-buttons" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  <span class="fl fil-lbl">Proyecto</span>
+  <div id="proy-buttons" class="fil-pills" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  <select class="pill fil-sel" id="sproy-sel" onchange="sfSel('p',this.value)"></select>
 
-    <div class="dv"></div>
+  <div class="dv"></div>
 
-    <span class="fl">Vista</span>
+  <span class="fl fil-lbl">Vista</span>
+  <div class="fil-pills" style="display:flex;gap:6px">
     <button class="pill on" data-g="v" data-v="all" onclick="sf('v','all',this)">Todos</button>
     <button class="pill" data-g="v" data-v="ven" onclick="sf('v','ven',this)">Ventas</button>
     <button class="pill" data-g="v" data-v="sep" onclick="sf('v','sep',this)">Separaciones</button>
+  </div>
+  <select class="pill fil-sel" id="svista" onchange="sfSel('v',this.value)">
+    <option value="all">Vista: Todos</option>
+    <option value="ven">Ventas</option>
+    <option value="sep">Separaciones</option>
+  </select>
 
-    <div class="dv"></div>
+  <div class="dv"></div>
 
-    <span class="fl">Tipo</span>
+  <span class="fl fil-lbl">Tipo</span>
+  <div class="fil-pills" style="display:flex;gap:6px">
     <button class="pill on" data-g="ti" data-v="all" onclick="sf('ti','all',this)">Todos</button>
     <button class="pill" data-g="ti" data-v="Departamento" onclick="sf('ti','Departamento',this)">Dpto.</button>
     <button class="pill" data-g="ti" data-v="Azotea" onclick="sf('ti','Azotea',this)">Azotea</button>
     <button class="pill" data-g="ti" data-v="Estacionamiento" onclick="sf('ti','Estacionamiento',this)">Estac.</button>
     <button class="pill" data-g="ti" data-v="Depósito" onclick="sf('ti','Depósito',this)">Depósito</button>
+  </div>
+  <select class="pill fil-sel" id="stipo" onchange="sfSel('ti',this.value)">
+    <option value="all">Tipo: Todos</option>
+    <option value="Departamento">Departamento</option>
+    <option value="Azotea">Azotea</option>
+    <option value="Estacionamiento">Estacionamiento</option>
+    <option value="Depósito">Depósito</option>
+  </select>
 
-    <div class="dv"></div>
+  <div class="dv"></div>
 
-    <div class="sw">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="sbusca" placeholder="Buscar cliente..." oninput="renderAll()">
-    </div>
+  <div class="sw">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="sbusca" placeholder="Buscar cliente..." oninput="renderAll()">
   </div>
 </div>
 
@@ -704,6 +709,19 @@ function init(ultimaActualizacion){
     wrap.appendChild(btn);
   });
 
+  // Poblar select de Proyecto para mobile
+  const sel = document.getElementById('sproy-sel');
+  if(sel){
+    sel.innerHTML = '<option value="all">Proyecto: Todos</option>';
+    PROJ.forEach(pe => {
+      const opt = document.createElement('option');
+      opt.value = pe;
+      opt.textContent = PROJ_MAP[pe];
+      sel.appendChild(opt);
+    });
+    sel.onchange = function(){ sfSel('p', this.value); };
+  }
+
   const hV = RAW_V[0] || [];
   const ix = n => hV.findIndex(h => h.toString().trim() === n);
 
@@ -911,7 +929,14 @@ function gfS(){
 function sf(g,v,btn){
   F[g] = v;
   document.querySelectorAll('[data-g="'+g+'"]').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
+  if(btn) btn.classList.add('on');
+  renderAll();
+}
+function sfSel(g,v){
+  F[g] = v;
+  document.querySelectorAll('[data-g="'+g+'"]').forEach(b => b.classList.remove('on'));
+  const match = document.querySelector('[data-g="'+g+'"][data-v="'+v+'"]');
+  if(match) match.classList.add('on');
   renderAll();
 }
 function showTab(id,btn){
