@@ -757,7 +757,7 @@ function init(ultimaActualizacion){
     if(est === 'disponible' || est === 'bloqueado') return null;
 
     const estadoOC = g(iEO).toLowerCase();
-    if(estadoOC === 'devuelto') return null;
+    if(estadoOC !== 'activo') return null;
 
     const pr = parsePrecio(g(iPr));
     const fv = pf(r[iFV]);
