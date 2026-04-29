@@ -1085,11 +1085,11 @@ function renderTodos(){
       </div>
       <div class="res-mobile-grid">
         <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:#7c3aed">Sep.</div>
+          <div class="res-mobile-label" style="color:#7c3aed">Separaciones</div>
           <div class="res-mobile-val" style="color:#7c3aed">${sepTot}</div>
         </div>
         <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:#7c3aed">Monto Sep</div>
+          <div class="res-mobile-label" style="color:#7c3aed">Monto Sep.</div>
           <div class="res-mobile-val money" style="color:#7c3aed">${fmt(sepMto)}</div>
         </div>
         <div class="res-mobile-box">
@@ -1103,22 +1103,24 @@ function renderTodos(){
         <div class="res-mobile-box" style="grid-column:span 2">
           <div class="res-mobile-label" style="color:${colPct(pU)}">Avance</div>
           <div class="res-mobile-val" style="color:${colPct(pU)}">${pU}%</div>
-          <div class="res-mobile-sub">mto: ${pM}%</div>
           <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
         </div>
-        <div class="res-mobile-box" style="background:#fff7ed">
+        <div class="res-mobile-box" style="background:#eff6ff">
           <div class="res-mobile-label" style="color:#ea580c">Meta</div>
           <input class="res-mobile-input" type="number" value="${meta.und}"
             style="color:#ea580c"
             onchange="updateMeta('${mk}','und',this.value)">
         </div>
-        <div class="res-mobile-box" style="background:#fff7ed">
+        <div class="res-mobile-box" style="background:#eff6ff">
           <div class="res-mobile-label" style="color:#ea580c">Monto Meta</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-            <span style="font-size:10px;font-weight:700;color:#ea580c">S/.</span>
-            <input class="res-mobile-money-input" type="number" value="${meta.monto}"
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px">
+            <span style="font-size:13px;font-weight:700;color:#ea580c">S/</span>
+            <input class="res-mobile-money-input" type="text"
+              value="${fmtAmt(meta.monto)}"
+              data-raw="${meta.monto}"
               style="color:#ea580c"
-              onchange="updateMeta('${mk}','monto',this.value)">
+              onfocus="this.value=this.dataset.raw"
+              onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
           </div>
         </div>
       </div>
