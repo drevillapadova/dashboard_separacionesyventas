@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 URL_VENTAS     = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3Vnd6iNuxVhaxVIvvoD9AW4s_sgzqXillGeWiqL8CV0ha9L8WdX1D7KEBbcHYDTF7T9PCmOTCoC68/pub?gid=1351036806&single=true&output=csv'
 URL_STOCK      = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR3Vnd6iNuxVhaxVIvvoD9AW4s_sgzqXillGeWiqL8CV0ha9L8WdX1D7KEBbcHYDTF7T9PCmOTCoC68/pub?gid=1599060189&single=true&output=csv'
-URL_MINUTAS_PF = 'https://docs.google.com/spreadsheets/d/15slphQ1xs7pkG4zH5mVwsnc1XKgGtLKah8-FHm7HMEM/export?format=csv&gid=GID_MINUTAS_PF'
+URL_MINUTAS_PF = 'https://docs.google.com/spreadsheets/d/15slphQ1xs7pkG4zH5mVwsnc1XKgGtLKah8-FHm7HMEM/export?format=csv&gid=1268984404'
 
 # Cache en memoria
 _cache = {'ventas': [], 'stock': [], 'minutas_pf': [], 'ultima_actualizacion': None}
