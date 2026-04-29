@@ -798,8 +798,9 @@ function init(ultimaActualizacion){
     const byCorr = new Map();
     V.forEach(d => {
       if(!d.coc) return;
-      const prev = byCorr.get(d.coc);
-      if(!prev || _tipoPrio(d.ti) < _tipoPrio(prev.ti)) byCorr.set(d.coc, d);
+      const key = d.p + '|' + d.coc;
+      const prev = byCorr.get(key);
+      if(!prev || _tipoPrio(d.ti) < _tipoPrio(prev.ti)) byCorr.set(key, d);
     });
     const noCoc = V.filter(d => !d.coc);
     V = [...byCorr.values(), ...noCoc];
