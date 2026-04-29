@@ -29,7 +29,8 @@ body{
 }
 .tab.on{color:#fff;border-bottom-color:#fff}
 .tab:hover:not(.on){color:rgba(255,255,255,.9)}
-.nav-r{margin-left:auto;font-size:11px;color:rgba(255,255,255,.55);font-family:monospace}
+.nav-r{font-size:11px;color:rgba(255,255,255,.55);font-family:monospace}
+.nav-actions{margin-left:auto;display:flex;align-items:center;gap:10px}
 
 .fil{
   background:#fff;border-bottom:1px solid #dbe4ff;padding:12px 20px;
@@ -111,70 +112,62 @@ tbody tr:hover td{background:#f8faff}
 .kpi-sum-money .amt{font-size:48px;font-weight:700}
 
 /* ── TABLA RESUMEN ── */
-/* Todas las filas usan el mismo grid: nombre + 5 celdas */
+/* Todas las filas usan el mismo grid: nombre + 7 celdas */
 .res-row-grid{
   display:grid;
-  grid-template-columns:160px repeat(5,1fr);
-  gap:10px;
-  align-items:center;
-  margin-bottom:10px;
+  grid-template-columns:130px repeat(7,1fr);
+  gap:6px;
+  align-items:stretch;
+  margin-bottom:8px;
 }
 .res-header-row{
-  padding:0 6px;
-  margin-bottom:2px;
-}
-.res-sub-row2{
-  padding:0 6px;
-  margin-bottom:10px;
+  padding:0 10px 0 12px;
+  margin-bottom:4px;
+  align-items:end;
+  border-left:4px solid transparent;
+  border-radius:14px;
 }
 .res-group-label{
   text-align:center;font-size:10px;font-weight:800;
   text-transform:uppercase;letter-spacing:.07em;
-  padding-bottom:4px;border-bottom:2px solid transparent;
-}
-.res-sub-cell{
-  text-align:center;font-size:9px;font-weight:800;
-  color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;
+  padding-bottom:5px;border-bottom:2px solid transparent;
 }
 /* Cada fila de proyecto */
 .res-proy-row{
   background:#fff;
   border-radius:14px;
   border-left:4px solid #e2e8f0;
-  padding:10px 10px 10px 12px;
+  padding:8px 10px 8px 12px;
   box-shadow:0 4px 14px rgba(15,23,42,.05);
 }
-.res-proy-name{font-size:15px;font-weight:700}
+.res-proy-name{font-size:14px;font-weight:700;display:flex;align-items:center}
 /* Cuadrado individual */
 .res-cell{
   background:#f1f5fb;
   border-radius:10px;
-  padding:10px 8px;
+  padding:8px 6px;
   text-align:center;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
-  min-height:68px;
+  min-height:64px;
 }
 .res-cell.meta{background:#eff6ff}
-.res-cell-num{font-size:26px;font-weight:700;line-height:1}
+.res-cell-money-row{display:flex;align-items:baseline;justify-content:center;gap:4px}
+.res-cell-num{font-size:22px;font-weight:700;line-height:1}
 .res-cell-sub{font-size:10px;color:#94a3b8;margin-top:4px}
 .res-cell-input{
-  width:100%;border:none;background:transparent;font-size:24px;
-  font-weight:700;color:#2563eb;text-align:center;
+  width:100%;border:none;background:transparent;font-size:22px;
+  font-weight:700;color:#ea580c;text-align:center;
   outline:none;font-family:inherit;padding:0;
-}
-.res-cell-money-wrap{
-  display:flex;align-items:baseline;justify-content:center;gap:3px;width:100%
-}
-.res-cell-money-prefix{
-  font-size:12px;font-weight:700;color:#2563eb;flex-shrink:0;
 }
 .res-cell-money-input{
-  flex:1;min-width:0;border:none;background:transparent;
-  font-size:17px;font-weight:700;color:#2563eb;text-align:center;
+  width:100%;border:none;background:transparent;
+  font-size:16px;font-weight:700;color:#ea580c;text-align:center;
   outline:none;font-family:inherit;padding:0;
 }
-.res-cell-money-val{font-size:16px;font-weight:700;line-height:1.2}
+.res-cell-money-val{
+  font-size:16px;font-weight:700;line-height:1.2;
+}
 
 .venta-num,.venta-money{font-size:26px;font-weight:700;line-height:1;font-family:inherit}
 .venta-sub{font-size:10px;color:#94a3b8;margin-top:4px}
@@ -196,7 +189,7 @@ tbody tr:hover td{background:#f8faff}
 .res-mobile-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .res-mobile-name{font-size:16px;font-weight:700}
 .res-mobile-grid{
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:12px;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;
 }
 .res-mobile-box{
   background:#f8faff;border-radius:10px;padding:10px 6px;
@@ -275,6 +268,11 @@ tbody tr:hover td{background:#f8faff}
   /* Ocultar tabla desktop, mostrar tarjetas mobile */
   .res-table-desktop{display:none !important}
   .res-mobile-card{display:block !important}
+  /* Nav responsive */
+  .nav{flex-wrap:wrap;height:auto;padding:6px 12px 0}
+  .brand{padding:4px 0;margin-right:16px}
+  .tab{height:44px;padding:0 12px;font-size:11px}
+  .nav-actions{padding:6px 0 8px}
   /* Vista single */
   .dual-grid{grid-template-columns:1fr}
   .kpi-grid-2,.kpi-grid-3{grid-template-columns:1fr 1fr}
@@ -313,7 +311,7 @@ tbody tr:hover td{background:#f8faff}
   <button class="tab on" onclick="showTab('res',this)">Resumen</button>
   <button class="tab" onclick="showTab('ops',this)">Operaciones</button>
   <button class="tab" onclick="showTab('avance',this)">Avance</button>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+  <div class="nav-actions">
     <div class="nav-r" id="ts"></div>
     <button id="btn-refresh" onclick="forzarActualizacion()" style="
       background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
@@ -523,7 +521,11 @@ function parsePrecio(v){
 }
 function fmt(n){
   if(!n && n!==0) return '—';
-  return 'S/ ' + Math.round(n).toLocaleString('es-PE');
+  return 'S/ ' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtAmt(n){
+  if(!n && n!==0) return '—';
+  return n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 function fmtMoneyNoSymbol(n){
   if(!n && n!==0) return '—';
@@ -994,23 +996,15 @@ function renderTodos(){
     <div class="res-row-grid res-header-row">
       <div></div>
       <div class="res-group-label" style="color:#7c3aed;border-bottom-color:#e9d5ff">Separaciones</div>
-      <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Meta Und</div>
-      <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Meta Monto</div>
-      <div class="res-group-label" style="color:#059669;border-bottom-color:#bbf7d0">Venta Und</div>
-      <div class="res-group-label" style="color:#059669;border-bottom-color:#bbf7d0">Venta Monto</div>
-    </div>
-
-    <!-- subetiquetas -->
-    <div class="res-row-grid res-sub-row2">
-      <div></div>
-      <div class="res-sub-cell">Total</div>
-      <div class="res-sub-cell">Proyectado</div>
-      <div class="res-sub-cell">Editable</div>
-      <div class="res-sub-cell">Unidades</div>
-      <div class="res-sub-cell">Monto</div>
+      <div class="res-group-label" style="color:#7c3aed;border-bottom-color:#e9d5ff">Monto Sep.</div>
+      <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Ventas</div>
+      <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Monto Ven.</div>
+      <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Avance</div>
+      <div class="res-group-label" style="color:#ea580c;border-bottom-color:#fed7aa">Meta</div>
+      <div class="res-group-label" style="color:#ea580c;border-bottom-color:#fed7aa">Monto Meta</div>
     </div>`;
 
-  proyData.forEach(({pn,undR,mtoR,sepTot,meta,mes}) => {
+  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta,mes}) => {
     const col = PC[pn] || '#64748b';
     const pU  = pct(undR, meta.und);
     const pM  = pct(mtoR, meta.monto);
@@ -1021,38 +1015,54 @@ function renderTodos(){
 
       <div class="res-proy-name">${pn}</div>
 
-      <!-- Separaciones -->
+      <!-- Sep. -->
       <div class="res-cell">
         <div class="res-cell-num" style="color:#7c3aed">${sepTot}</div>
       </div>
 
-      <!-- Meta Und (editable) -->
+      <!-- Monto Sep. -->
+      <div class="res-cell">
+        <div class="res-cell-money-row" style="color:#7c3aed">
+          <span class="res-cell-money-val">S/</span>
+          <span class="res-cell-money-val">${fmtAmt(sepMto)}</span>
+        </div>
+      </div>
+
+      <!-- Ventas -->
+      <div class="res-cell">
+        <div class="res-cell-num" style="color:#2563eb">${undR}</div>
+      </div>
+
+      <!-- Monto Ven. -->
+      <div class="res-cell">
+        <div class="res-cell-money-row" style="color:#2563eb">
+          <span class="res-cell-money-val">S/</span>
+          <span class="res-cell-money-val">${fmtAmt(mtoR)}</span>
+        </div>
+      </div>
+
+      <!-- Avance -->
+      <div class="res-cell">
+        <div class="res-cell-num" style="color:${colPct(pU)}">${pU}%</div>
+        <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+      </div>
+
+      <!-- Meta (editable) -->
       <div class="res-cell meta">
         <input class="res-cell-input" type="number" value="${meta.und}"
           onchange="updateMeta('${mk}','und',this.value)">
       </div>
 
-      <!-- Meta Monto (editable) -->
+      <!-- Monto Meta (editable) -->
       <div class="res-cell meta">
-        <div class="res-cell-money-wrap">
-          <span class="res-cell-money-prefix">S/.</span>
-          <input class="res-cell-money-input" type="number" value="${meta.monto}"
-            onchange="updateMeta('${mk}','monto',this.value)">
+        <div class="res-cell-money-row" style="color:#ea580c">
+          <span class="res-cell-money-val">S/</span>
+          <input class="res-cell-money-input" type="text"
+            value="${fmtAmt(meta.monto)}"
+            data-raw="${meta.monto}"
+            onfocus="this.value=this.dataset.raw"
+            onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
         </div>
-      </div>
-
-      <!-- Venta Und -->
-      <div class="res-cell">
-        <div class="res-cell-num" style="color:${colPct(pU)}">${undR}</div>
-        <div class="res-cell-sub">${undR}/${meta.und} · ${pU}%</div>
-        <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
-      </div>
-
-      <!-- Venta Monto -->
-      <div class="res-cell">
-        <div class="res-cell-money-val" style="color:${colPct(pM)}">${fmt(mtoR)}</div>
-        <div class="res-cell-sub">${pM}%</div>
-        <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
       </div>
 
     </div>`;
@@ -1061,7 +1071,7 @@ function renderTodos(){
   html += `</div>`; // end res-table-desktop
 
   // ── TARJETAS MOBILE ──
-  proyData.forEach(({pn,undR,mtoR,sepTot,meta,mes}) => {
+  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta,mes}) => {
     const col = PC[pn] || '#64748b';
     const pU = pct(undR, meta.und);
     const pM = pct(mtoR, meta.monto);
@@ -1075,33 +1085,41 @@ function renderTodos(){
       </div>
       <div class="res-mobile-grid">
         <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:#7c3aed">Separaciones</div>
+          <div class="res-mobile-label" style="color:#7c3aed">Sep.</div>
           <div class="res-mobile-val" style="color:#7c3aed">${sepTot}</div>
         </div>
-        <div class="res-mobile-box" style="background:#eff6ff">
-          <div class="res-mobile-label" style="color:#2563eb">Meta Und</div>
-          <input class="res-mobile-input" type="number" value="${meta.und}"
-            onchange="updateMeta('${mk}','und',this.value)">
-        </div>
-        <div class="res-mobile-box" style="background:#eff6ff">
-          <div class="res-mobile-label" style="color:#2563eb">Meta Monto</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-            <span style="font-size:10px;font-weight:700;color:#2563eb">S/.</span>
-            <input class="res-mobile-money-input" type="number" value="${meta.monto}"
-              onchange="updateMeta('${mk}','monto',this.value)">
-          </div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#7c3aed">Monto Sep</div>
+          <div class="res-mobile-val money" style="color:#7c3aed">${fmt(sepMto)}</div>
         </div>
         <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:${colPct(pU)}">V. Unidades</div>
-          <div class="res-mobile-val" style="color:${colPct(pU)}">${undR}</div>
-          <div class="res-mobile-sub">${pU}%</div>
-          <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+          <div class="res-mobile-label" style="color:#2563eb">Ventas</div>
+          <div class="res-mobile-val" style="color:#2563eb">${undR}</div>
+        </div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#2563eb">Monto Ven.</div>
+          <div class="res-mobile-val money" style="color:#2563eb">${fmt(mtoR)}</div>
         </div>
         <div class="res-mobile-box" style="grid-column:span 2">
-          <div class="res-mobile-label" style="color:${colPct(pM)}">V. Monto</div>
-          <div class="res-mobile-val money" style="color:${colPct(pM)}">${fmt(mtoR)}</div>
-          <div class="res-mobile-sub">${pM}%</div>
-          <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
+          <div class="res-mobile-label" style="color:${colPct(pU)}">Avance</div>
+          <div class="res-mobile-val" style="color:${colPct(pU)}">${pU}%</div>
+          <div class="res-mobile-sub">mto: ${pM}%</div>
+          <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+        </div>
+        <div class="res-mobile-box" style="background:#fff7ed">
+          <div class="res-mobile-label" style="color:#ea580c">Meta</div>
+          <input class="res-mobile-input" type="number" value="${meta.und}"
+            style="color:#ea580c"
+            onchange="updateMeta('${mk}','und',this.value)">
+        </div>
+        <div class="res-mobile-box" style="background:#fff7ed">
+          <div class="res-mobile-label" style="color:#ea580c">Monto Meta</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+            <span style="font-size:10px;font-weight:700;color:#ea580c">S/.</span>
+            <input class="res-mobile-money-input" type="number" value="${meta.monto}"
+              style="color:#ea580c"
+              onchange="updateMeta('${mk}','monto',this.value)">
+          </div>
         </div>
       </div>
     </div>`;
