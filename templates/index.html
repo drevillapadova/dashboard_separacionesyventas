@@ -823,7 +823,7 @@ function init(ultimaActualizacion){
       md: fd || new Date(0),
       yr: fd ? fd.getFullYear() : 0
     };
-  }).filter(d => d && d.yr >= 2023);
+  }).filter(d => d && (d.yr === 0 || d.yr >= 2023));
 
   poblarFiltros();
   renderAll();
@@ -1187,72 +1187,111 @@ function renderSingle(pe){
       <div class="single-sub">${cap(mes)}</div>
     </div>
 
-    <div class="dual-grid">
-      <div class="block">
-        <div class="block-head">
-          <div class="block-label" style="color:#2563eb">Meta</div>
-        </div>
-        <div class="kpi-grid-2">
-          <div class="kpi blue">
-            <div class="kpi-label">Proyectado</div>
-            <input class="meta-input-big" type="number" value="${meta.und}" onchange="updateMeta('${mk}','und',this.value)">
-            <div class="kpi-sub">unidades</div>
-          </div>
+    <!-- Desktop -->
+    <div class="res-table-desktop">
 
-          <div class="kpi blue">
-            <div class="kpi-label">Monto</div>
-            <div class="meta-money-wrap">
-              <span class="meta-money-sym">S/</span>
-              <input class="meta-input-money" type="number" value="${meta.monto}" onchange="updateMeta('${mk}','monto',this.value)">
-            </div>
-            <div class="kpi-sub">monto meta</div>
+      <!-- Fila 1: Ventas / Monto Ven. / Avance -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px">
+        <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Ventas</div>
+        <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Monto Ven.</div>
+        <div class="res-group-label" style="color:#2563eb;border-bottom-color:#bfdbfe">Avance</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px;border-left:4px solid ${col};border-radius:14px;padding:10px 10px 10px 12px;background:#fff">
+        <div class="res-cell">
+          <div class="res-cell-num" style="color:#2563eb">${undR}</div>
+        </div>
+        <div class="res-cell">
+          <div class="res-cell-money-row" style="color:#2563eb">
+            <span class="res-cell-money-val">S/</span>
+            <span class="res-cell-money-val">${fmtAmt(mtoR)}</span>
+          </div>
+        </div>
+        <div class="res-cell">
+          <div class="res-cell-num" style="color:${colPct(pU)}">${pU}%</div>
+          <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+        </div>
+      </div>
+
+      <!-- Fila 2: Separaciones / Monto Sep. / Meta / Monto Meta -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px">
+        <div class="res-group-label" style="color:#7c3aed;border-bottom-color:#e9d5ff">Separaciones</div>
+        <div class="res-group-label" style="color:#7c3aed;border-bottom-color:#e9d5ff">Monto Sep.</div>
+        <div class="res-group-label" style="color:#ea580c;border-bottom-color:#fed7aa">Meta</div>
+        <div class="res-group-label" style="color:#ea580c;border-bottom-color:#fed7aa">Monto Meta</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;border-left:4px solid ${col};border-radius:14px;padding:10px 10px 10px 12px;background:#fff">
+        <div class="res-cell">
+          <div class="res-cell-num" style="color:#7c3aed">${sepTot}</div>
+        </div>
+        <div class="res-cell">
+          <div class="res-cell-money-row" style="color:#7c3aed">
+            <span class="res-cell-money-val">S/</span>
+            <span class="res-cell-money-val">${fmtAmt(sepMto)}</span>
+          </div>
+        </div>
+        <div class="res-cell meta">
+          <input class="res-cell-input" type="number" value="${meta.und}"
+            onchange="updateMeta('${mk}','und',this.value)">
+        </div>
+        <div class="res-cell meta">
+          <div class="res-cell-money-row" style="color:#ea580c">
+            <span class="res-cell-money-val">S/</span>
+            <input class="res-cell-money-input" type="text"
+              value="${fmtAmt(meta.monto)}"
+              data-raw="${meta.monto}"
+              onfocus="this.value=this.dataset.raw"
+              onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
           </div>
         </div>
       </div>
 
-      <div class="block">
-        <div class="block-head">
-          <div class="block-label" style="color:#059669">Venta real</div>
-        </div>
-        <div class="kpi-grid-2">
-          <div class="kpi green">
-            <div class="kpi-label">Unidades vendidas</div>
-            <div class="kpi-value" style="color:${colPct(pU)}">${undR}</div>
-            <div class="kpi-sub">${undR}/${meta.und} · ${pU}%</div>
-            <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
-          </div>
-
-          <div class="kpi green">
-            <div class="kpi-label">Monto vendido</div>
-            ${fmtMoneyParts(mtoR, colPct(pM), 'kpi-value money')}
-            <div class="kpi-sub">${pM}% de meta</div>
-            <div class="bar"><div style="width:${Math.min(100,pM)}%;background:${colPct(pM)}"></div></div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div class="block">
-      <div class="block-head">
-        <div class="block-label" style="color:#7c3aed">Separaciones</div>
+    <!-- Mobile -->
+    <div class="res-mobile-card">
+      <div class="res-mobile-header" style="border-left:4px solid ${col}">
+        <div class="res-mobile-dot" style="background:${col}"></div>
+        <div class="res-mobile-name">${pn}</div>
       </div>
-      <div class="kpi-grid-3">
-        <div class="kpi purple">
-          <div class="kpi-label">Total separaciones</div>
-          <div class="kpi-value" style="color:#7c3aed">${sepTot}</div>
-          <div class="kpi-sub">en stock actual</div>
+      <div class="res-mobile-grid">
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#7c3aed">Separaciones</div>
+          <div class="res-mobile-val" style="color:#7c3aed">${sepTot}</div>
         </div>
-
-        <div class="kpi purple">
-          <div class="kpi-label">Monto sep.</div>
-          ${fmtMoneyParts(sepMto||0, '#7c3aed', 'kpi-value money')}
-          <div class="kpi-sub">monto real</div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#7c3aed">Monto Sep.</div>
+          <div class="res-mobile-val money" style="color:#7c3aed">${fmt(sepMto)}</div>
         </div>
-
-        <div class="kpi purple">
-          <div class="kpi-label">Sep + venta</div>
-          <div class="kpi-value" style="color:#7c3aed">${sepTot+undR}</div>
-          <div class="kpi-sub">operaciones totales</div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#2563eb">Ventas</div>
+          <div class="res-mobile-val" style="color:#2563eb">${undR}</div>
+        </div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#2563eb">Monto Ven.</div>
+          <div class="res-mobile-val money" style="color:#2563eb">${fmt(mtoR)}</div>
+        </div>
+        <div class="res-mobile-box" style="grid-column:span 2">
+          <div class="res-mobile-label" style="color:${colPct(pU)}">Avance</div>
+          <div class="res-mobile-val" style="color:${colPct(pU)}">${pU}%</div>
+          <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
+        </div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#ea580c">Meta</div>
+          <input class="res-mobile-input" type="number" value="${meta.und}"
+            style="color:#ea580c"
+            onchange="updateMeta('${mk}','und',this.value)">
+        </div>
+        <div class="res-mobile-box">
+          <div class="res-mobile-label" style="color:#ea580c">Monto Meta</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px">
+            <span style="font-size:13px;font-weight:700;color:#ea580c">S/</span>
+            <input class="res-mobile-money-input" type="text"
+              value="${fmtAmt(meta.monto)}"
+              data-raw="${meta.monto}"
+              style="color:#ea580c"
+              onfocus="this.value=this.dataset.raw"
+              onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
+          </div>
         </div>
       </div>
     </div>
