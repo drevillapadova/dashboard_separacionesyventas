@@ -494,16 +494,22 @@ function parsePFData(raw){
   PF_MAP = {};
   if(!raw || raw.length < 2) return;
   const h = raw[0];
-  const iP = h.findIndex(c => c.toString().trim().toUpperCase() === 'PROYECTO');
-  const iU = h.findIndex(c => c.toString().trim().toUpperCase() === 'UNIDADES');
-  const iM = h.findIndex(c => c.toString().trim().toUpperCase() === 'MONTO');
-  if(iP < 0 || iU < 0 || iM < 0) return;
+  const iP  = h.findIndex(c => c.toString().trim().toUpperCase() === 'PROYECTO');
+  const iMs = h.findIndex(c => c.toString().trim().toUpperCase() === 'MES');
+  const iU  = h.findIndex(c => c.toString().trim().toUpperCase() === 'UNIDADES');
+  const iMt = h.findIndex(c => c.toString().trim().toUpperCase() === 'MONTO');
+  if(iP < 0 || iU < 0 || iMt < 0) return;
   raw.slice(1).forEach(r => {
+    if(!r || r.every(c => !c)) return;
     const pRaw = (r[iP] || '').toString().trim().toUpperCase();
-    const pns = resolverProyectos(pRaw);
+    const pns  = resolverProyectos(pRaw);
     if(!pns.length) return;
-    const val = { und: parseInt(r[iU]) || 0, monto: parsePrecio(r[iM]) || 0 };
-    pns.forEach(pn => { PF_MAP[pn] = val; });
+    const mesNorm = iMs >= 0 ? normalizarMes(r[iMs]) : null;
+    const val = { und: parseInt((r[iU] || '').toString().replace(/[^0-9]/g,'')) || 0, monto: parsePrecio(r[iMt]) || 0 };
+    pns.forEach(pn => {
+      const key = mesNorm ? pn + '|' + mesNorm : pn;
+      PF_MAP[key] = val;
+    });
   });
 }
 
@@ -1520,8 +1526,9 @@ function renderAvance(){
     const firmCount = firmadas.length;
     const firmMto = firmadas.reduce((t,x) => t + (x.pr||0), 0);
 
-    // Minutas Por Firmar: viene del Google Sheets
-    const pfData = PF_MAP[pn] || {und:0, monto:0};
+    // Minutas Por Firmar: viene del Google Sheets, filtra por mes si hay columna MES
+    const pfKey = f.mes !== 'todos' ? pn + '|' + f.mes : pn;
+    const pfData = PF_MAP[pfKey] || PF_MAP[pn] || {und:0, monto:0};
 
     const meta = getMeta(pn, f.mes);
 
