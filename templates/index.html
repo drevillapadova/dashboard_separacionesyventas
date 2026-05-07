@@ -438,7 +438,8 @@ let RAW_V = [], RAW_S = [], RAW_PF = [];
 let PROJ_MAP = {
   'HELIO - SANTA BEATRIZ': 'Helio - Santa Beatriz',
   'LITORAL 900': 'Litoral 900',
-  'LOMAS DE CARABAYLLO': 'Lomas de Carabayllo',
+  'LOMAS DE CARABAYLLO - ETAPA 4': 'Carabayllo 4',
+  'LOMAS DE CARABAYLLO - ETAPA 5': 'Carabayllo 5',
   'SUNNY': 'Sunny',
   'DOMINGO ORUE': 'D. Orue'
 };
@@ -446,7 +447,8 @@ let PROJ_MAP = {
 let PROJ = [
   'HELIO - SANTA BEATRIZ',
   'LITORAL 900',
-  'LOMAS DE CARABAYLLO',
+  'LOMAS DE CARABAYLLO - ETAPA 4',
+  'LOMAS DE CARABAYLLO - ETAPA 5',
   'SUNNY',
   'DOMINGO ORUE'
 ];
@@ -454,7 +456,8 @@ let PROJ = [
 let PC = {
   'Helio - Santa Beatriz':'#3b82f6',
   'Litoral 900':'#10b981',
-  'Lomas de Carabayllo':'#ef4444',
+  'Carabayllo 4':'#ef4444',
+  'Carabayllo 5':'#f97316',
   'Sunny':'#f59e0b',
   'D. Orue':'#8b5cf6'
 };
@@ -474,7 +477,8 @@ const METAS_DEFAULT = {
   'Litoral 900': {und:7, monto:3017500},
   'Sunny': {und:5, monto:4130000},
   'D. Orue': {und:10, monto:2400000},
-  'Lomas de Carabayllo': {und:10, monto:1530000}
+  'Carabayllo 4': {und:5, monto:765000},
+  'Carabayllo 5': {und:5, monto:765000}
 };
 
 let METAS = JSON.parse(localStorage.getItem('metas_padova') || '{}');
@@ -589,7 +593,7 @@ function formatInmueblePorProyecto(proyKey, inmueble, edificio){
 
   if(!inm) return '—';
 
-  if(proyKey === 'LOMAS DE CARABAYLLO'){
+  if(proyKey === 'LOMAS DE CARABAYLLO - ETAPA 4' || proyKey === 'LOMAS DE CARABAYLLO - ETAPA 5'){
     // Formato largo (stock): "TORRE G - EDIFICIO 27" → "G27 - 502"
     const torreMatch = edi.match(/TORRE\s+([A-Z])/i);
     const edificioMatch = edi.match(/EDIFICIO\s+(\d+)/i);
@@ -737,16 +741,25 @@ function init(ultimaActualizacion){
   const iFM = ix('FechaEntrega_Minuta');
   const iEO = ix('EstadoOC');
   const iVnd = ix('Vendedor');
+  const iEt = hV.findIndex(h => h.toString().trim().toUpperCase() === 'ETAPA');
 
   V = RAW_V.slice(1).map(r => {
     const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
 
     const proyectoRaw = g(iP);
-    const proyectoCanon = matchWhitelist(proyectoRaw.toUpperCase());
+    let proyectoCanon = matchWhitelist(proyectoRaw.toUpperCase());
     if(!proyectoCanon) return null;
 
-    const proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
-    if(!proyKey) return null;
+    let proyKey;
+    if(proyectoCanon === 'Lomas de Carabayllo'){
+      const etapa = g(iEt).toUpperCase();
+      if(etapa.includes('4')){ proyectoCanon = 'Carabayllo 4'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 4'; }
+      else if(etapa.includes('5')){ proyectoCanon = 'Carabayllo 5'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 5'; }
+      else return null;
+    } else {
+      proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
+      if(!proyKey) return null;
+    }
 
     const estadoOC = g(iEO).toLowerCase();
     if(estadoOC !== 'activo') return null;
@@ -789,16 +802,25 @@ function init(ultimaActualizacion){
   const siCa = six('ComoSeEntero');
   const siFT  = six('FechaSepTemporal');
   const siVnd = six('Vendedor');
+  const siEt = hS.findIndex(h => h.toString().trim().toUpperCase() === 'ETAPA');
 
   S = RAW_S.slice(1).map(r => {
     const g = i => (i>=0 && i<r.length ? r[i] || '' : '').toString().trim();
 
     const proyectoRaw = g(siP);
-    const proyectoCanon = matchWhitelist(proyectoRaw.toUpperCase());
+    let proyectoCanon = matchWhitelist(proyectoRaw.toUpperCase());
     if(!proyectoCanon) return null;
 
-    const proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
-    if(!proyKey) return null;
+    let proyKey;
+    if(proyectoCanon === 'Lomas de Carabayllo'){
+      const etapa = g(siEt).toUpperCase();
+      if(etapa.includes('4')){ proyectoCanon = 'Carabayllo 4'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 4'; }
+      else if(etapa.includes('5')){ proyectoCanon = 'Carabayllo 5'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 5'; }
+      else return null;
+    } else {
+      proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
+      if(!proyKey) return null;
+    }
 
     const prV = parsePrecio(g(siPrV));
     const pr = (prV > 0) ? prV : parsePrecio(g(siPrL));
