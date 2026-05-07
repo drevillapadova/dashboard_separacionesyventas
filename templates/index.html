@@ -432,7 +432,7 @@ tbody tr:hover td{background:#f8faff}
 </div>
 
 <script>
-let RAW_V = [], RAW_S = [], RAW_PF = [];
+let RAW_V = [], RAW_S = [], RAW_PF = [], RAW_METAS = [];
 
 // SOLO estos proyectos serán visibles
 let PROJ_MAP = {
@@ -472,16 +472,7 @@ function matchWhitelist(pUp){
   return null;
 }
 
-const METAS_DEFAULT = {
-  'Helio - Santa Beatriz': {und:9, monto:3850000},
-  'Litoral 900': {und:7, monto:3017500},
-  'Sunny': {und:5, monto:4130000},
-  'D. Orue': {und:10, monto:2400000},
-  'Carabayllo 4': {und:5, monto:765000},
-  'Carabayllo 5': {und:5, monto:765000}
-};
-
-let METAS = JSON.parse(localStorage.getItem('metas_padova') || '{}');
+let METAS_SHEET = {};
 let PF_MAP = {};
 let V = [], S = [], F = {p:'all',v:'all',ti:'all'};
 let OPS_SORT = { key:'pn', dir:'asc' };
@@ -513,7 +504,9 @@ async function cargarDatos() {
     RAW_V = d.ventas || [];
     RAW_S = d.stock || [];
     RAW_PF = d.minutas_pf || [];
+    RAW_METAS = d.metas || [];
     parsePFData(RAW_PF);
+    parseMETASSheet(RAW_METAS);
     const ua = d.ultima_actualizacion || null;
     init(ua);
   } catch(e) {
@@ -625,15 +618,40 @@ function formatInmueblePorProyecto(proyKey, inmueble, edificio){
   return inm;
 }
 
-function getMeta(pn,mes){
-  const k = pn + '|' + mes;
-  if(!METAS[k]){
-    METAS[k] = METAS_DEFAULT[pn] ? {...METAS_DEFAULT[pn]} : {und:0,monto:0};
-  }
-  return METAS[k];
+function parseMETASSheet(raw){
+  METAS_SHEET = {};
+  if(!raw || raw.length < 2) return;
+  const h = raw[0];
+  const iP  = h.findIndex(c => c.toString().trim().toUpperCase() === 'PROYECTO');
+  const iM  = h.findIndex(c => c.toString().trim().toUpperCase() === 'MES');
+  const iU  = h.findIndex(c => c.toString().trim().toUpperCase() === 'UNIDADES');
+  const iMt = h.findIndex(c => c.toString().trim().toUpperCase() === 'MONTO');
+  if(iP < 0 || iM < 0 || iU < 0 || iMt < 0) return;
+  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio',
+                    'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  raw.slice(1).forEach(r => {
+    const pRaw = (r[iP] || '').toString().trim();
+    const pn = matchWhitelist(pRaw.toUpperCase());
+    if(!pn) return;
+    const mesRaw = (r[iM] || '').toString().trim().toLowerCase();
+    const mesNorm = MESES_ES.find(m => mesRaw.includes(m.substring(0, 3)));
+    if(!mesNorm) return;
+    const und   = parseInt((r[iU]  || '').toString()) || 0;
+    const monto = parsePrecio(r[iMt]) || 0;
+    METAS_SHEET[pn + '|' + mesNorm] = {und, monto};
+  });
 }
-function saveMetas(){
-  localStorage.setItem('metas_padova', JSON.stringify(METAS));
+
+function getMeta(pn, mes){
+  if(mes === 'todos'){
+    const prefix = pn + '|';
+    let und = 0, monto = 0;
+    Object.entries(METAS_SHEET).forEach(([k,v]) => {
+      if(k.startsWith(prefix)){ und += v.und; monto += v.monto; }
+    });
+    return {und, monto};
+  }
+  return METAS_SHEET[pn + '|' + mes] || {und:0, monto:0};
 }
 
 function pf(v){
@@ -1068,11 +1086,10 @@ function renderTodos(){
       <div class="res-group-label" style="color:#ea580c;border-bottom-color:#fed7aa">Monto Meta</div>
     </div>`;
 
-  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta,mes}) => {
+  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta}) => {
     const col = PC[pn] || '#64748b';
     const pU  = pct(undR, meta.und);
     const pM  = pct(mtoR, meta.monto);
-    const mk  = pn+'|'+mes;
 
     html += `
     <div class="res-row-grid res-proy-row" style="border-left-color:${col}">
@@ -1111,21 +1128,16 @@ function renderTodos(){
         <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
       </div>
 
-      <!-- Meta (editable) -->
+      <!-- Meta -->
       <div class="res-cell meta">
-        <input class="res-cell-input" type="number" value="${meta.und}"
-          onchange="updateMeta('${mk}','und',this.value)">
+        <div class="res-cell-num" style="color:#ea580c">${meta.und}</div>
       </div>
 
-      <!-- Monto Meta (editable) -->
+      <!-- Monto Meta -->
       <div class="res-cell meta">
         <div class="res-cell-money-row" style="color:#ea580c">
           <span class="res-cell-money-val">S/</span>
-          <input class="res-cell-money-input" type="text"
-            value="${fmtAmt(meta.monto)}"
-            data-raw="${meta.monto}"
-            onfocus="this.value=this.dataset.raw"
-            onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
+          <span class="res-cell-money-val">${fmtAmt(meta.monto)}</span>
         </div>
       </div>
 
@@ -1135,11 +1147,10 @@ function renderTodos(){
   html += `</div>`; // end res-table-desktop
 
   // ── TARJETAS MOBILE ──
-  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta,mes}) => {
+  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta}) => {
     const col = PC[pn] || '#64748b';
     const pU = pct(undR, meta.und);
     const pM = pct(mtoR, meta.monto);
-    const mk = pn+'|'+mes;
 
     html += `
     <div class="res-mobile-card">
@@ -1171,21 +1182,11 @@ function renderTodos(){
         </div>
         <div class="res-mobile-box">
           <div class="res-mobile-label" style="color:#ea580c">Meta</div>
-          <input class="res-mobile-input" type="number" value="${meta.und}"
-            style="color:#ea580c"
-            onchange="updateMeta('${mk}','und',this.value)">
+          <div class="res-mobile-val" style="color:#ea580c">${meta.und}</div>
         </div>
         <div class="res-mobile-box">
           <div class="res-mobile-label" style="color:#ea580c">Monto Meta</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:4px">
-            <span style="font-size:13px;font-weight:700;color:#ea580c">S/</span>
-            <input class="res-mobile-money-input" type="text"
-              value="${fmtAmt(meta.monto)}"
-              data-raw="${meta.monto}"
-              style="color:#ea580c"
-              onfocus="this.value=this.dataset.raw"
-              onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
-          </div>
+          <div class="res-mobile-val money" style="color:#ea580c">${fmt(meta.monto)}</div>
         </div>
       </div>
     </div>`;
@@ -1200,7 +1201,6 @@ function renderSingle(pe){
   const col = PC[pn] || '#64748b';
   const pU = pct(undR,meta.und);
   const pM = pct(mtoR,meta.monto);
-  const mk = pn+'|'+mes;
 
   $('vista-single').innerHTML = `
   <div class="single-shell">
@@ -1252,17 +1252,12 @@ function renderSingle(pe){
           </div>
         </div>
         <div class="res-cell meta">
-          <input class="res-cell-input" type="number" value="${meta.und}"
-            onchange="updateMeta('${mk}','und',this.value)">
+          <div class="res-cell-num" style="color:#ea580c">${meta.und}</div>
         </div>
         <div class="res-cell meta">
           <div class="res-cell-money-row" style="color:#ea580c">
             <span class="res-cell-money-val">S/</span>
-            <input class="res-cell-money-input" type="text"
-              value="${fmtAmt(meta.monto)}"
-              data-raw="${meta.monto}"
-              onfocus="this.value=this.dataset.raw"
-              onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
+            <span class="res-cell-money-val">${fmtAmt(meta.monto)}</span>
           </div>
         </div>
       </div>
@@ -1299,34 +1294,17 @@ function renderSingle(pe){
         </div>
         <div class="res-mobile-box">
           <div class="res-mobile-label" style="color:#ea580c">Meta</div>
-          <input class="res-mobile-input" type="number" value="${meta.und}"
-            style="color:#ea580c"
-            onchange="updateMeta('${mk}','und',this.value)">
+          <div class="res-mobile-val" style="color:#ea580c">${meta.und}</div>
         </div>
         <div class="res-mobile-box">
           <div class="res-mobile-label" style="color:#ea580c">Monto Meta</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:4px">
-            <span style="font-size:13px;font-weight:700;color:#ea580c">S/</span>
-            <input class="res-mobile-money-input" type="text"
-              value="${fmtAmt(meta.monto)}"
-              data-raw="${meta.monto}"
-              style="color:#ea580c"
-              onfocus="this.value=this.dataset.raw"
-              onblur="var n=parseFloat(this.value.replace(/[^0-9.]/g,''))||0;this.dataset.raw=n;this.value=fmtAmt(n);updateMeta('${mk}','monto',n)">
-          </div>
+          <div class="res-mobile-val money" style="color:#ea580c">${fmt(meta.monto)}</div>
         </div>
       </div>
     </div>
 
     ${renderStock(pe)}
   </div>`;
-}
-
-function updateMeta(mk,campo,val){
-  if(!METAS[mk]) METAS[mk] = {und:0,monto:0};
-  METAS[mk][campo] = parseFloat(val) || 0;
-  saveMetas();
-  renderAll();
 }
 
 function renderStock(filtroProy){
@@ -1494,13 +1472,7 @@ function rOps(){
     ).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
 }
 
-function parseMonto(s){ return parseInt(String(s).replace(/[^0-9]/g,''), 10) || 0; }
 function fmtMonto(n){ return Math.round(n||0).toLocaleString('es-PE'); }
-function commitMonto(el){
-  const n = parseMonto(el.value);
-  updateMeta(el.dataset.mk, 'monto', n);
-  el.value = fmtMonto(n);
-}
 
 function renderAvance(){
   const f = getFilters();
@@ -1529,13 +1501,12 @@ function renderAvance(){
     const pfData = PF_MAP[pn] || {und:0, monto:0};
 
     const meta = getMeta(pn, f.mes);
-    const metaMk = pn + '|' + f.mes;
 
     const totUnd = pfData.und + firmCount;
     const totMto = pfData.monto + firmMto;
     const avancePct = pct(firmCount, meta.und);
 
-    return { pn, metaMk, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta, yr: f.yr, mes: f.mes };
+    return { pn, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta, yr: f.yr, mes: f.mes };
   });
 
   const totSepV = rows.reduce((t,r) => t + r.sepVivCount, 0);
@@ -1555,24 +1526,6 @@ function renderAvance(){
   const thFirm = `${C}background:#eff6ff;color:#1d4ed8`;
   const thTot  = `${C}background:#f0fdf4;color:#15803d`;
   const thMeta = `${C}background:#e0e7ff;color:#4338ca`;
-
-  const inpUnd = (val, onch, bdr, bg, clr) =>
-    `<input type="number" value="${val}" min="0" onchange="${onch}"
-      onkeydown="if(event.key==='Enter')this.blur()"
-      style="width:54px;text-align:center;border:1px solid ${bdr};border-radius:6px;
-             padding:4px 2px;font-size:12px;font-family:inherit;font-weight:700;
-             color:${clr};background:${bg}">`;
-
-  const inpMto = (val, pn, yr, mes, tipo, mk) =>
-    `<div style="display:inline-flex;align-items:center;gap:3px">
-      <span style="font-size:10px;font-weight:700;color:${tipo==='pf'?'#c2410c':'#4338ca'}">S/</span>
-      <input type="text" value="${fmtMonto(val)}"
-        data-tipo="${tipo}" data-pn="${pn}" data-yr="${yr}" data-mes="${mes}" data-mk="${mk||''}"
-        onblur="commitMonto(this)" onkeydown="if(event.key==='Enter')this.blur()"
-        style="width:90px;text-align:center;border:1px solid ${tipo==='pf'?'#fed7aa':'#c7d2fe'};
-               border-radius:6px;padding:4px 6px;font-size:12px;font-family:inherit;font-weight:600;
-               color:${tipo==='pf'?'#c2410c':'#4338ca'};background:${tipo==='pf'?'#fff7ed':'#e0e7ff'}">
-    </div>`;
 
   let html = `
   <div style="font-size:13px;font-weight:700;margin-bottom:16px">Avance · ${mesLabel}</div>
@@ -1603,7 +1556,7 @@ function renderAvance(){
     </thead>
     <tbody>`;
 
-  rows.forEach(({pn, metaMk, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta, yr, mes}) => {
+  rows.forEach(({pn, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta}) => {
     const col = PC[pn] || '#64748b';
     html += `
     <tr>
@@ -1620,12 +1573,8 @@ function renderAvance(){
       </td>
       <td style="${C}color:#15803d;font-weight:700;font-size:16px">${totUnd}</td>
       <td style="${C}color:#15803d;font-size:12px">S/ ${fmtMonto(totMto)}</td>
-      <td style="${C}">
-        ${inpUnd(meta.und, `updateMeta('${metaMk.replace(/'/g,"\\'")}','und',this.value)`, '#c7d2fe', '#e0e7ff', '#4338ca')}
-      </td>
-      <td style="${C}">
-        ${inpMto(meta.monto, pn, yr, mes, 'meta', metaMk)}
-      </td>
+      <td style="${C}color:#4338ca;font-weight:700;font-size:14px">${meta.und}</td>
+      <td style="${C}color:#4338ca;font-size:12px">S/ ${fmtMonto(meta.monto)}</td>
     </tr>`;
   });
 
