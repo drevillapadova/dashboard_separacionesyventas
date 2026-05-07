@@ -478,6 +478,18 @@ let V = [], S = [], F = {p:'all',v:'all',ti:'all'};
 let OPS_SORT = { key:'pn', dir:'asc' };
 const $ = id => document.getElementById(id);
 
+// Dado un nombre de proyecto en mayúsculas, retorna array de canonical names
+function resolverProyectos(pUp){
+  if(!pUp) return [];
+  if(pUp.includes('LOMAS') || pUp.includes('CARABAYLLO')){
+    if(pUp.includes('4') && !pUp.includes('5')) return ['Carabayllo 4'];
+    if(pUp.includes('5') && !pUp.includes('4')) return ['Carabayllo 5'];
+    return ['Carabayllo 4', 'Carabayllo 5'];
+  }
+  const pn = matchWhitelist(pUp);
+  return pn ? [pn] : [];
+}
+
 function parsePFData(raw){
   PF_MAP = {};
   if(!raw || raw.length < 2) return;
@@ -487,13 +499,11 @@ function parsePFData(raw){
   const iM = h.findIndex(c => c.toString().trim().toUpperCase() === 'MONTO');
   if(iP < 0 || iU < 0 || iM < 0) return;
   raw.slice(1).forEach(r => {
-    const pRaw = (r[iP] || '').toString().trim();
-    const pn = matchWhitelist(pRaw.toUpperCase());
-    if(!pn) return;
-    PF_MAP[pn] = {
-      und: parseInt(r[iU]) || 0,
-      monto: parsePrecio(r[iM]) || 0
-    };
+    const pRaw = (r[iP] || '').toString().trim().toUpperCase();
+    const pns = resolverProyectos(pRaw);
+    if(!pns.length) return;
+    const val = { und: parseInt(r[iU]) || 0, monto: parsePrecio(r[iM]) || 0 };
+    pns.forEach(pn => { PF_MAP[pn] = val; });
   });
 }
 
@@ -630,15 +640,15 @@ function parseMETASSheet(raw){
   const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio',
                     'julio','agosto','septiembre','octubre','noviembre','diciembre'];
   raw.slice(1).forEach(r => {
-    const pRaw = (r[iP] || '').toString().trim();
-    const pn = matchWhitelist(pRaw.toUpperCase());
-    if(!pn) return;
+    const pRaw = (r[iP] || '').toString().trim().toUpperCase();
+    const pns = resolverProyectos(pRaw);
+    if(!pns.length) return;
     const mesRaw = (r[iM] || '').toString().trim().toLowerCase();
     const mesNorm = MESES_ES.find(m => mesRaw.includes(m.substring(0, 3)));
     if(!mesNorm) return;
     const und   = parseInt((r[iU]  || '').toString()) || 0;
     const monto = parsePrecio(r[iMt]) || 0;
-    METAS_SHEET[pn + '|' + mesNorm] = {und, monto};
+    pns.forEach(pn => { METAS_SHEET[pn + '|' + mesNorm] = {und, monto}; });
   });
 }
 
