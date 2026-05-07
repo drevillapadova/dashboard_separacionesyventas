@@ -519,8 +519,11 @@ async function cargarDatos() {
     if(RAW_METAS.length > 0) console.log('[API] metas header:', RAW_METAS[0]);
     parsePFData(RAW_PF);
     parseMETASSheet(RAW_METAS);
-    console.log('[METAS_SHEET] entradas:', Object.keys(METAS_SHEET).length, Object.keys(METAS_SHEET).slice(0,5));
-    console.log('[PF_MAP] entradas:', Object.keys(PF_MAP).length, Object.keys(PF_MAP));
+    console.log('[METAS_SHEET] keys:', JSON.stringify(Object.keys(METAS_SHEET)));
+    console.log('[PF_MAP] keys:', JSON.stringify(Object.keys(PF_MAP)));
+    const _f = getFilters();
+    console.log('[FILTROS] yr:', _f.yr, '| mes:', _f.mes);
+    console.log('[getMeta test Helio]', getMeta('Helio - Santa Beatriz', _f.mes));
     const ua = d.ultima_actualizacion || null;
     init(ua);
   } catch(e) {
