@@ -515,15 +515,8 @@ async function cargarDatos() {
     RAW_S = d.stock || [];
     RAW_PF = d.minutas_pf || [];
     RAW_METAS = d.metas || [];
-    console.log('[API] ventas:', RAW_V.length, 'rows | stock:', RAW_S.length, 'rows | pf:', RAW_PF.length, 'rows | metas:', RAW_METAS.length, 'rows');
-    if(RAW_METAS.length > 0) console.log('[API] metas header:', RAW_METAS[0]);
     parsePFData(RAW_PF);
     parseMETASSheet(RAW_METAS);
-    console.log('[METAS_SHEET] keys:', JSON.stringify(Object.keys(METAS_SHEET)));
-    console.log('[PF_MAP] keys:', JSON.stringify(Object.keys(PF_MAP)));
-    const _f = getFilters();
-    console.log('[FILTROS] yr:', _f.yr, '| mes:', _f.mes);
-    console.log('[getMeta test Helio]', getMeta('Helio - Santa Beatriz', _f.mes));
     const ua = d.ultima_actualizacion || null;
     init(ua);
   } catch(e) {
@@ -681,10 +674,7 @@ function getMeta(pn, mes){
     });
     return {und, monto};
   }
-  const key = pn + '|' + mes;
-  const hit = METAS_SHEET[key];
-  if(pn === 'Helio - Santa Beatriz') console.log('[getMeta] buscando:', JSON.stringify(key), '→', hit ? hit.und : 'MISS. Claves disponibles:', JSON.stringify(Object.keys(METAS_SHEET).filter(k=>k.startsWith(pn))));
-  return hit || {und:0, monto:0};
+  return METAS_SHEET[pn + '|' + mes] || {und:0, monto:0};
 }
 
 function pf(v){
@@ -728,7 +718,7 @@ function pf(v){
 }
 
 function mesCorto(d){
-  return d.toLocaleString('es-PE',{month:'long'});
+  return _MESES_ES[d.getMonth()];
 }
 
 function getFilters(){
