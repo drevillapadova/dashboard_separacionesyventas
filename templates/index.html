@@ -681,7 +681,10 @@ function getMeta(pn, mes){
     });
     return {und, monto};
   }
-  return METAS_SHEET[pn + '|' + mes] || {und:0, monto:0};
+  const key = pn + '|' + mes;
+  const hit = METAS_SHEET[key];
+  if(pn === 'Helio - Santa Beatriz') console.log('[getMeta] buscando:', JSON.stringify(key), '→', hit ? hit.und : 'MISS. Claves disponibles:', JSON.stringify(Object.keys(METAS_SHEET).filter(k=>k.startsWith(pn))));
+  return hit || {und:0, monto:0};
 }
 
 function pf(v){
