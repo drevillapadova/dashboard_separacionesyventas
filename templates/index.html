@@ -515,8 +515,12 @@ async function cargarDatos() {
     RAW_S = d.stock || [];
     RAW_PF = d.minutas_pf || [];
     RAW_METAS = d.metas || [];
+    console.log('[API] ventas:', RAW_V.length, 'rows | stock:', RAW_S.length, 'rows | pf:', RAW_PF.length, 'rows | metas:', RAW_METAS.length, 'rows');
+    if(RAW_METAS.length > 0) console.log('[API] metas header:', RAW_METAS[0]);
     parsePFData(RAW_PF);
     parseMETASSheet(RAW_METAS);
+    console.log('[METAS_SHEET] entradas:', Object.keys(METAS_SHEET).length, Object.keys(METAS_SHEET).slice(0,5));
+    console.log('[PF_MAP] entradas:', Object.keys(PF_MAP).length, Object.keys(PF_MAP));
     const ua = d.ultima_actualizacion || null;
     init(ua);
   } catch(e) {
@@ -628,25 +632,38 @@ function formatInmueblePorProyecto(proyKey, inmueble, edificio){
   return inm;
 }
 
+const _MESES_ES = ['enero','febrero','marzo','abril','mayo','junio',
+                   'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function normalizarMes(raw){
+  const s = (raw || '').toString().trim().toLowerCase();
+  // por nombre en español (primeras 3 letras)
+  const byName = _MESES_ES.find(m => s.includes(m.substring(0, 3)));
+  if(byName) return byName;
+  // por número (1–12, soporta "01/2025", "2025-01", "1", etc.)
+  const numMatch = s.match(/\b(\d{1,2})\b/);
+  if(numMatch){ const n = parseInt(numMatch[1]); if(n>=1&&n<=12) return _MESES_ES[n-1]; }
+  return null;
+}
+
 function parseMETASSheet(raw){
   METAS_SHEET = {};
   if(!raw || raw.length < 2) return;
   const h = raw[0];
-  const iP  = h.findIndex(c => c.toString().trim().toUpperCase() === 'PROYECTO');
-  const iM  = h.findIndex(c => c.toString().trim().toUpperCase() === 'MES');
-  const iU  = h.findIndex(c => c.toString().trim().toUpperCase() === 'UNIDADES');
-  const iMt = h.findIndex(c => c.toString().trim().toUpperCase() === 'MONTO');
-  if(iP < 0 || iM < 0 || iU < 0 || iMt < 0) return;
-  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio',
-                    'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  // busca columnas por nombre (insensible a mayúsculas y espacios)
+  const ci = name => h.findIndex(c => c.toString().trim().toUpperCase() === name);
+  const iP = ci('PROYECTO'), iM = ci('MES'), iU = ci('UNIDADES'), iMt = ci('MONTO');
+  if(iP < 0 || iM < 0 || iU < 0 || iMt < 0){
+    console.warn('[parseMETASSheet] columnas no encontradas — headers:', h);
+    return;
+  }
   raw.slice(1).forEach(r => {
+    if(!r || r.every(c => !c)) return; // fila vacía
     const pRaw = (r[iP] || '').toString().trim().toUpperCase();
-    const pns = resolverProyectos(pRaw);
+    const pns  = resolverProyectos(pRaw);
     if(!pns.length) return;
-    const mesRaw = (r[iM] || '').toString().trim().toLowerCase();
-    const mesNorm = MESES_ES.find(m => mesRaw.includes(m.substring(0, 3)));
+    const mesNorm = normalizarMes(r[iM]);
     if(!mesNorm) return;
-    const und   = parseInt((r[iU]  || '').toString()) || 0;
+    const und   = parseInt((r[iU]  || '').toString().replace(/[^0-9]/g,'')) || 0;
     const monto = parsePrecio(r[iMt]) || 0;
     pns.forEach(pn => { METAS_SHEET[pn + '|' + mesNorm] = {und, monto}; });
   });
