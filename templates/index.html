@@ -1512,10 +1512,14 @@ function renderAvance(){
   const rows = PROJ.map(pe => {
     const pn = PROJ_MAP[pe] || pe;
 
-    // Separaciones Vivas: totales del proyecto, sin filtro de fecha, solo departamentos
+    // Separaciones Vivas: conteo solo departamentos, monto incluye estacionamientos del mismo cliente
     const sepVivas = S.filter(d => d.p===pe && d.e.includes('separac') && d.t.toLowerCase().includes('departamento'));
     const sepVivCount = sepVivas.length;
-    const sepVivMto = sepVivas.reduce((t,x) => t + (x.pr||0), 0);
+    const sepVivClientes = new Set(sepVivas.filter(d => d.cl).map(d => d.cl));
+    const sepVivMto = S.filter(d => {
+      if(d.p !== pe || !d.e.includes('separac')) return false;
+      return d.t.toLowerCase().includes('departamento') || (d.cl && sepVivClientes.has(d.cl));
+    }).reduce((t,x) => t + (x.pr||0), 0);
 
     // Minutas Firmadas: agrupadas por IdProforma para no duplicar depa+estacionamiento
     const firmadasAll = V.filter(d => {
