@@ -1521,21 +1521,21 @@ function renderAvance(){
       return d.t.toLowerCase().includes('departamento') || (d.cl && sepVivClientes.has(d.cl));
     }).reduce((t,x) => t + (x.pr||0), 0);
 
-    // Minutas Firmadas: agrupadas por IdProforma para no duplicar depa+estacionamiento
-    const firmadasAll = V.filter(d => {
+    // Minutas Firmadas: conteo solo departamentos, monto incluye estacionamientos del mismo IdProforma
+    const firmadasDepa = V.filter(d => {
       if(d.p !== pe) return false;
       if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
       if(f.mes !== 'todos' && d.ml !== f.mes) return false;
-      return true;
+      return d.ti.toLowerCase().includes('departamento');
     });
-    const firmadasMap = {};
-    firmadasAll.forEach((d, idx) => {
-      const key = d.ip || `_nip_${idx}`;
-      if(!firmadasMap[key]) firmadasMap[key] = 0;
-      firmadasMap[key] += (d.pr || 0);
-    });
-    const firmCount = Object.keys(firmadasMap).length;
-    const firmMto = Object.values(firmadasMap).reduce((t,v) => t+v, 0);
+    const firmCount = firmadasDepa.length;
+    const firmadasIPs = new Set(firmadasDepa.filter(d => d.ip).map(d => d.ip));
+    const firmMto = V.filter(d => {
+      if(d.p !== pe) return false;
+      if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
+      if(f.mes !== 'todos' && d.ml !== f.mes) return false;
+      return d.ti.toLowerCase().includes('departamento') || (d.ip && firmadasIPs.has(d.ip));
+    }).reduce((t,x) => t + (x.pr||0), 0);
 
     // Minutas Por Firmar: viene del Google Sheets, filtra por mes si hay columna MES
     const pfKey = f.mes !== 'todos' ? pn + '|' + f.mes : pn;
