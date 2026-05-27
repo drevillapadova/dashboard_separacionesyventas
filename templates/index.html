@@ -834,7 +834,7 @@ function init(ultimaActualizacion){
       md: ref || new Date(0),
       yr
     };
-  }).filter(d => d && d.yr >= 2023);
+  }).filter(d => d && d.yr >= 2023 && !(d.p === 'LITORAL 900' && ['101','102'].includes(d.in)));
 
   const hS = RAW_S[0] || [];
   const six = n => hS.findIndex(h => h.toString().trim() === n);
@@ -894,7 +894,7 @@ function init(ultimaActualizacion){
       md: fd || new Date(0),
       yr: fd ? fd.getFullYear() : 0
     };
-  }).filter(d => d && (d.yr === 0 || d.yr >= 2023));
+  }).filter(d => d && (d.yr === 0 || d.yr >= 2023) && !(d.p === 'LITORAL 900' && ['101','102'].includes(d.i)));
 
   poblarFiltros();
   renderAll();
