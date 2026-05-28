@@ -40,8 +40,8 @@ def _fetch_tc_eapi(fecha_str):
         url = f"https://free.e-api.net.pe/tipo-cambio/{fecha_str}.json"
         r = requests.get(url, timeout=10)
         data = r.json()
-        if data.get("sunat"):
-            return float(data["sunat"])
+        if data.get("venta"):
+            return float(data["venta"])
     except Exception:
         pass
     return None
@@ -98,8 +98,9 @@ def get_tipo_cambio(fecha=None):
         if f in _TC_CACHE:
             _TC_CACHE[fecha_str] = _TC_CACHE[f]
             return _TC_CACHE[f]
-        tc = _fetch_tc_eapi(f) or _fetch_tc_bcrp(f)
-        if tc:
+        tc_raw = _fetch_tc_eapi(f) or _fetch_tc_bcrp(f)
+        if tc_raw:
+            tc = round(tc_raw, 2)
             print(f"   -> [TC] {fecha_str}: S/ {tc} (SBS/SUNAT, {'mismo día' if dias_atras == 0 else f'{dias_atras}d antes'})")
             _TC_CACHE[fecha_str] = tc
             _TC_CACHE[f] = tc
