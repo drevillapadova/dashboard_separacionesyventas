@@ -1543,7 +1543,7 @@ function renderAvance(){
       if(d.p !== pe) return false;
       if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
       if(f.mes !== 'todos' && d.ml !== f.mes) return false;
-      return d.ti.toLowerCase().includes('departamento') || (d.ip && firmadasIPs.has(d.ip));
+      return (d.ti.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO')) || (d.ip && firmadasIPs.has(d.ip));
     }).reduce((t,x) => t + (x.pr||0), 0);
 
     // Minutas Por Firmar: viene del Google Sheets, filtra por mes si hay columna MES
