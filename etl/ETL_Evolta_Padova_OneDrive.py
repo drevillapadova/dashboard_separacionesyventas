@@ -1,6 +1,7 @@
 import time
 import os
 import glob
+import json
 import shutil
 import requests
 import pandas as pd
@@ -69,7 +70,7 @@ def get_tipo_cambio(fecha=None):
         r = requests.get(url, timeout=10)
         if not r.text.strip():
             raise ValueError("Respuesta vacía del BCRP")
-        data = r.json()
+        data = json.loads(r.content.decode('utf-8-sig'))
         periodos = data.get("periods", [])
         if periodos and periodos[0].get("values"):
             tc = float(periodos[0]["values"][0])
@@ -87,7 +88,7 @@ def get_tipo_cambio(fecha=None):
             r2 = requests.get(url2, timeout=5)
             if not r2.text.strip():
                 continue
-            data2 = r2.json()
+            data2 = json.loads(r2.content.decode('utf-8-sig'))
             periodos2 = data2.get("periods", [])
             if periodos2 and periodos2[0].get("values"):
                 tc = float(periodos2[0]["values"][0])

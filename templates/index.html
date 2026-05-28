@@ -371,6 +371,7 @@ tbody tr:hover td{background:#f8faff}
     <button class="pill" data-g="ti" data-v="Azotea" onclick="sf('ti','Azotea',this)">Azotea</button>
     <button class="pill" data-g="ti" data-v="Estacionamiento" onclick="sf('ti','Estacionamiento',this)">Estac.</button>
     <button class="pill" data-g="ti" data-v="Depósito" onclick="sf('ti','Depósito',this)">Depósito</button>
+    <button class="pill" data-g="ti" data-v="comercio" onclick="sf('ti','comercio',this)">Comercial</button>
   </div>
   <select class="pill fil-sel" id="stipo" onchange="sfSel('ti',this.value)">
     <option value="all">Tipo: Todos</option>
@@ -378,6 +379,7 @@ tbody tr:hover td{background:#f8faff}
     <option value="Azotea">Azotea</option>
     <option value="Estacionamiento">Estacionamiento</option>
     <option value="Depósito">Depósito</option>
+    <option value="comercio">Local Comercial</option>
   </select>
 
   <div class="dv"></div>
@@ -779,6 +781,7 @@ function init(ultimaActualizacion){
   const iP  = ix('Proyecto');
   const iE  = ix('Estado');
   const iTi = ix('TipoInmueble');
+  const iMo = ix('Modelo');
   const iNr = ix('NroInmueble');
   const iEd = ix('T/M');
   const iCl = ix('NombresTitular');
@@ -822,6 +825,7 @@ function init(ultimaActualizacion){
       p: proyKey,
       pn: proyectoCanon,
       ti: tc(g(iTi)),
+      mo: g(iMo).toUpperCase(),
       in: formatInmueblePorProyecto(proyKey, g(iNr), g(iEd)),
       ip: g(iIP),
       cl: tc(g(iCl)),
@@ -842,6 +846,7 @@ function init(ultimaActualizacion){
   const siP  = six('Proyecto');
   const siE  = six('Estado');
   const siT  = six('TipoInmueble');
+  const siMo = six('Modelo');
   const siN  = six('NroInmuebleActual');
   const siEd = six('Edificio');
   const siPrV = six('PrecioVentaSoles') >= 0 ? six('PrecioVentaSoles') : six('PrecioVenta');
@@ -883,6 +888,7 @@ function init(ultimaActualizacion){
       pn: proyectoCanon,
       e: g(siE).toLowerCase(),
       t: tc(g(siT)),
+      mo: g(siMo).toUpperCase(),
       i: formatInmueblePorProyecto(proyKey, g(siN), g(siEd)),
       pr,
       cl: tc(g(siCl)),
@@ -972,7 +978,7 @@ function gfV(){
     if(f.yr!=='todos' && d.yr!==+f.yr) return false;
     if(f.mes!=='todos' && d.ml!==f.mes) return false;
     if(f.p!=='all' && d.p!==f.p) return false;
-    if(f.ti!=='all' && !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     if(f.busca && !d.cl.toLowerCase().includes(f.busca)) return false;
     return true;
   });
@@ -985,7 +991,7 @@ function gfS(){
     if(f.p!=='all' && d.p!==f.p) return false;
     if(f.yr!=='todos' && d.yr && d.yr!==+f.yr) return false;
     if(f.mes!=='todos' && d.ml && d.ml!==f.mes) return false;
-    if(f.ti!=='all' && !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     if(f.busca && !(d.cl || '').toLowerCase().includes(f.busca)) return false;
     return true;
   });
@@ -1033,7 +1039,7 @@ function getProyData(pe){
     if(d.p!==pe) return false;
     if(f.yr!=='todos' && d.yr!==+f.yr) return false;
     if(f.mes!=='todos' && d.ml!==f.mes) return false;
-    if(f.ti!=='all' && !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     return true;
   });
 
@@ -1041,7 +1047,7 @@ function getProyData(pe){
     if(d.p!==pe || !d.e.includes('separac')) return false;
     if(f.yr!=='todos' && d.yr && d.yr!==+f.yr) return false;
     if(f.mes!=='todos' && d.ml && d.ml!==f.mes) return false;
-    if(f.ti!=='all' && !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
+    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     return true;
   });
 
@@ -1352,7 +1358,7 @@ function renderStock(filtroProy){
       if(x.p!==pe) return false;
       if(f.yr!=='todos' && x.yr && x.yr!==+f.yr) return false;
       if(f.mes!=='todos' && x.ml && x.ml!==f.mes) return false;
-      if(f.ti!=='all' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
+      if(f.ti!=='all') { if(f.ti==='comercio' ? !x.mo.includes('COMERCIO') : !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
       return true;
     });
 
