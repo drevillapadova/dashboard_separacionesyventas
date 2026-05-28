@@ -31,16 +31,43 @@ from webdriver_manager.chrome import ChromeDriverManager
 # Cache de TCs para no consultar la API múltiples veces por la misma fecha
 _TC_CACHE = {}
 
+def _fetch_tc_eapi(fecha_str):
+    """Consulta TC venta SBS/SUNAT via eApi Perú. Retorna float o None."""
+    try:
+        url = f"https://free.e-api.net.pe/tipo-cambio/{fecha_str}.json"
+        r = requests.get(url, timeout=10)
+        data = r.json()
+        if data.get("success") and data.get("data", {}).get("venta"):
+            return float(data["data"]["venta"])
+    except Exception:
+        pass
+    return None
+
+
+def _fetch_tc_bcrp(fecha_str):
+    """Consulta TC via BCRP como respaldo. Retorna float o None."""
+    try:
+        url = f"https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PD04637PD/json/{fecha_str}/{fecha_str}/ing"
+        r = requests.get(url, timeout=10)
+        if not r.text.strip():
+            return None
+        data = json.loads(r.content.decode('utf-8-sig'))
+        periodos = data.get("periods", [])
+        if periodos and periodos[0].get("values"):
+            return float(periodos[0]["values"][0])
+    except Exception:
+        pass
+    return None
+
+
 def get_tipo_cambio(fecha=None):
     """
-    Obtiene TC USD/PEN del BCRP para una fecha específica.
-    Si fecha=None usa la fecha de hoy.
+    Obtiene TC USD/PEN (venta, promedio ponderado SBS = mismo que SUNAT).
+    Fuente primaria: eApi Perú (SBS). Respaldo: BCRP. Último respaldo: 3.75.
     Usa cache para evitar múltiples consultas a la misma fecha.
-    Usa 3.75 como respaldo si la API falla.
     """
     TC_RESPALDO = 3.75
 
-    # Determinar fecha a consultar
     import pandas as _pd
     if fecha is None or (hasattr(_pd, 'isnull') and _pd.isnull(fecha)):
         fecha_dt = datetime.now()
@@ -51,7 +78,6 @@ def get_tipo_cambio(fecha=None):
             fecha_dt = datetime.now()
     elif hasattr(fecha, 'strftime'):
         try:
-            # Pandas NaT lanza excepción al hacer strftime
             fecha_dt = fecha.to_pydatetime() if hasattr(fecha, 'to_pydatetime') else fecha
         except:
             fecha_dt = datetime.now()
@@ -60,50 +86,25 @@ def get_tipo_cambio(fecha=None):
 
     fecha_str = fecha_dt.strftime("%Y-%m-%d")
 
-    # Revisar cache primero
     if fecha_str in _TC_CACHE:
         return _TC_CACHE[fecha_str]
 
-    try:
-        # Consultar BCRP para esa fecha
-        url = f"https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PD04637PD/json/{fecha_str}/{fecha_str}/ing"
-        r = requests.get(url, timeout=10)
-        if not r.text.strip():
-            raise ValueError("Respuesta vacía del BCRP")
-        data = json.loads(r.content.decode('utf-8-sig'))
-        periodos = data.get("periods", [])
-        if periodos and periodos[0].get("values"):
-            tc = float(periodos[0]["values"][0])
+    # Intentar para la fecha y hasta 7 días antes (feriados/fines de semana)
+    for dias_atras in range(0, 8):
+        f = (fecha_dt - timedelta(days=dias_atras)).strftime("%Y-%m-%d")
+        if f in _TC_CACHE:
+            _TC_CACHE[fecha_str] = _TC_CACHE[f]
+            return _TC_CACHE[f]
+        tc = _fetch_tc_eapi(f) or _fetch_tc_bcrp(f)
+        if tc:
+            print(f"   -> [TC] {fecha_str}: S/ {tc} (SBS/SUNAT, {'mismo día' if dias_atras == 0 else f'{dias_atras}d antes'})")
             _TC_CACHE[fecha_str] = tc
+            _TC_CACHE[f] = tc
             return tc
 
-        # Si no hay dato (feriado/fin de semana), buscar hasta 7 días antes
-        for dias_atras in range(1, 8):
-            fecha_anterior = (fecha_dt - timedelta(days=dias_atras)).strftime("%Y-%m-%d")
-            if fecha_anterior in _TC_CACHE:
-                tc = _TC_CACHE[fecha_anterior]
-                _TC_CACHE[fecha_str] = tc
-                return tc
-            url2 = f"https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PD04637PD/json/{fecha_anterior}/{fecha_anterior}/ing"
-            r2 = requests.get(url2, timeout=5)
-            if not r2.text.strip():
-                continue
-            data2 = json.loads(r2.content.decode('utf-8-sig'))
-            periodos2 = data2.get("periods", [])
-            if periodos2 and periodos2[0].get("values"):
-                tc = float(periodos2[0]["values"][0])
-                _TC_CACHE[fecha_str] = tc
-                _TC_CACHE[fecha_anterior] = tc
-                return tc
-
-        print(f"   -> [TC] Sin datos BCRP para {fecha_str}, usando respaldo: S/ {TC_RESPALDO}")
-        _TC_CACHE[fecha_str] = TC_RESPALDO
-        return TC_RESPALDO
-
-    except Exception as e:
-        print(f"   -> [TC] Error API BCRP ({e}), usando respaldo: S/ {TC_RESPALDO}")
-        _TC_CACHE[fecha_str] = TC_RESPALDO
-        return TC_RESPALDO
+    print(f"   -> [TC] Sin datos para {fecha_str}, usando respaldo: S/ {TC_RESPALDO}")
+    _TC_CACHE[fecha_str] = TC_RESPALDO
+    return TC_RESPALDO
 
 
 def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=None):
