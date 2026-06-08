@@ -266,6 +266,52 @@ def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda',
     return df
 
 
+def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda',
+                             col_proyecto='Proyecto', col_tipo='TipoInmueble'):
+    """
+    Corrección específica para LITORAL 900: el CRM exporta algunos inmuebles
+    en USD etiquetados como SOLES. Reglas por tipo de unidad:
+      - ESTACIONAMIENTO: precio entre 10,000 y 29,000 → DOLAR
+      - DEPOSITO:        precio entre 1,700  y  3,300 → DOLAR
+    """
+    REGLAS = {
+        'ESTACIONAMIENTO': (10_000, 29_000),
+        'DEPOSITO':        (1_700,   3_300),
+    }
+
+    cols_ok = all(c in df.columns for c in [col_precio, col_moneda, col_proyecto, col_tipo])
+    if not cols_ok:
+        return df
+
+    df = df.copy()
+    corregidos = 0
+
+    for idx, row in df.iterrows():
+        if 'LITORAL' not in str(row[col_proyecto]).upper():
+            continue
+
+        moneda = str(row[col_moneda]).upper().strip()
+        if 'DOLAR' in moneda or 'USD' in moneda:
+            continue
+
+        tipo = str(row[col_tipo]).upper().strip()
+
+        for clave, (minimo, maximo) in REGLAS.items():
+            if clave not in tipo:
+                continue
+            try:
+                precio = float(str(row[col_precio]).replace(',', '')) if row[col_precio] else 0
+            except:
+                precio = 0
+            if minimo <= precio <= maximo:
+                df.at[idx, col_moneda] = 'DOLAR'
+                corregidos += 1
+                print(f"   -> [MONEDA] Litoral {clave}: {precio:,.0f} 'SOLES' → DOLAR ({minimo:,}–{maximo:,})")
+            break
+
+    print(f"   -> [MONEDA] Litoral: {corregidos} registros corregidos a DOLAR")
+    return df
+
 
 # --- CONFIGURACIÓN DE CREDENCIALES ---
 # En nube (GitHub Actions): se leen desde variables de entorno (Secrets)
@@ -998,6 +1044,11 @@ def process_ventas_data(df_stock=None):
         print("\n    Aplicando corrección de moneda Sunny...")
         df_consolidado = corregir_moneda_sunny(df_consolidado, col_moneda='TipoMoneda')
 
+    # Corrección específica Litoral: estacionamientos y depósitos en rango USD mal etiquetados
+    if "TipoMoneda" in df_consolidado.columns and "TipoInmueble" in df_consolidado.columns:
+        print("\n    Aplicando corrección de moneda Litoral...")
+        df_consolidado = corregir_moneda_litoral(df_consolidado, col_moneda='TipoMoneda')
+
     # Convertir precios a soles usando TC histórico por fecha de cada registro
     if "PrecioVenta" in df_consolidado.columns and "TipoMoneda" in df_consolidado.columns:
         print("\n    Convirtiendo precios a soles con TC histórico por fecha...")
@@ -1040,6 +1091,11 @@ def process_stock_data(df_ventas=None):
     # Corrección específica Sunny en STOCK: precios < 600k en 'SOLES' son USD
     if "Moneda" in df.columns:
         df = corregir_moneda_sunny(df, col_moneda='Moneda')
+
+    # Corrección específica Litoral en STOCK: estacionamientos y depósitos en rango USD mal etiquetados
+    if "Moneda" in df.columns and "TipoInmueble" in df.columns:
+        col_precio_litoral = "PrecioVenta" if "PrecioVenta" in df.columns else "PrecioLista"
+        df = corregir_moneda_litoral(df, col_precio=col_precio_litoral, col_moneda='Moneda')
 
     # Convertir precios a soles usando TC histórico por fecha
     if "Moneda" in df.columns:
