@@ -269,10 +269,14 @@ def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda',
 def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda',
                              col_proyecto='Proyecto', col_tipo='TipoInmueble'):
     """
-    Corrección específica para LITORAL 900: el CRM exporta algunos inmuebles
-    en USD etiquetados como SOLES. Reglas por tipo de unidad:
-      - ESTACIONAMIENTO: precio entre 10,000 y 29,000 → DOLAR
-      - DEPOSITO:        precio entre 1,700  y  3,300 → DOLAR
+    Corrección específica para LITORAL 900: el CRM etiqueta mal la moneda
+    en estacionamientos y depósitos. Se corrige en ambas direcciones:
+      - Dice SOLES + precio EN rango USD   → cambiar a DOLAR
+      - Dice DOLAR + precio FUERA de rango → cambiar a SOLES
+
+    Rangos USD por tipo:
+      - ESTACIONAMIENTO: 10,000 – 29,000
+      - DEPOSITO:         1,700 –  3,300
     """
     REGLAS = {
         'ESTACIONAMIENTO': (10_000, 29_000),
@@ -284,14 +288,11 @@ def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda
         return df
 
     df = df.copy()
-    corregidos = 0
+    a_dolar = 0
+    a_soles = 0
 
     for idx, row in df.iterrows():
         if 'LITORAL' not in str(row[col_proyecto]).upper():
-            continue
-
-        moneda = str(row[col_moneda]).upper().strip()
-        if 'DOLAR' in moneda or 'USD' in moneda:
             continue
 
         tipo = str(row[col_tipo]).upper().strip()
@@ -299,17 +300,29 @@ def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda
         for clave, (minimo, maximo) in REGLAS.items():
             if clave not in tipo:
                 continue
+
             try:
                 precio = float(str(row[col_precio]).replace(',', '')) if row[col_precio] else 0
             except:
                 precio = 0
-            if minimo <= precio <= maximo:
+
+            moneda = str(row[col_moneda]).upper().strip()
+            es_usd = 'DOLAR' in moneda or 'USD' in moneda
+            en_rango = minimo <= precio <= maximo
+
+            if not es_usd and en_rango:
+                # Dice SOLES pero precio está en rango USD → es DOLAR
                 df.at[idx, col_moneda] = 'DOLAR'
-                corregidos += 1
-                print(f"   -> [MONEDA] Litoral {clave}: {precio:,.0f} 'SOLES' → DOLAR ({minimo:,}–{maximo:,})")
+                a_dolar += 1
+                print(f"   -> [MONEDA] Litoral {clave}: {precio:,.0f} SOLES → DOLAR (rango {minimo:,}–{maximo:,})")
+            elif es_usd and not en_rango:
+                # Dice DOLAR pero precio está fuera del rango USD → es SOLES
+                df.at[idx, col_moneda] = 'SOLES'
+                a_soles += 1
+                print(f"   -> [MONEDA] Litoral {clave}: {precio:,.0f} DOLAR → SOLES (fuera de rango {minimo:,}–{maximo:,})")
             break
 
-    print(f"   -> [MONEDA] Litoral: {corregidos} registros corregidos a DOLAR")
+    print(f"   -> [MONEDA] Litoral: {a_dolar} corregidos a DOLAR, {a_soles} corregidos a SOLES")
     return df
 
 
