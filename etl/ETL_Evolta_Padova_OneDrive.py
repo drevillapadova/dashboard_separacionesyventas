@@ -33,15 +33,16 @@ _TC_CACHE = {}
 
 def _fetch_tc_eapi(fecha_str):
     """Consulta TC SUNAT via eApi Perú. Retorna float o None.
-    Respuesta: {"fecha":"...","sunat":3.417,"compra":3.413,"venta":3.421}
-    Usa campo 'sunat' que coincide exactamente con el TC publicado por SUNAT.
+    Respuesta: {"fecha":"...","sunat":3.720,"compra":3.712,"venta":3.728}
+    Usa campo 'sunat' = cotización de cierre SBS del día anterior, que es
+    exactamente el TC que publica SUNAT en su tabla oficial.
     """
     try:
         url = f"https://free.e-api.net.pe/tipo-cambio/{fecha_str}.json"
         r = requests.get(url, timeout=10)
         data = r.json()
-        if data.get("venta"):
-            return float(data["venta"])
+        if data.get("sunat"):
+            return float(data["sunat"])
     except Exception:
         pass
     return None
