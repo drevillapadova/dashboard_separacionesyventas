@@ -1392,6 +1392,12 @@ def main():
             df_stock_crudo = pd.read_excel(latest_stock)
             df_stock_crudo.columns = df_stock_crudo.columns.str.strip()
             print(f"\n>> [MONEDA] Stock crudo cargado ({len(df_stock_crudo)} filas) para validar moneda")
+            # Aplicar correcciones de moneda al stock crudo antes de usarlo como referencia,
+            # para que corregir_moneda_con_stock use los valores ya corregidos
+            if "Moneda" in df_stock_crudo.columns:
+                df_stock_crudo = corregir_moneda_sunny(df_stock_crudo, col_moneda='Moneda')
+            if "Moneda" in df_stock_crudo.columns and "TipoInmueble" in df_stock_crudo.columns:
+                df_stock_crudo = corregir_moneda_litoral(df_stock_crudo, col_moneda='Moneda')
     except Exception as e:
         print(f"!! Warning: no se pudo leer stock crudo para corrección de moneda: {e}")
 
