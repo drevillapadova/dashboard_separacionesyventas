@@ -3,6 +3,7 @@ import os
 import glob
 import json
 import shutil
+import unicodedata
 import requests
 import pandas as pd
 import gspread
@@ -23,6 +24,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+
+def _normalizar_moneda(valor):
+    """Elimina acentos y normaliza a mayúsculas para comparar monedas.
+    Evolta exporta a veces 'DÓLARES' (con acento) en vez de 'DOLARES'.
+    """
+    s = unicodedata.normalize('NFD', str(valor).upper().strip())
+    return ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+
+def _es_usd(valor):
+    m = _normalizar_moneda(valor)
+    return 'DOLAR' in m or 'USD' in m
 
 # ============================================================
 # TIPO DE CAMBIO - BCRP
@@ -209,21 +221,27 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
     corregidos = 0
 
     for idx, row in df_ventas.iterrows():
-        moneda_v = str(row[col_moneda_v]).upper().strip()
-        if 'DOLAR' not in moneda_v and 'USD' not in moneda_v:
-            continue  # Solo corregir los marcados como USD
-
         proy_v = str(row[col_proy_v]).strip().upper()
         nro_v  = norm_nro(row[col_nro_v])
         moneda_stock = lookup.get((proy_v, nro_v))
 
-        if moneda_stock and 'DOLAR' not in moneda_stock and 'USD' not in moneda_stock:
-            # STOCK dice SOLES → el precio en ventas ya está en soles, corregir etiqueta
-            df_ventas.at[idx, col_moneda_v] = moneda_stock
+        if not moneda_stock:
+            continue  # unidad no encontrada en stock, no tocar
+
+        ventas_es_usd = _es_usd(row[col_moneda_v])
+        stock_es_usd  = _es_usd(moneda_stock)
+
+        if ventas_es_usd and not stock_es_usd:
+            # Ventas dice DOLAR pero stock dice SOLES → el precio ya está en soles
+            df_ventas.at[idx, col_moneda_v] = 'SOLES'
             corregidos += 1
-            precio_val = row.get('PrecioVenta', '')
-            print(f"   -> [MONEDA] Corregido {proy_v} · {nro_v}: "
-                  f"DOLAR→{moneda_stock} (precio {precio_val})")
+            print(f"   -> [MONEDA] {proy_v} · {nro_v}: DOLAR→SOLES (stock dice SOLES, precio {row.get('PrecioVenta','')})")
+
+        elif not ventas_es_usd and stock_es_usd:
+            # Ventas dice SOLES pero stock dice DOLAR → hay que convertir con TC
+            df_ventas.at[idx, col_moneda_v] = 'DOLAR'
+            corregidos += 1
+            print(f"   -> [MONEDA] {proy_v} · {nro_v}: SOLES→DOLAR (stock dice DOLAR, precio {row.get('PrecioVenta','')})")
 
     print(f"   -> [MONEDA] Total corregidos: {corregidos} registros")
     return df_ventas
