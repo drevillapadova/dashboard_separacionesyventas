@@ -197,14 +197,20 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
             s = s[:-2]
         return s.upper()
 
-    # Construir lookup: (proyecto_upper, nro_normalizado) → moneda_stock
+    # Construir lookup: (proyecto_upper, nro_normalizado) → set de monedas
+    # Usamos set porque el mismo número puede tener varias unidades de distinto tipo
+    # (ej: ESTACIONAMIENTO 101 en SOLES y LOCAL COMERCIAL 101 en DOLAR).
+    # Si cualquiera dice DOLAR, el número se considera DOLAR.
     lookup = {}
     for _, row in df_stock.iterrows():
         proy = str(row[col_proy_s]).strip().upper()
         nro  = norm_nro(row[col_nro_s])
         mon  = str(row[col_moneda_s]).strip().upper()
         if proy and nro and nro not in ('', 'NAN', 'NONE'):
-            lookup[(proy, nro)] = mon
+            key = (proy, nro)
+            if key not in lookup:
+                lookup[key] = set()
+            lookup[key].add(mon)
 
     print(f"   -> [MONEDA] Lookup stock construido: {len(lookup)} unidades")
 
@@ -223,13 +229,13 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
     for idx, row in df_ventas.iterrows():
         proy_v = str(row[col_proy_v]).strip().upper()
         nro_v  = norm_nro(row[col_nro_v])
-        moneda_stock = lookup.get((proy_v, nro_v))
+        monedas = lookup.get((proy_v, nro_v))
 
-        if not moneda_stock:
+        if not monedas:
             continue  # unidad no encontrada en stock, no tocar
 
         ventas_es_usd = _es_usd(row[col_moneda_v])
-        stock_es_usd  = _es_usd(moneda_stock)
+        stock_es_usd  = any(_es_usd(m) for m in monedas)
 
         if ventas_es_usd and not stock_es_usd:
             tipo_v = str(row.get('TipoInmueble', '')).upper()
@@ -237,13 +243,13 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
                 continue
             df_ventas.at[idx, col_moneda_v] = 'SOLES'
             corregidos += 1
-            print(f"   -> [MONEDA] {proy_v} · {nro_v}: DOLAR→SOLES (stock dice SOLES, precio {row.get('PrecioVenta','')})")
+            print(f"   -> [MONEDA] {proy_v} · {nro_v}: DOLAR→SOLES (stock: {monedas}, precio {row.get('PrecioVenta','')})")
 
         elif not ventas_es_usd and stock_es_usd:
             # Ventas dice SOLES pero stock dice DOLAR → hay que convertir con TC
             df_ventas.at[idx, col_moneda_v] = 'DOLAR'
             corregidos += 1
-            print(f"   -> [MONEDA] {proy_v} · {nro_v}: SOLES→DOLAR (stock dice DOLAR, precio {row.get('PrecioVenta','')})")
+            print(f"   -> [MONEDA] {proy_v} · {nro_v}: SOLES→DOLAR (stock: {monedas}, precio {row.get('PrecioVenta','')})")
 
     print(f"   -> [MONEDA] Total corregidos: {corregidos} registros")
     return df_ventas
