@@ -314,7 +314,30 @@ tbody tr:hover td{background:#f8faff}
   .fil-lbl{display:none}
   .dv{display:none}
 }
+/* ── ANÁLISIS ─────────────────────────────────────── */
+.ana-filters{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;padding:16px 20px}
+.ana-fgroup{display:flex;flex-direction:column;gap:6px}
+.ana-fgroup label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
+.ana-fgroup select{padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:#1e2a4a;cursor:pointer}
+.ana-fgroup select:focus{outline:none;border-color:#3b82f6}
+.ana-projs{display:flex;flex-wrap:wrap;gap:6px}
+.ana-pchk{display:none}
+.ana-plbl{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #d1d5db;color:#64748b;transition:all .15s;white-space:nowrap}
+.ana-pchk:checked + .ana-plbl{border-color:currentColor;background:currentColor;color:#fff!important;filter:none}
+.ana-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.ana-chart-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(30,42,74,.08);padding:20px}
+.ana-chart-title{font-size:13px;font-weight:700;color:#1e2a4a;margin-bottom:4px}
+.ana-chart-sub{font-size:11px;color:#94a3b8;margin-bottom:16px}
+.ana-chart-wrap{position:relative;height:260px}
+.ana-pivot-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(30,42,74,.08);padding:20px;margin-top:16px}
+.ana-pivot-title{font-size:13px;font-weight:700;color:#1e2a4a;margin-bottom:16px}
+#pivot-output table{border-collapse:collapse;font-size:12px;width:100%}
+#pivot-output th,#pivot-output td{border:1px solid #e2e8f0;padding:5px 10px;text-align:right}
+#pivot-output th{background:#f1f5f9;font-weight:600;text-align:center;color:#475569}
+#pivot-output tr:hover td{background:#f8fafc}
+@media(max-width:900px){.ana-charts-grid{grid-template-columns:1fr}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="nav">
@@ -322,6 +345,7 @@ tbody tr:hover td{background:#f8faff}
   <button class="tab on" onclick="showTab('res',this)">Resumen</button>
   <button class="tab" onclick="showTab('ops',this)">Operaciones</button>
   <button class="tab" onclick="showTab('avance',this)">Avance</button>
+  <button class="tab" onclick="showTab('analisis',this)">Análisis</button>
   <div class="nav-actions">
     <div class="nav-r" id="ts"></div>
     <button id="btn-refresh" onclick="forzarActualizacion()" style="
@@ -397,14 +421,6 @@ tbody tr:hover td{background:#f8faff}
   </div>
 </div>
 
-<div id="pg-avance" class="pg">
-  <div class="wrap-wide">
-    <div class="card">
-      <div id="avance-table"></div>
-    </div>
-  </div>
-</div>
-
 <div id="pg-ops" class="pg">
   <div class="wrap-wide">
     <div class="card">
@@ -432,6 +448,71 @@ tbody tr:hover td{background:#f8faff}
     </div>
   </div>
 </div>
+
+<div id="pg-avance" class="pg">
+  <div class="wrap-wide">
+    <div class="card">
+      <div id="avance-table"></div>
+    </div>
+  </div>
+</div>
+
+<div id="pg-analisis" class="pg">
+  <div class="wrap-wide">
+    <!-- Filtros -->
+    <div class="card ana-filters">
+      <div class="ana-fgroup">
+        <label>Año principal</label>
+        <select id="ana-yr-a" onchange="renderAnalisis()"></select>
+      </div>
+      <div class="ana-fgroup">
+        <label>Comparar con</label>
+        <select id="ana-yr-b" onchange="renderAnalisis()">
+          <option value="">— sin comparación —</option>
+        </select>
+      </div>
+      <div class="ana-fgroup">
+        <label>Proyectos</label>
+        <div class="ana-projs" id="ana-proj-list"></div>
+      </div>
+    </div>
+
+    <!-- Gráficos fila 1 -->
+    <div class="ana-charts-grid">
+      <div class="ana-chart-card">
+        <div class="ana-chart-title">Unidades vendidas por mes</div>
+        <div class="ana-chart-sub" id="ana-sub-u"></div>
+        <div class="ana-chart-wrap"><canvas id="chart-unidades"></canvas></div>
+      </div>
+      <div class="ana-chart-card">
+        <div class="ana-chart-title">Monto vendido por mes (S/)</div>
+        <div class="ana-chart-sub" id="ana-sub-m"></div>
+        <div class="ana-chart-wrap"><canvas id="chart-monto"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Gráficos fila 2 -->
+    <div class="ana-charts-grid">
+      <div class="ana-chart-card">
+        <div class="ana-chart-title">Ventas por proyecto</div>
+        <div class="ana-chart-sub" id="ana-sub-p"></div>
+        <div class="ana-chart-wrap" style="height:220px"><canvas id="chart-proyectos"></canvas></div>
+      </div>
+      <div class="ana-chart-card">
+        <div class="ana-chart-title">Top asesores</div>
+        <div class="ana-chart-sub" id="ana-sub-a"></div>
+        <div class="ana-chart-wrap" style="height:220px"><canvas id="chart-asesores"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Tabla dinámica -->
+    <div class="ana-pivot-card">
+      <div class="ana-pivot-title">Tabla resumen por proyecto y mes</div>
+      <div id="pivot-output"></div>
+    </div>
+  </div>
+</div>
+
 
 <script>
 let RAW_V = [], RAW_S = [], RAW_PF = [], RAW_METAS = [];
@@ -1015,7 +1096,7 @@ function sfSel(g,v){
   renderAll();
 }
 function showTab(id,btn){
-  ['res','ops','avance'].forEach(t => $('pg-'+t).classList.remove('on'));
+  ['res','ops','avance','analisis'].forEach(t => $('pg-'+t).classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   $('pg-'+id).classList.add('on');
   btn.classList.add('on');
@@ -1033,6 +1114,7 @@ function renderAll(){
   }
   rOps();
   renderAvance();
+  renderAnalisis();
 }
 
 function getProyData(pe){
@@ -1663,6 +1745,211 @@ async function forzarActualizacion() {
 }
 
 cargarDatos();
+
+// ═══════════════════════════════════════════════════
+// ANÁLISIS
+// ═══════════════════════════════════════════════════
+const PC = {
+  'HELIO - SANTA BEATRIZ':'#3b82f6','LITORAL 900':'#10b981',
+  'LOMAS DE CARABAYLLO - ETAPA 4':'#ef4444','LOMAS DE CARABAYLLO - ETAPA 5':'#f97316',
+  'SUNNY':'#f59e0b','DOMINGO ORUE':'#8b5cf6'
+};
+const MESES_ANA = ['enero','febrero','marzo','abril','mayo','junio',
+                   'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+let _anaCharts = {};
+let _anaInit = false;
+
+function anaInitControls(){
+  if(_anaInit) return;
+  _anaInit = true;
+  const anios = [...new Set(V.map(d=>d.yr).filter(Boolean))].sort((a,b)=>b-a);
+  const selA = $('ana-yr-a'), selB = $('ana-yr-b');
+  anios.forEach(y => {
+    selA.innerHTML += `<option value="${y}">${y}</option>`;
+    selB.innerHTML += `<option value="${y}">${y}</option>`;
+  });
+  if(anios[0]) selA.value = anios[0];
+  if(anios[1]) selB.value = '';
+
+  const list = $('ana-proj-list');
+  Object.entries(PROJ_MAP).forEach(([key, name]) => {
+    const col = PC[key] || '#64748b';
+    list.innerHTML += `
+      <input type="checkbox" class="ana-pchk" id="apc-${key}" value="${key}" checked onchange="renderAnalisis()">
+      <label for="apc-${key}" class="ana-plbl" style="color:${col}">${name}</label>`;
+  });
+}
+
+function anaGetFilters(){
+  const yrA = parseInt($('ana-yr-a').value) || 0;
+  const yrBv = $('ana-yr-b').value;
+  const yrB = yrBv ? parseInt(yrBv) : null;
+  const projs = [...document.querySelectorAll('.ana-pchk:checked')].map(c=>c.value);
+  return {yrA, yrB, projs};
+}
+
+function anaFilter(yr, projs){
+  return V.filter(d => d.yr === yr && d.pr > 0 &&
+    (projs.length === 0 || projs.includes(d.p)));
+}
+
+function anaGroupByMes(arr){
+  const r = {};
+  MESES_ANA.forEach(m => r[m] = {unidades:0, monto:0});
+  arr.forEach(d => { if(d.ml && r[d.ml]){ r[d.ml].unidades++; r[d.ml].monto += d.pr; }});
+  return MESES_ANA.map(m => r[m]);
+}
+
+function anaGroupByProj(arr){
+  const r = {};
+  arr.forEach(d => {
+    if(!r[d.p]) r[d.p] = {unidades:0, monto:0};
+    r[d.p].unidades++; r[d.p].monto += d.pr;
+  });
+  return r;
+}
+
+function anaGroupByVnd(arr){
+  const r = {};
+  arr.forEach(d => {
+    if(!d.vnd) return;
+    if(!r[d.vnd]) r[d.vnd] = {unidades:0, monto:0};
+    r[d.vnd].unidades++; r[d.vnd].monto += d.pr;
+  });
+  return r;
+}
+
+function fmtM(v){ return 'S/ '+(v>=1e6?(v/1e6).toFixed(2)+'M':(v/1e3).toFixed(0)+'k'); }
+
+function anaChart(id, cfg){
+  if(_anaCharts[id]){ _anaCharts[id].destroy(); }
+  const ctx = $(id).getContext('2d');
+  _anaCharts[id] = new Chart(ctx, cfg);
+}
+
+function renderAnalisis(){
+  if(!$('pg-analisis').classList.contains('on')) return;
+  anaInitControls();
+  const {yrA, yrB, projs} = anaGetFilters();
+  const vA = anaFilter(yrA, projs);
+  const vB = yrB ? anaFilter(yrB, projs) : null;
+  const etA = String(yrA), etB = yrB ? String(yrB) : null;
+  const azul = '#3b82f6', azulL = 'rgba(59,130,246,.15)';
+  const narj = '#f97316', narjL = 'rgba(249,115,22,.15)';
+
+  // ── Sub-labels ─────────────────────────
+  const tot = n => n + ' unid.';
+  $('ana-sub-u').textContent = tot(vA.length) + (vB ? ' vs ' + tot(vB.length) : '');
+  $('ana-sub-m').textContent = fmtM(vA.reduce((s,d)=>s+d.pr,0)) + (vB ? ' vs ' + fmtM(vB.reduce((s,d)=>s+d.pr,0)) : '');
+  $('ana-sub-p').textContent = etA + (etB ? ' vs ' + etB : '');
+  $('ana-sub-a').textContent = 'Top 10 · ' + etA + (etB ? ' vs ' + etB : '');
+
+  // ── 1. Unidades por mes ─────────────────
+  const mA = anaGroupByMes(vA);
+  const mB = vB ? anaGroupByMes(vB) : null;
+  const lbls = MESES_ANA.map(m => m.charAt(0).toUpperCase()+m.slice(1,3));
+  const dsU = [{
+    label: etA, data: mA.map(m=>m.unidades),
+    backgroundColor: azulL, borderColor: azul, borderWidth:2, borderRadius:4, tension:.35
+  }];
+  if(mB) dsU.push({
+    label: etB, data: mB.map(m=>m.unidades),
+    backgroundColor: narjL, borderColor: narj, borderWidth:2, borderRadius:4, tension:.35,
+    borderDash:[5,3]
+  });
+  anaChart('chart-unidades',{type:'bar',data:{labels:lbls,datasets:dsU},options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:11}}},tooltip:{mode:'index',intersect:false}},
+    scales:{y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:'#f1f5f9'}},
+            x:{ticks:{font:{size:11}},grid:{display:false}}}
+  }});
+
+  // ── 2. Monto por mes ───────────────────
+  const dsM = [{
+    label: etA, data: mA.map(m=>Math.round(m.monto)),
+    backgroundColor: azulL, borderColor: azul, borderWidth:2, borderRadius:4, tension:.35
+  }];
+  if(mB) dsM.push({
+    label: etB, data: mB.map(m=>Math.round(m.monto)),
+    backgroundColor: narjL, borderColor: narj, borderWidth:2, borderRadius:4, tension:.35,
+    borderDash:[5,3]
+  });
+  anaChart('chart-monto',{type:'bar',data:{labels:lbls,datasets:dsM},options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:11}}},
+             tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>ctx.dataset.label+': '+fmtM(ctx.raw)}}},
+    scales:{y:{beginAtZero:true,ticks:{font:{size:11},callback:v=>fmtM(v)},grid:{color:'#f1f5f9'}},
+            x:{ticks:{font:{size:11}},grid:{display:false}}}
+  }});
+
+  // ── 3. Por proyecto ────────────────────
+  const gpA = anaGroupByProj(vA);
+  const gpB = vB ? anaGroupByProj(vB) : null;
+  const projKeys = Object.keys(PROJ_MAP).filter(k => gpA[k] || (gpB&&gpB[k]));
+  const projNms = projKeys.map(k => PROJ_MAP[k]||k);
+  const projCols = projKeys.map(k => PC[k]||'#64748b');
+  const dsPA = {label:etA, data:projKeys.map(k=>(gpA[k]||{}).unidades||0),
+    backgroundColor:projCols.map(c=>c+'33'), borderColor:projCols, borderWidth:2, borderRadius:4};
+  const dsPcfg = [dsPA];
+  if(gpB) dsPcfg.push({label:etB, data:projKeys.map(k=>(gpB[k]||{}).unidades||0),
+    backgroundColor:projCols.map(c=>c+'15'), borderColor:projCols,
+    borderWidth:1.5, borderRadius:4, borderDash:[4,3]});
+  anaChart('chart-proyectos',{type:'bar',data:{labels:projNms,datasets:dsPcfg},options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:11}}},tooltip:{mode:'index',intersect:false}},
+    scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:'#f1f5f9'}},
+            y:{ticks:{font:{size:11}},grid:{display:false}}}
+  }});
+
+  // ── 4. Top asesores ────────────────────
+  const gaA = anaGroupByVnd(vA);
+  const gaB = vB ? anaGroupByVnd(vB) : null;
+  const allVnds = [...new Set([...Object.keys(gaA),...(gaB?Object.keys(gaB):[])])];
+  const top10 = allVnds.sort((a,b)=>((gaA[b]||{}).unidades||0)-((gaA[a]||{}).unidades||0)).slice(0,10);
+  const dsAA = {label:etA, data:top10.map(v=>(gaA[v]||{}).unidades||0),
+    backgroundColor:'rgba(59,130,246,.25)', borderColor:'#3b82f6', borderWidth:2, borderRadius:4};
+  const dsAcfg = [dsAA];
+  if(gaB) dsAcfg.push({label:etB, data:top10.map(v=>(gaB[v]||{}).unidades||0),
+    backgroundColor:'rgba(249,115,22,.2)', borderColor:'#f97316',
+    borderWidth:1.5, borderRadius:4, borderDash:[4,3]});
+  anaChart('chart-asesores',{type:'bar',data:{labels:top10,datasets:dsAcfg},options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{font:{size:11}}},tooltip:{mode:'index',intersect:false}},
+    scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:'#f1f5f9'}},
+            y:{ticks:{font:{size:11}},grid:{display:false}}}
+  }});
+
+  // ── 5. Tabla resumen ──────────────────
+  anaPivotTable(vA, yrA);
+}
+
+function anaPivotTable(arr, yr){
+  const projs = Object.keys(PROJ_MAP).filter(k => arr.some(d=>d.p===k));
+  const byPM = {};
+  arr.forEach(d => {
+    if(!byPM[d.p]) byPM[d.p] = {};
+    if(!byPM[d.p][d.ml]) byPM[d.p][d.ml] = 0;
+    byPM[d.p][d.ml]++;
+  });
+  const meses = MESES_ANA.filter(m => arr.some(d=>d.ml===m));
+  let html = `<table><thead><tr><th>Proyecto</th>${meses.map(m=>`<th>${m.charAt(0).toUpperCase()+m.slice(1,3)}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+  let totals = {};
+  meses.forEach(m => totals[m]=0);
+  let grandTotal = 0;
+  projs.forEach(k => {
+    const nm = PROJ_MAP[k]||k;
+    const row = byPM[k]||{};
+    const tot = meses.reduce((s,m)=>s+(row[m]||0),0);
+    grandTotal += tot;
+    html += `<tr><td style="text-align:left;font-weight:600">${nm}</td>`;
+    meses.forEach(m => { const v=row[m]||0; totals[m]+=v; html+=`<td>${v||'—'}</td>`; });
+    html += `<td style="font-weight:700">${tot}</td></tr>`;
+  });
+  html += `<tr style="background:#f1f5f9;font-weight:700"><td style="text-align:left">Total</td>`;
+  meses.forEach(m => html+=`<td>${totals[m]||'—'}</td>`);
+  html += `<td>${grandTotal}</td></tr></tbody></table>`;
+  $('pivot-output').innerHTML = html;
+}
 </script>
 </body>
 </html>
