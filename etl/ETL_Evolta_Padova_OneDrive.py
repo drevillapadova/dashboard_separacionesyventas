@@ -233,9 +233,6 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
 
         if ventas_es_usd and not stock_es_usd:
             tipo_v = str(row.get('TipoInmueble', '')).upper()
-            # DEBUG: mostrar tipo exacto cuando es Litoral 101
-            if 'LITORAL' in proy_v and nro_v == '101':
-                print(f"   -> [DEBUG] LITORAL 101: TipoInmueble='{tipo_v}' precio={row.get('PrecioVenta','')}")
             if 'LITORAL' in proy_v and ('COMERCI' in tipo_v or 'LOCAL' in tipo_v):
                 continue
             df_ventas.at[idx, col_moneda_v] = 'SOLES'
