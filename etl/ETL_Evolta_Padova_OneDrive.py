@@ -232,10 +232,10 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
         stock_es_usd  = _es_usd(moneda_stock)
 
         if ventas_es_usd and not stock_es_usd:
-            # Ventas dice DOLAR pero stock dice SOLES → el precio ya está en soles.
-            # Excepción: locales comerciales de Litoral — el stock crudo es poco
-            # confiable para ese tipo (el CRM los marca mal), no revertir a SOLES.
             tipo_v = str(row.get('TipoInmueble', '')).upper()
+            # DEBUG: mostrar tipo exacto cuando es Litoral 101
+            if 'LITORAL' in proy_v and nro_v == '101':
+                print(f"   -> [DEBUG] LITORAL 101: TipoInmueble='{tipo_v}' precio={row.get('PrecioVenta','')}")
             if 'LITORAL' in proy_v and ('COMERCI' in tipo_v or 'LOCAL' in tipo_v):
                 continue
             df_ventas.at[idx, col_moneda_v] = 'SOLES'
