@@ -324,6 +324,9 @@ def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda
         for clave, (minimo, maximo) in REGLAS.items():
             if clave not in tipo:
                 continue
+            # No aplicar a locales comerciales aunque su nombre contenga la clave
+            if 'COMERCI' in tipo or 'LOCAL' in tipo or 'TIENDA' in tipo:
+                continue
 
             try:
                 precio = float(str(row[col_precio]).replace(',', '')) if row[col_precio] else 0
