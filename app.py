@@ -1,8 +1,9 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import requests
 import csv
 import io
 import os
+import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import pytz
@@ -76,6 +77,33 @@ def api_refresh():
         'ok': True,
         'ultima_actualizacion': _cache['ultima_actualizacion']
     })
+
+@app.route('/api/ai', methods=['POST'])
+def api_ai():
+    try:
+        import anthropic
+        data = request.get_json()
+        question = data.get('question', '')
+        sales_data = data.get('data', [])
+        api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        if not api_key:
+            return jsonify({'error': 'ANTHROPIC_API_KEY no configurada. Agrégala como variable de entorno en Railway.'})
+        client = anthropic.Anthropic(api_key=api_key)
+        proyectos = list({p for yr in sales_data for p in yr.get('proyectos', {})})
+        context = (
+            f"Eres un asistente de análisis de ventas inmobiliarias para Padova SAC. "
+            f"Proyectos: {', '.join(proyectos)}.\n"
+            f"Datos de ventas:\n{json.dumps(sales_data, ensure_ascii=False, indent=2)}\n"
+            f"Responde en español, de forma concisa. Menciona números concretos cuando aplique."
+        )
+        msg = client.messages.create(
+            model='claude-sonnet-4-6',
+            max_tokens=1024,
+            messages=[{'role': 'user', 'content': context + '\n\nPregunta: ' + question}]
+        )
+        return jsonify({'response': msg.content[0].text})
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
