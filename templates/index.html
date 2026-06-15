@@ -2049,7 +2049,14 @@ function anaSend(txt){
   });
   fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg,data:ctx})})
     .then(r=>r.json())
-    .then(resp=>{
+    .then(raw=>{
+      // compatibilidad: si el backend devuelve {response:"..."} intentar parsear el string
+      let resp = raw;
+      if(raw.response && typeof raw.response === 'string' && raw.response.trim().startsWith('{')){
+        try { resp = JSON.parse(raw.response); } catch(e) { resp = {type:'text',content:raw.response}; }
+      } else if(raw.response) {
+        resp = {type:'text', content: raw.response};
+      }
       const el=document.getElementById(lid);
       if(!el) return;
       if(resp.error){ el.querySelector('.ana-bubble').innerHTML='❌ '+resp.error; return; }
