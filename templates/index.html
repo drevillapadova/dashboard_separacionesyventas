@@ -1525,7 +1525,7 @@ function renderStock(filtroProy){
 
     const di = st.filter(x => x.e.includes('disponible')).length;
     const se = st.filter(x => x.e.includes('separac')).length;
-    const ve = st.filter(x => x.e.includes('minuta') || x.e.includes('venta') || x.e.includes('entrega')).length;
+    const ve = st.filter(x => x.e.includes('minuta') || x.e.includes('venta') || x.e.includes('entrega') || x.e.includes('pagando')).length;
     const otros = Math.max(0, st.length - di - se - ve);
     const tot = st.length || 1;
     const pD = Math.round(di/tot*100);
