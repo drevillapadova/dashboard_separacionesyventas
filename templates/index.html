@@ -2062,13 +2062,19 @@ function anaSend(txt){
       if(resp.error){ el.querySelector('.ana-bubble').innerHTML='❌ '+resp.error; return; }
       if(resp.type==='chart' && resp.chart){
         const cid='aic'+Date.now();
-        el.outerHTML=`<div class="ana-msg ai"><div class="ana-chart-bubble">
-          <div class="ana-chart-lbl">${resp.title||'Gráfico'}</div>
-          <canvas id="${cid}"></canvas></div></div>`;
+        const bubble=el.querySelector('.ana-bubble');
+        bubble.className='ana-chart-bubble';
+        bubble.style='';
+        bubble.innerHTML=`<div class="ana-chart-lbl">${resp.title||'Gráfico'}</div><canvas id="${cid}" style="height:220px;width:100%"></canvas>`;
+        msgs.scrollTop=msgs.scrollHeight;
         const cfg=resp.chart;
-        if(cfg.options) cfg.options.responsive=true, cfg.options.maintainAspectRatio=false;
-        else cfg.options={responsive:true,maintainAspectRatio:false};
-        new Chart(document.getElementById(cid).getContext('2d'),cfg);
+        if(!cfg.options) cfg.options={};
+        cfg.options.responsive=true;
+        cfg.options.maintainAspectRatio=false;
+        // limpiar callbacks vacíos que rompen Chart.js
+        try{ if(cfg.options.plugins?.tooltip?.callbacks) delete cfg.options.plugins.tooltip.callbacks; }catch(e){}
+        try{ new Chart(document.getElementById(cid).getContext('2d'),cfg); }
+        catch(e){ bubble.innerHTML='❌ Error al renderizar: '+e.message; }
       } else {
         el.querySelector('.ana-bubble').innerHTML=(resp.content||resp.response||'Sin respuesta').replace(/\n/g,'<br>');
       }
