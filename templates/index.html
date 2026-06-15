@@ -327,8 +327,8 @@ tbody tr:hover td{background:#f8faff}
 .ana-fgroup select:focus{outline:none;border-color:#3b82f6}
 .ana-projs{display:flex;flex-wrap:wrap;gap:6px}
 .ana-pchk{display:none}
-.ana-plbl{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #d1d5db;color:#64748b;transition:all .15s;white-space:nowrap}
-.ana-pchk:checked + .ana-plbl{border-color:currentColor;background:currentColor;color:#fff!important}
+.ana-plbl{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--pc,#d1d5db);color:var(--pc,#64748b);background:#fff;transition:all .15s;white-space:nowrap}
+.ana-pchk:checked + .ana-plbl{background:var(--pc,#64748b);border-color:var(--pc,#64748b);color:#fff!important}
 .ana-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
 .ana-chart-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(30,42,74,.08);padding:20px}
 .ana-chart-title{font-size:13px;font-weight:700;color:#1e2a4a;margin-bottom:4px}
@@ -1888,7 +1888,7 @@ function anaBuildControls(){
     Object.entries(PROJ_MAP).forEach(([key, name]) => {
       const col = PC[name] || '#64748b';
       list.innerHTML += `<input type="checkbox" class="ana-pchk" id="apc-${key}" value="${key}" checked onchange="renderAnaGraficos()">
-        <label for="apc-${key}" class="ana-plbl" style="color:${col}">${name}</label>`;
+        <label for="apc-${key}" class="ana-plbl" style="--pc:${col}">${name}</label>`;
     });
     _anaCtrlsBuilt = true;
   }
