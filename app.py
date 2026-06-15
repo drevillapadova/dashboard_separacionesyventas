@@ -90,18 +90,35 @@ def api_ai():
             return jsonify({'error': 'ANTHROPIC_API_KEY no configurada. Agrégala como variable de entorno en Railway.'})
         client = anthropic.Anthropic(api_key=api_key)
         proyectos = list({p for yr in sales_data for p in yr.get('proyectos', {})})
+        system = (
+            "Eres un asistente de análisis de ventas inmobiliarias para Padova SAC. "
+            "Respondes SIEMPRE en JSON con este formato:\n"
+            '{"type":"text","content":"..."} para respuestas de texto\n'
+            '{"type":"chart","title":"...","chart":{...config Chart.js...}} para gráficos\n\n'
+            "Para gráficos usa Chart.js v4: incluye type (bar/line/pie/doughnut), "
+            "data (labels + datasets con backgroundColor, borderColor, data), "
+            "y options básicas (responsive:true, maintainAspectRatio:false). "
+            "Colores sugeridos por proyecto: Helio=#3b82f6, Litoral=#10b981, "
+            "Carabayllo 4=#ef4444, Carabayllo 5=#f97316, Sunny=#f59e0b, D.Orue=#8b5cf6. "
+            "NO incluyas texto fuera del JSON. Responde en español."
+        )
         context = (
-            f"Eres un asistente de análisis de ventas inmobiliarias para Padova SAC. "
             f"Proyectos: {', '.join(proyectos)}.\n"
-            f"Datos de ventas:\n{json.dumps(sales_data, ensure_ascii=False, indent=2)}\n"
-            f"Responde en español, de forma concisa. Menciona números concretos cuando aplique."
+            f"Datos de ventas:\n{json.dumps(sales_data, ensure_ascii=False, indent=2)}"
         )
         msg = client.messages.create(
             model='claude-sonnet-4-6',
-            max_tokens=1024,
+            max_tokens=2048,
+            system=system,
             messages=[{'role': 'user', 'content': context + '\n\nPregunta: ' + question}]
         )
-        return jsonify({'response': msg.content[0].text})
+        raw = msg.content[0].text.strip()
+        # Intentar parsear como JSON; si falla devolver como texto
+        try:
+            parsed = json.loads(raw)
+            return jsonify(parsed)
+        except Exception:
+            return jsonify({'type': 'text', 'content': raw})
     except Exception as e:
         return jsonify({'error': str(e)})
 

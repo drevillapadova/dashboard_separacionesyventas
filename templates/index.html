@@ -346,6 +346,9 @@ tbody tr:hover td{background:#f8faff}
 .ana-msg.user .ana-bubble{align-self:flex-end;background:#2563eb;color:#fff;border-radius:16px 16px 4px 16px}
 .ana-msg.ai .ana-bubble{align-self:flex-start;background:#f1f5f9;color:#1e2a4a;border-radius:16px 16px 16px 4px;white-space:pre-wrap}
 .ana-bubble{padding:10px 16px;max-width:82%;font-size:13px;line-height:1.55;display:inline-block}
+.ana-chart-bubble{align-self:flex-start;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;width:min(520px,90vw)}
+.ana-chart-bubble .ana-chart-lbl{font-size:12px;font-weight:700;color:#1e2a4a;margin-bottom:10px}
+.ana-chart-bubble canvas{height:220px!important}
 .ana-sugs{display:flex;flex-wrap:wrap;gap:6px;padding:6px 18px 0}
 .ana-sug{padding:5px 13px;border:1px solid #d1d5db;border-radius:20px;font-size:11.5px;color:#475569;cursor:pointer;background:none;font-family:inherit;transition:all .15s}
 .ana-sug:hover{border-color:#3b82f6;color:#3b82f6}
@@ -567,10 +570,10 @@ tbody tr:hover td{background:#f8faff}
           <div class="ana-msg ai"><div class="ana-bubble">¡Hola! Soy tu asistente de análisis de ventas de Padova SAC. Puedo responder preguntas sobre tus proyectos, ventas y tendencias. ¿Qué quieres saber?</div></div>
         </div>
         <div class="ana-sugs" id="ana-sugs">
-          <button class="ana-sug" onclick="anaSend('¿Cuál fue el proyecto con más ventas este año?')">¿Mejor proyecto?</button>
-          <button class="ana-sug" onclick="anaSend('¿Cuál es la tendencia de ventas mensual?')">Tendencia mensual</button>
+          <button class="ana-sug" onclick="anaSend('Hazme un gráfico de barras con ventas por proyecto este año')">📊 Gráfico por proyecto</button>
+          <button class="ana-sug" onclick="anaSend('Hazme un gráfico de línea con la evolución mensual de ventas')">📈 Evolución mensual</button>
+          <button class="ana-sug" onclick="anaSend('Hazme un gráfico de torta con la distribución de ventas por proyecto')">🥧 Torta por proyecto</button>
           <button class="ana-sug" onclick="anaSend('¿Quién es el asesor con más ventas?')">Top asesor</button>
-          <button class="ana-sug" onclick="anaSend('Dame un resumen de ventas por proyecto y año')">Resumen general</button>
         </div>
         <div class="ana-chat-bar">
           <input type="text" id="ana-chat-in" placeholder="Pregúntame sobre las ventas..." onkeydown="if(event.key==='Enter')anaSend()">
@@ -2046,7 +2049,24 @@ function anaSend(txt){
   });
   fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg,data:ctx})})
     .then(r=>r.json())
-    .then(resp=>{ const el=document.getElementById(lid); if(el) el.querySelector('.ana-bubble').innerHTML=(resp.response||resp.error||'Sin respuesta').replace(/\n/g,'<br>'); msgs.scrollTop=msgs.scrollHeight; })
+    .then(resp=>{
+      const el=document.getElementById(lid);
+      if(!el) return;
+      if(resp.error){ el.querySelector('.ana-bubble').innerHTML='❌ '+resp.error; return; }
+      if(resp.type==='chart' && resp.chart){
+        const cid='aic'+Date.now();
+        el.outerHTML=`<div class="ana-msg ai"><div class="ana-chart-bubble">
+          <div class="ana-chart-lbl">${resp.title||'Gráfico'}</div>
+          <canvas id="${cid}"></canvas></div></div>`;
+        const cfg=resp.chart;
+        if(cfg.options) cfg.options.responsive=true, cfg.options.maintainAspectRatio=false;
+        else cfg.options={responsive:true,maintainAspectRatio:false};
+        new Chart(document.getElementById(cid).getContext('2d'),cfg);
+      } else {
+        el.querySelector('.ana-bubble').innerHTML=(resp.content||resp.response||'Sin respuesta').replace(/\n/g,'<br>');
+      }
+      msgs.scrollTop=msgs.scrollHeight;
+    })
     .catch(()=>{ const el=document.getElementById(lid); if(el) el.querySelector('.ana-bubble').innerHTML='❌ Error de conexión con el asistente.'; })
     .finally(()=>{ $('ana-send-btn').disabled=false; });
 }
