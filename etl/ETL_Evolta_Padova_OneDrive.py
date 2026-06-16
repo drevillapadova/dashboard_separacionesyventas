@@ -1245,17 +1245,29 @@ def process_stock_data(df_ventas=None):
         return output_filename
 
 
-def dispatch_report(file_path):
-    """Envío Correo con el reporte consolidado (Stock + Ventas)."""
+def dispatch_report(file_path, alertas=None):
+    """Envío Correo con el reporte consolidado (Stock + Ventas) e incluye alertas si las hay."""
     print("\n>> [DISTRIBUTION] Enviando correo...")
-    
+
     msg = MIMEMultipart()
     msg['From'] = EMAIL_FROM
     msg['To'] = EMAIL_TO
-    msg['Subject'] = f"REPORTE STOCK COMERCIAL - BIEVO25 - {datetime.now().strftime('%d/%m/%Y')}"
-    
+    tiene_alertas = alertas and len(alertas) > 0
+    asunto = f"{'⚠️ ALERTAS - ' if tiene_alertas else ''}REPORTE STOCK COMERCIAL - BIEVO25 - {datetime.now().strftime('%d/%m/%Y')}"
+    msg['Subject'] = asunto
+
+    alertas_html = ''
+    if tiene_alertas:
+        items = ''.join(f'<li style="margin:4px 0">{a}</li>' for a in alertas)
+        alertas_html = f"""
+        <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:16px;margin-bottom:20px">
+            <h3 style="color:#dc2626;margin:0 0 10px 0">⚠️ Alertas de validación ({len(alertas)})</h3>
+            <ul style="margin:0;padding-left:20px;color:#7f1d1d">{items}</ul>
+        </div>"""
+
     body = f"""
-    <html><body>
+    <html><body style="font-family:Arial,sans-serif;font-size:14px;color:#1e293b">
+        {alertas_html}
         <h3>Reporte Automatizado de Stock</h3>
         <p>Adjunto reporte actualizado al {datetime.now().strftime('%d/%m/%Y %H:%M')}.</p>
         <p>El archivo contiene las siguientes pestañas:</p>
@@ -1349,6 +1361,126 @@ def upload_to_gsheets(df_ventas, df_stock):
         return False
 
 
+def _gsheets_client():
+    scopes = ["https://www.googleapis.com/auth/spreadsheets",
+              "https://www.googleapis.com/auth/drive"]
+    creds = ServiceCredentials.from_service_account_file(GSHEETS_CREDENTIALS_FILE, scopes=scopes)
+    return gspread.authorize(creds)
+
+
+def guardar_snapshot_historico(df_ventas, df_stock):
+    """Guarda un snapshot de métricas clave en la pestaña Histórico cada 3 días."""
+    print("\n>> [HISTÓRICO] Verificando si corresponde guardar snapshot...")
+    try:
+        client = _gsheets_client()
+        spreadsheet = client.open_by_key(GSHEETS_SPREADSHEET_ID)
+
+        try:
+            ws = spreadsheet.worksheet("Histórico")
+        except:
+            ws = spreadsheet.add_worksheet(title="Histórico", rows=500, cols=40)
+
+        existing = ws.get_all_values()
+        hoy = datetime.now().date()
+
+        # Verificar si pasaron >= 3 días desde el último snapshot
+        if len(existing) > 1:
+            try:
+                ultima_fecha = datetime.strptime(existing[-1][0], "%Y-%m-%d").date()
+                dias_desde = (hoy - ultima_fecha).days
+                if dias_desde < 3:
+                    print(f"   -> [HISTÓRICO] Solo {dias_desde}d desde último snapshot, saltando.")
+                    return
+            except Exception:
+                pass
+
+        tc_hoy = get_tipo_cambio()
+        headers = ['Fecha', 'TC', 'Total_Ventas', 'Total_Monto_S/', 'Total_Separaciones']
+        proj_cols = []
+        for p in TARGET_PROJECTS:
+            lbl = p[:12]
+            headers += [f'{lbl}_Ventas', f'{lbl}_Monto_S/']
+            proj_cols.append(p)
+
+        # Calcular métricas
+        total_v, total_m, total_sep = 0, 0, 0
+        proj_stats = {p: {'v': 0, 'm': 0} for p in proj_cols}
+
+        if df_ventas is not None and len(df_ventas) > 0:
+            col_proy = 'Proyecto' if 'Proyecto' in df_ventas.columns else None
+            col_sol  = 'PrecioVentaSoles' if 'PrecioVentaSoles' in df_ventas.columns else None
+            if col_proy:
+                for p in proj_cols:
+                    mask = df_ventas[col_proy].str.upper() == p
+                    vp = df_ventas[mask]
+                    u = len(vp)
+                    m = round(vp[col_sol].sum(), 0) if col_sol else 0
+                    proj_stats[p] = {'v': u, 'm': m}
+                    total_v += u; total_m += m
+
+        if df_stock is not None and len(df_stock) > 0 and 'Estado' in df_stock.columns:
+            total_sep = int(df_stock['Estado'].str.lower().str.contains('separac', na=False).sum())
+
+        row = [hoy.strftime("%Y-%m-%d"), tc_hoy, total_v, round(total_m, 0), total_sep]
+        for p in proj_cols:
+            row += [proj_stats[p]['v'], proj_stats[p]['m']]
+
+        if len(existing) == 0:
+            ws.append_row(headers)
+        ws.append_row([str(x) for x in row])
+        print(f"   -> [HISTÓRICO] Snapshot guardado: {hoy} | TC={tc_hoy} | Ventas={total_v} | Sep={total_sep}")
+
+    except Exception as e:
+        print(f"!! HISTÓRICO ERROR: {e}")
+
+
+def validar_datos(df_ventas, df_stock):
+    """Revisa anomalías en los datos y devuelve lista de alertas."""
+    alertas = []
+    print("\n>> [VALIDACIÓN] Verificando integridad de datos...")
+
+    # 1. TC inusual
+    tc = get_tipo_cambio()
+    if tc < 3.0 or tc > 4.5:
+        alertas.append(f"TC inusual detectado: S/ {tc} (rango esperado 3.0–4.5)")
+
+    # 2. Ventas con PrecioVentaSoles = 0
+    if df_ventas is not None and 'PrecioVentaSoles' in df_ventas.columns:
+        ceros = (df_ventas['PrecioVentaSoles'] == 0).sum()
+        if ceros > 0:
+            alertas.append(f"{ceros} ventas con PrecioVentaSoles = 0 (posible error de conversión)")
+
+    # 3. Proyecto sin ninguna venta registrada
+    if df_ventas is not None and 'Proyecto' in df_ventas.columns:
+        for p in TARGET_PROJECTS:
+            if not (df_ventas['Proyecto'].str.upper() == p).any():
+                alertas.append(f"Sin ventas registradas para: {p}")
+
+    # 4. Comparar con último snapshot (caída > 30%)
+    try:
+        client = _gsheets_client()
+        ws = client.open_by_key(GSHEETS_SPREADSHEET_ID).worksheet("Histórico")
+        rows = ws.get_all_values()
+        if len(rows) >= 3:
+            try:
+                prev_v = float(rows[-2][2])
+                last_v = float(rows[-1][2])
+                if prev_v > 0 and (prev_v - last_v) / prev_v > 0.30:
+                    alertas.append(f"Caída brusca de ventas: {int(prev_v)} → {int(last_v)} unidades (>{int((prev_v-last_v)/prev_v*100)}%)")
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    if alertas:
+        print(f"   -> [VALIDACIÓN] {len(alertas)} alerta(s) encontrada(s):")
+        for a in alertas:
+            print(f"      ⚠️  {a}")
+    else:
+        print("   -> [VALIDACIÓN] Sin anomalías detectadas.")
+    return alertas
+
+
 def main():
     print("="*70)
     print("   PIPELINE ETL EVOLTA - STOCK Y VENTAS")
@@ -1425,10 +1557,17 @@ def main():
     except Exception as e:
         print(f"!! DATA ERROR (Stock): {e}")
     
-    # 8. ENVIAR CORREO (un solo archivo)
+    # 8. VALIDAR DATOS Y GUARDAR SNAPSHOT
+    alertas = []
+    try:
+        alertas = validar_datos(df_ventas, df_stock_crudo)
+    except Exception as e:
+        print(f"!! VALIDACION ERROR: {e}")
+
+    # 8b. ENVIAR CORREO (un solo archivo)
     if final_file:
         try:
-            dispatch_report(final_file)
+            dispatch_report(final_file, alertas=alertas)
         except Exception as e:
             print(f"!! EMAIL ERROR: {e}")
         
@@ -1448,13 +1587,21 @@ def main():
 
         # 9. SUBIR A GOOGLE SHEETS para dashboard
         try:
-            # Leer el stock desde el archivo generado (funciona en nube y local)
             df_stock_gs = None
             if final_file and os.path.exists(final_file):
                 df_stock_gs = pd.read_excel(final_file, sheet_name='Stock')
             upload_to_gsheets(df_ventas, df_stock_gs)
         except Exception as e:
             print(f"!! GSHEETS ERROR: {e}")
+
+        # 10. SNAPSHOT HISTÓRICO (cada 3 días)
+        try:
+            df_stock_gs_snap = None
+            if final_file and os.path.exists(final_file):
+                df_stock_gs_snap = pd.read_excel(final_file, sheet_name='Stock')
+            guardar_snapshot_historico(df_ventas, df_stock_gs_snap)
+        except Exception as e:
+            print(f"!! SNAPSHOT ERROR: {e}")
     else:
         print("!! No hay reporte para enviar")
     
