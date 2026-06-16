@@ -1529,7 +1529,7 @@ function renderStock(filtroProy){
 
     const di = st.filter(x => x.e.includes('disponible')).length;
     const se = st.filter(x => x.e.includes('separac')).length;
-    const ve = st.filter(x => x.e.includes('minuta') || x.e.includes('venta') || x.e.includes('entrega') || x.e.includes('pagando')).length;
+    const ve = st.filter(x => x.e.includes('minuta') || x.e.includes('venta') || x.e.includes('entrega') || (x.e.includes('pagando') && !x.p.includes('CARABAYLLO'))).length;
     const otros = Math.max(0, st.length - di - se - ve);
     const tot = st.length || 1;
     const pD = Math.round(di/tot*100);
@@ -1636,6 +1636,7 @@ function rOps(){
   if(f.v==='all' || f.v==='ven'){
     S.filter(x => {
       if(!x.e.includes('pagando')) return false;
+      if(x.p.includes('CARABAYLLO')) return false;
       if(f.p!=='all' && x.p!==f.p) return false;
       if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
@@ -1729,6 +1730,7 @@ function renderAvance(){
     // PAGANDO SIN MINUTA desde stock: ya pagaron inicial pero aún no tienen minuta
     const pagandoStock = S.filter(d =>
       d.p === pe && d.e.includes('pagando') &&
+      !d.p.includes('CARABAYLLO') &&
       d.t.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO')
     );
     const firmCount = firmadasDepa.length + pagandoStock.length;
