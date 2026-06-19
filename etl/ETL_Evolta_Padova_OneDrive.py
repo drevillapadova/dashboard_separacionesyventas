@@ -126,13 +126,15 @@ def get_tipo_cambio(fecha=None):
 
 def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=None):
     """
-    Agrega columna PrecioVentaSoles convirtiendo USD a PEN.
+    Agrega columnas PrecioVentaSoles y PrecioVentaDolares.
+    - PrecioVentaSoles:   si DOLAR → precio × TC  |  si SOLES → precio tal cual
+    - PrecioVentaDolares: si DOLAR → precio tal cual  |  si SOLES → precio ÷ TC
     Si col_fecha está definida, usa el TC histórico de la fecha de cada registro.
-    Si tc está definido (sin col_fecha), usa ese TC fijo para todos.
     """
     df = df.copy()
     convertidos = 0
     precios_soles = []
+    precios_dolares = []
 
     for idx, row in df.iterrows():
         try:
@@ -140,23 +142,26 @@ def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=Non
         except:
             precio = 0
 
-        moneda = str(row[col_moneda]).upper().strip()
-        es_usd = "DOLAR" in moneda or "USD" in moneda
+        moneda = _normalizar_moneda(row[col_moneda])
+        es_usd = _es_usd(moneda)
+
+        if col_fecha and col_fecha in df.columns:
+            tc_usar = get_tipo_cambio(row[col_fecha])
+        elif tc is not None:
+            tc_usar = tc
+        else:
+            tc_usar = get_tipo_cambio()
 
         if es_usd:
-            if col_fecha and col_fecha in df.columns:
-                fecha_registro = row[col_fecha]
-                tc_usar = get_tipo_cambio(fecha_registro)
-            elif tc is not None:
-                tc_usar = tc
-            else:
-                tc_usar = get_tipo_cambio()
             precios_soles.append(round(precio * tc_usar, 2))
+            precios_dolares.append(round(precio, 2))
             convertidos += 1
         else:
             precios_soles.append(round(precio, 2))
+            precios_dolares.append(round(precio / tc_usar, 2) if tc_usar else 0)
 
-    df["PrecioVentaSoles"] = precios_soles
+    df["PrecioVentaSoles"]   = precios_soles
+    df["PrecioVentaDolares"] = precios_dolares
     en_soles = len(df) - convertidos
     print(f"   -> [TC] {en_soles} en soles + {convertidos} en dólares convertidos con TC histórico por fecha")
     return df
