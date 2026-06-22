@@ -136,6 +136,14 @@ def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=Non
     precios_soles = []
     precios_dolares = []
 
+    _tc_fecha_cache = {}  # cache local para esta llamada
+
+    def _tc_para(fecha_val):
+        key = str(fecha_val)[:10] if fecha_val else '__hoy__'
+        if key not in _tc_fecha_cache:
+            _tc_fecha_cache[key] = get_tipo_cambio(fecha_val) if fecha_val else get_tipo_cambio()
+        return _tc_fecha_cache[key]
+
     for idx, row in df.iterrows():
         try:
             precio = float(str(row[col_precio]).replace(",", "")) if row[col_precio] else 0
@@ -145,19 +153,27 @@ def convertir_precios_a_soles(df, col_precio, col_moneda, tc=None, col_fecha=Non
         moneda = _normalizar_moneda(row[col_moneda])
         es_usd = _es_usd(moneda)
 
-        if col_fecha and col_fecha in df.columns:
-            tc_usar = get_tipo_cambio(row[col_fecha])
-        elif tc is not None:
-            tc_usar = tc
-        else:
-            tc_usar = get_tipo_cambio()
-
         if es_usd:
+            # Para USD siempre necesitamos TC
+            if col_fecha and col_fecha in df.columns:
+                tc_usar = _tc_para(row[col_fecha])
+            elif tc is not None:
+                tc_usar = tc
+            else:
+                tc_usar = get_tipo_cambio()
             precios_soles.append(round(precio * tc_usar, 2))
             precios_dolares.append(round(precio, 2))
             convertidos += 1
         else:
+            # Para SOLES: PrecioVentaSoles = precio tal cual
+            # PrecioVentaDolares = precio / TC (solo si hay fecha, sino TC de hoy)
             precios_soles.append(round(precio, 2))
+            if col_fecha and col_fecha in df.columns:
+                tc_usar = _tc_para(row[col_fecha])
+            elif tc is not None:
+                tc_usar = tc
+            else:
+                tc_usar = get_tipo_cambio()
             precios_dolares.append(round(precio / tc_usar, 2) if tc_usar else 0)
 
     df["PrecioVentaSoles"]   = precios_soles
