@@ -1707,10 +1707,14 @@ function renderAvance(){
   const rows = PROJ.map(pe => {
     const pn = PROJ_MAP[pe] || pe;
 
-    // Separaciones Vivas: conteo y monto solo departamentos, excluye comercios
-    const sepVivas = S.filter(d => d.p===pe && d.e.includes('separac') && d.t.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO'));
-    const sepVivCount = sepVivas.length;
-    const sepVivMto = sepVivas.reduce((t,x) => t + (x.pr||0), 0);
+    // Separaciones Vivas: conteo solo departamentos, monto incluye est/dep del mismo cliente
+    const sepDepa = S.filter(d => d.p===pe && d.e.includes('separac') && d.t.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO'));
+    const sepVivCount = sepDepa.length;
+    const sepClientes = new Set(sepDepa.map(d => d.cl).filter(Boolean));
+    const sepVivMto = S.filter(d =>
+      d.p===pe && d.e.includes('separac') && !d.mo.includes('COMERCIO') &&
+      d.cl && sepClientes.has(d.cl)
+    ).reduce((t,x) => t + (x.pr||0), 0);
 
     // Minutas Firmadas: conteo solo departamentos (excluye comercios), monto incluye estacionamientos del mismo IdProforma
     const firmadasDepa = V.filter(d => {
