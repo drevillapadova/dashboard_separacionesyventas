@@ -62,6 +62,8 @@ select.pill{
   outline:none;width:140px
 }
 .sw input::placeholder{color:#94a3b8}
+input[type="date"].pill{padding:6px 10px;background-image:none;min-width:118px;cursor:pointer}
+input[type="date"].pill::-webkit-calendar-picker-indicator{opacity:.45;cursor:pointer;width:13px}
 
 .pg{display:none;padding:24px}
 .pg.on{display:block}
@@ -383,11 +385,11 @@ tbody tr:hover td{background:#f8faff}
 </div>
 
 <div class="fil">
-  <span class="fl">Año</span>
-  <select class="pill" id="sanio" onchange="onAnioChange()"></select>
-
-  <span class="fl">Mes</span>
-  <select class="pill" id="smes" onchange="renderAll()"></select>
+  <span class="fl">Desde</span>
+  <input type="date" class="pill" id="sfdesde" onchange="renderAll()">
+  <span class="fl">Hasta</span>
+  <input type="date" class="pill" id="sfhasta" onchange="renderAll()">
+  <button class="pill" onclick="limpiarFechas()" style="color:#94a3b8;padding:6px 10px;font-size:11px">✕</button>
 
   <div class="dv"></div>
 
@@ -882,14 +884,30 @@ function mesCorto(d){
 }
 
 function getFilters(){
+  const dv = $('sfdesde').value;
+  const hv = $('sfhasta').value;
   return {
-    yr: $('sanio').value,
-    mes: $('smes').value,
+    desde: dv ? new Date(dv + 'T00:00:00') : null,
+    hasta: hv ? new Date(hv + 'T23:59:59') : null,
     p: F.p,
     v: F.v,
     ti: F.ti,
     busca: ($('sbusca').value || '').toLowerCase().trim()
   };
+}
+
+function getMesFromRange(f){
+  if(!f.desde && !f.hasta) return 'todos';
+  const d = f.desde || f.hasta;
+  const h = f.hasta || f.desde;
+  if(d.getFullYear() === h.getFullYear() && d.getMonth() === h.getMonth()) return mesCorto(d);
+  return 'todos';
+}
+
+function limpiarFechas(){
+  $('sfdesde').value = '';
+  $('sfhasta').value = '';
+  renderAll();
 }
 
 function init(ultimaActualizacion){
@@ -1061,66 +1079,15 @@ function init(ultimaActualizacion){
     : 'Actualizado ' + new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
 }
 
-function getAnios(){
-  const vy = V.map(d => d.yr);
-  const sy = S.map(d => d.yr);
-  return [...new Set([...vy, ...sy])].filter(Boolean).sort();
-}
-function getMesesPorAnio(yr){
-  const seen = {}, res = [];
-  const add = d => {
-    if(d.ml && !seen[d.ml]){
-      seen[d.ml] = true;
-      res.push({ml:d.ml, md:d.md});
-    }
-  };
-
-  V.filter(d => yr==='todos' || d.yr===+yr).forEach(add);
-  S.filter(d => d.ml && (yr==='todos' || d.yr===+yr)).forEach(add);
-
-  return res.sort((a,b) => a.md-b.md).map(x => x.ml);
-}
 function poblarFiltros(){
-  const anios = getAnios();
-  const sa = $('sanio');
-  const prevAnio = sa.value; // preservar selección actual antes de reconstruir
-  sa.innerHTML = '<option value="todos">Todos</option>';
-
-  anios.forEach(a => {
-    const o = document.createElement('option');
-    o.value = a;
-    o.textContent = a;
-    sa.appendChild(o);
-  });
-
-  // Si el año que tenía seleccionado sigue existiendo, mantenerlo.
-  // Solo cambiar al más reciente en la primera carga (prevAnio vacío).
-  const opValues = [...sa.options].map(o => o.value);
-  if(prevAnio && opValues.includes(prevAnio)) sa.value = prevAnio;
-  else if(anios.length) sa.value = anios[anios.length-1];
-
-  actualizarMeses();
-}
-function actualizarMeses(){
-  const yr = $('sanio').value;
-  const ms = getMesesPorAnio(yr);
-  const sel = $('smes');
-  const prev = sel.value;
-
-  sel.innerHTML = '<option value="todos">Todos</option>';
-
-  ms.forEach(m => {
-    const o = document.createElement('option');
-    o.value = m;
-    o.textContent = cap(m);
-    sel.appendChild(o);
-  });
-
-  if(ms.includes(prev)) sel.value = prev;
-  else if(ms.length) sel.value = ms[ms.length-1];
-}
-function onAnioChange(){
-  actualizarMeses();
+  const now = new Date();
+  const yr = now.getFullYear();
+  if(!$('sfdesde').value) $('sfdesde').value = yr + '-01-01';
+  if(!$('sfhasta').value){
+    const m = String(now.getMonth()+1).padStart(2,'0');
+    const d = String(now.getDate()).padStart(2,'0');
+    $('sfhasta').value = yr + '-' + m + '-' + d;
+  }
   renderAll();
 }
 
@@ -1135,8 +1102,9 @@ function gfV(){
   const f = getFilters();
   return V.filter(d => {
     if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
-    if(f.yr!=='todos' && d.yr!==+f.yr) return false;
-    if(f.mes!=='todos' && d.ml!==f.mes) return false;
+    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(f.desde && d.md && d.md < f.desde) return false;
+    if(f.hasta && d.md && d.md > f.hasta) return false;
     if(f.p!=='all' && d.p!==f.p) return false;
     if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     if(f.busca && !d.cl.toLowerCase().includes(f.busca)) return false;
@@ -1148,10 +1116,11 @@ function gfS(){
   const f = getFilters();
   return S.filter(d => {
     if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
+    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
     if(!d.e.includes('separac')) return false;
     if(f.p!=='all' && d.p!==f.p) return false;
-    if(f.yr!=='todos' && d.yr && d.yr!==+f.yr) return false;
-    if(f.mes!=='todos' && d.ml && d.ml!==f.mes) return false;
+    if(f.desde && d.yr && d.md < f.desde) return false;
+    if(f.hasta && d.yr && d.md > f.hasta) return false;
     if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     if(f.busca && !(d.cl || '').toLowerCase().includes(f.busca)) return false;
     return true;
@@ -1200,8 +1169,9 @@ function getProyData(pe){
   const ventas = V.filter(d => {
     if(d.p!==pe) return false;
     if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
-    if(f.yr!=='todos' && d.yr!==+f.yr) return false;
-    if(f.mes!=='todos' && d.ml!==f.mes) return false;
+    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(f.desde && d.md && d.md < f.desde) return false;
+    if(f.hasta && d.md && d.md > f.hasta) return false;
     if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     return true;
   });
@@ -1209,13 +1179,14 @@ function getProyData(pe){
   const seps = S.filter(d => {
     if(d.p!==pe || !d.e.includes('separac')) return false;
     if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
-    if(f.yr!=='todos' && d.yr && d.yr!==+f.yr) return false;
-    if(f.mes!=='todos' && d.ml && d.ml!==f.mes) return false;
+    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(f.desde && d.yr && d.md < f.desde) return false;
+    if(f.hasta && d.yr && d.md > f.hasta) return false;
     if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     return true;
   });
 
-  const mes = f.mes;
+  const mes = getMesFromRange(f);
   const meta = getMeta(pn, mes);
 
   return {
@@ -1398,7 +1369,12 @@ function renderTodos(){
 }
 
 function renderSingle(pe){
-  const {pn,undR,mtoR,sepTot,sepMto,meta,mes} = getProyData(pe);
+  const {pn,undR,mtoR,sepTot,sepMto,meta} = getProyData(pe);
+  const f = getFilters();
+  const fmtD = d => d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
+  const periodoLabel = (f.desde || f.hasta)
+    ? [(f.desde ? fmtD(f.desde) : ''), (f.hasta ? fmtD(f.hasta) : '')].filter(Boolean).join(' – ')
+    : 'Todos';
   const col = PC[pn] || '#64748b';
   const pU = pct(undR,meta.und);
   const pM = pct(mtoR,meta.monto);
@@ -1407,7 +1383,7 @@ function renderSingle(pe){
   <div class="single-shell">
     <div class="single-header" style="border-left-color:${col}">
       <div class="single-title">${pn}</div>
-      <div class="single-sub">${cap(mes)}</div>
+      <div class="single-sub">${periodoLabel}</div>
     </div>
 
     <!-- Desktop -->
@@ -1521,8 +1497,9 @@ function renderStock(filtroProy){
     const st = S.filter(x => {
       if(x.p!==pe) return false;
       if(f.ti !== 'comercio' && x.p === 'LITORAL 900' && isComercial(x.i, x.t)) return false;
-      if(f.yr!=='todos' && x.yr && x.yr!==+f.yr) return false;
-      if(f.mes!=='todos' && x.ml && x.ml!==f.mes) return false;
+      if(f.ti !== 'comercio' && x.mo.includes('COMERCIO')) return false;
+      if(f.desde && x.yr && x.md < f.desde) return false;
+      if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(f.ti!=='all') { if(f.ti==='comercio' ? !x.mo.includes('COMERCIO') : !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
       return true;
     });
@@ -1640,6 +1617,7 @@ function rOps(){
       if(f.p!=='all' && x.p!==f.p) return false;
       if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
+      if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
       return true;
     }).forEach(x => {
       rows.push({
@@ -1702,7 +1680,10 @@ function fmtMonto(n){ return Math.round(n||0).toLocaleString('es-PE'); }
 
 function renderAvance(){
   const f = getFilters();
-  const mesLabel = f.mes !== 'todos' ? cap(f.mes) : 'Todos';
+  const _fmtD = d => d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
+  const mesLabel = (f.desde || f.hasta)
+    ? [(f.desde ? _fmtD(f.desde) : ''), (f.hasta ? _fmtD(f.hasta) : '')].filter(Boolean).join(' – ')
+    : 'Todos';
 
   const rows = PROJ.map(pe => {
     const pn = PROJ_MAP[pe] || pe;
@@ -1719,15 +1700,15 @@ function renderAvance(){
     // Minutas Firmadas: conteo solo departamentos (excluye comercios), monto incluye estacionamientos del mismo IdProforma
     const firmadasDepa = V.filter(d => {
       if(d.p !== pe) return false;
-      if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
-      if(f.mes !== 'todos' && d.ml !== f.mes) return false;
+      if(f.desde && d.md && d.md < f.desde) return false;
+      if(f.hasta && d.md && d.md > f.hasta) return false;
       return d.ti.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO');
     });
     const firmadasIPs = new Set(firmadasDepa.filter(d => d.ip).map(d => d.ip));
     const firmMtoV = V.filter(d => {
       if(d.p !== pe) return false;
-      if(f.yr !== 'todos' && d.yr !== +f.yr) return false;
-      if(f.mes !== 'todos' && d.ml !== f.mes) return false;
+      if(f.desde && d.md && d.md < f.desde) return false;
+      if(f.hasta && d.md && d.md > f.hasta) return false;
       return (d.ti.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO')) || (d.ip && firmadasIPs.has(d.ip));
     }).reduce((t,x) => t + (x.pr||0), 0);
 
@@ -1741,16 +1722,17 @@ function renderAvance(){
     const firmMto = firmMtoV + pagandoStock.reduce((t,x) => t + (x.pr||0), 0);
 
     // Minutas Por Firmar: viene del Google Sheets, filtra por mes si hay columna MES
-    const pfKey = f.mes !== 'todos' ? pn + '|' + f.mes : pn;
+    const mesParaMeta = getMesFromRange(f);
+    const pfKey = mesParaMeta !== 'todos' ? pn + '|' + mesParaMeta : pn;
     const pfData = PF_MAP[pfKey] || PF_MAP[pn] || {und:0, monto:0};
 
-    const meta = getMeta(pn, f.mes);
+    const meta = getMeta(pn, mesParaMeta);
 
     const totUnd = pfData.und + firmCount;
     const totMto = pfData.monto + firmMto;
     const avancePct = pct(firmCount, meta.und);
 
-    return { pn, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta, yr: f.yr, mes: f.mes };
+    return { pn, sepVivCount, sepVivMto, pfData, firmCount, firmMto, totUnd, totMto, avancePct, meta };
   });
 
   const totSepV = rows.reduce((t,r) => t + r.sepVivCount, 0);
