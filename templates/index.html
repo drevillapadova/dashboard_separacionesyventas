@@ -897,11 +897,9 @@ function getFilters(){
 }
 
 function getMesFromRange(f){
-  if(!f.desde && !f.hasta) return 'todos';
-  const d = f.desde || f.hasta;
-  const h = f.hasta || f.desde;
-  if(d.getFullYear() === h.getFullYear() && d.getMonth() === h.getMonth()) return mesCorto(d);
-  return 'todos';
+  const ref = f.hasta || f.desde;
+  if(!ref) return 'todos';
+  return mesCorto(ref);
 }
 
 function limpiarFechas(){
@@ -1084,9 +1082,14 @@ function poblarFiltros(){
   const yr = now.getFullYear();
   if(!$('sfdesde').value) $('sfdesde').value = yr + '-01-01';
   if(!$('sfhasta').value){
-    const m = String(now.getMonth()+1).padStart(2,'0');
-    const d = String(now.getDate()).padStart(2,'0');
-    $('sfhasta').value = yr + '-' + m + '-' + d;
+    // Si hoy es el 1º del mes, usar el último día del mes anterior
+    // (para que la meta apunte al mes recién cerrado)
+    const ref = now.getDate() === 1
+      ? new Date(now.getFullYear(), now.getMonth(), 0)
+      : now;
+    const m = String(ref.getMonth()+1).padStart(2,'0');
+    const d = String(ref.getDate()).padStart(2,'0');
+    $('sfhasta').value = ref.getFullYear() + '-' + m + '-' + d;
   }
   renderAll();
 }
