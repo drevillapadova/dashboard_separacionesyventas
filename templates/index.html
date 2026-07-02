@@ -1070,6 +1070,15 @@ function init(ultimaActualizacion){
     };
   }).filter(d => d && (d.yr === 0 || d.yr >= 2023));
 
+  // SUNNY: el stock tiene la moneda correcta; el sheet de ventas puede marcar
+  // mal algunas unidades (ej. 106 aparece en USD cuando es SOLES).
+  // Sobreescribimos el precio de ventas con el precio del stock si coincide unidad.
+  const _sunnyPr = {};
+  S.filter(x => x.p === 'SUNNY' && x.pr > 0).forEach(x => { _sunnyPr[x.i] = x.pr; });
+  V.forEach(d => {
+    if(d.p === 'SUNNY' && d.in && _sunnyPr[d.in]) d.pr = _sunnyPr[d.in];
+  });
+
   poblarFiltros();
   renderAll();
   $('ts').textContent = ultimaActualizacion
