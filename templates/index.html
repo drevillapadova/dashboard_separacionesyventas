@@ -1198,6 +1198,15 @@ function getProyData(pe){
     return true;
   });
 
+  const pagando = S.filter(d => {
+    if(d.p !== pe || !d.e.includes('pagando')) return false;
+    if(d.p.includes('CARABAYLLO')) return false;
+    if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
+    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
+    return true;
+  });
+
   const mes = getMesFromRange(f);
   const meta = getMeta(pn, mes);
 
@@ -1206,8 +1215,8 @@ function getProyData(pe){
     ventas,
     seps,
     meta,
-    undR: ventas.length,
-    mtoR: ventas.reduce((t,x) => t + x.pr, 0),
+    undR: ventas.length + pagando.length,
+    mtoR: ventas.reduce((t,x) => t + x.pr, 0) + pagando.reduce((t,x) => t + (x.pr||0), 0),
     sepTot: seps.length,
     sepMto: seps.reduce((t,x) => t + (x.pr||0), 0),
     mes
