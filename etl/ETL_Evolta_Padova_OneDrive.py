@@ -327,6 +327,7 @@ def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda
       - DEPOSITO:         1,700 –  3,300
     """
     REGLAS = {
+        'BICICLETA':       (1_000,   2_000),   # debe ir antes de ESTACIONAMIENTO
         'ESTACIONAMIENTO': (10_000, 29_000),
         'DEPOSITO':        (1_700,   3_300),
     }
