@@ -547,11 +547,14 @@ tbody tr:hover td{background:#f8faff}
         <div class="ana-fgroup"><label>Filas</label>
           <select id="piv-row" onchange="renderPivot()">
             <option value="pn">Proyecto</option><option value="vnd">Asesor</option>
-            <option value="ti">Tipo Inmueble</option><option value="yr">Año</option>
+            <option value="ti">Tipo Inmueble</option><option value="ca">Canal</option>
+            <option value="yr">Año</option>
           </select></div>
         <div class="ana-fgroup"><label>Columnas</label>
           <select id="piv-col" onchange="renderPivot()">
-            <option value="ml">Mes</option><option value="yr">Año</option><option value="pn">Proyecto</option>
+            <option value="ml">Mes</option><option value="yr">Año</option>
+            <option value="pn">Proyecto</option><option value="ti">Tipo</option>
+            <option value="vnd">Asesor</option>
           </select></div>
         <div class="ana-fgroup"><label>Valor</label>
           <select id="piv-val" onchange="renderPivot()">
@@ -559,6 +562,13 @@ tbody tr:hover td{background:#f8faff}
           </select></div>
         <div class="ana-fgroup"><label>Año</label>
           <select id="piv-yr" onchange="renderPivot()"><option value="">Todos</option></select></div>
+        <div class="ana-fgroup"><label>Proyecto</label>
+          <select id="piv-proy" onchange="renderPivot()"><option value="">Todos</option></select></div>
+        <div class="ana-fgroup"><label>Tipo</label>
+          <select id="piv-tipo" onchange="renderPivot()">
+            <option value="">Todos</option><option value="Departamento">Dpto</option>
+            <option value="Estacionamiento">Estac.</option><option value="Deposito">Depósito</option>
+          </select></div>
       </div>
       <div class="card" style="overflow-x:auto;padding:16px">
         <div id="pivot-output"></div>
@@ -1937,6 +1947,8 @@ function anaBuildControls(){
       list.innerHTML += `<input type="checkbox" class="ana-pchk" id="apc-${key}" value="${key}" checked onchange="renderAnaGraficos()">
         <label for="apc-${key}" class="ana-plbl" style="--pc:${col}">${name}</label>`;
     });
+    const pp = $('piv-proy');
+    if(pp) pp.innerHTML = '<option value="">Todos</option>' + Object.entries(PROJ_MAP).map(([k,n])=>`<option value="${k}">${n}</option>`).join('');
     _anaCtrlsBuilt = true;
   }
 }
@@ -2021,13 +2033,13 @@ function renderAnaGraficos(){
   const mBd = vB ? anaGroupByMes(vB,mesIni,mesFin).data : null;
   const lbls = meses.map(m=>m.charAt(0).toUpperCase()+m.slice(1,3));
 
-  const ds2 = (etA,azulL,azul,mBd,etB,narjL,narj,fn) => [
-    {label:etA,data:mA.map(fn),backgroundColor:azulL,borderColor:azul,borderWidth:2,borderRadius:4},
-    ...(mBd?[{label:etB,data:mBd.map(fn),backgroundColor:narjL,borderColor:narj,borderWidth:2,borderRadius:4}]:[])
+  const dsLine = (etA,azulL,azul,mBd,etB,narjL,narj,fn) => [
+    {label:etA,data:mA.map(fn),backgroundColor:azul+'33',borderColor:azul,borderWidth:2,tension:0.35,fill:true,pointRadius:4,pointHoverRadius:6},
+    ...(mBd?[{label:etB,data:mBd.map(fn),backgroundColor:narj+'33',borderColor:narj,borderWidth:2,tension:0.35,fill:true,pointRadius:4,pointHoverRadius:6}]:[])
   ];
 
-  anaChart('chart-unidades',{type:'bar',data:{labels:lbls,datasets:ds2(etA,azulL,azul,mBd,etB,narjL,narj,m=>m.u)},options:_OPT_BASE()});
-  anaChart('chart-monto',{type:'bar',data:{labels:lbls,datasets:ds2(etA,azulL,azul,mBd,etB,narjL,narj,m=>Math.round(m.m))},options:_OPT_BASE({label:c=>c.dataset.label+': '+fmtM(c.raw),yTick:v=>fmtM(v)})});
+  anaChart('chart-unidades',{type:'line',data:{labels:lbls,datasets:dsLine(etA,azulL,azul,mBd,etB,narjL,narj,m=>m.u)},options:_OPT_BASE()});
+  anaChart('chart-monto',{type:'line',data:{labels:lbls,datasets:dsLine(etA,azulL,azul,mBd,etB,narjL,narj,m=>Math.round(m.m))},options:_OPT_BASE({label:c=>c.dataset.label+': '+fmtM(c.raw),yTick:v=>fmtM(v)})});
 
   const gpA=anaGroupByProj(vA), gpB=vB?anaGroupByProj(vB):null;
   const pks=Object.keys(PROJ_MAP).filter(k=>gpA[k]||(gpB&&gpB[k]));
@@ -2052,9 +2064,12 @@ function anaGroupByVnd(arr){ const r={}; arr.forEach(d=>{ if(!d.vnd) return; if(
 function renderPivot(){
   anaBuildControls(); if(V.length===0) return;
   const rf=$('piv-row').value, cf=$('piv-col').value, vf=$('piv-val').value;
-  const yrF=$('piv-yr').value;
-  const data = yrF ? V.filter(d=>d.yr===parseInt(yrF)&&d.pr>0) : V.filter(d=>d.pr>0);
-  const gk = (d,f) => f==='ml'?(d.ml||'—'):f==='yr'?String(d.yr||'—'):f==='pn'?(d.pn||'—'):f==='vnd'?(d.vnd||'—'):f==='ti'?(d.ti||'—'):'—';
+  const yrF=$('piv-yr').value, proyF=($('piv-proy')||{}).value||'', tipoF=($('piv-tipo')||{}).value||'';
+  let data = V.filter(d=>d.pr>0);
+  if(yrF) data = data.filter(d=>d.yr===parseInt(yrF));
+  if(proyF) data = data.filter(d=>d.p===proyF);
+  if(tipoF) data = data.filter(d=>d.ti&&d.ti.toLowerCase().includes(tipoF.toLowerCase()));
+  const gk = (d,f) => f==='ml'?(d.ml||'—'):f==='yr'?String(d.yr||'—'):f==='pn'?(d.pn||'—'):f==='vnd'?(d.vnd||'—'):f==='ti'?(d.ti||'—'):f==='ca'?(d.ca||'—'):'—';
   const rks=[...new Set(data.map(d=>gk(d,rf)))].filter(k=>k&&k!=='—').sort();
   let cks=[...new Set(data.map(d=>gk(d,cf)))].filter(k=>k&&k!=='—');
   cks = cf==='ml' ? MESES_ANA.filter(m=>cks.includes(m)) : cks.sort();
@@ -2062,9 +2077,9 @@ function renderPivot(){
   data.forEach(d=>{ const rk=gk(d,rf),ck=gk(d,cf); if(!grid[rk]) grid[rk]={}; if(!grid[rk][ck]) grid[rk][ck]={u:0,m:0}; grid[rk][ck].u++; grid[rk][ck].m+=d.pr; });
   const fv = o => vf==='u'?(o?.u||0):(o?.m||0);
   const fmt = v => vf==='u'?(v||'—'):(v?fmtM(v):'—');
-  const rLbl = {'pn':'Proyecto','vnd':'Asesor','ti':'Tipo','yr':'Año','ml':'Mes'};
-  const cLbl = {'ml':'Mes','yr':'Año','pn':'Proyecto'};
-  let html=`<table class="pivot-tbl"><thead><tr><th>${rLbl[rf]||rf}</th>${cks.map(c=>`<th>${c.charAt(0).toUpperCase()+c.slice(1,3)}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
+  const rLbl = {'pn':'Proyecto','vnd':'Asesor','ti':'Tipo','yr':'Año','ml':'Mes','ca':'Canal'};
+  const colHdr = c => (cf==='ml'?(c.charAt(0).toUpperCase()+c.slice(1,3)):c);
+  let html=`<table class="pivot-tbl"><thead><tr><th>${rLbl[rf]||rf}</th>${cks.map(c=>`<th>${colHdr(c)}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
   const ct={};cks.forEach(c=>ct[c]=0); let gt=0;
   rks.forEach(rk=>{
     const rt=cks.reduce((s,c)=>s+fv(grid[rk]?.[c]),0); gt+=rt;
@@ -2089,11 +2104,29 @@ function anaSend(txt){
   $('ana-send-btn').disabled=true;
   $('ana-sugs').style.display='none';
   const anios=[...new Set(V.map(d=>d.yr).filter(Boolean))].sort((a,b)=>b-a);
-  const ctx=anios.slice(0,3).map(yr=>{
+  const resumen_anual=anios.slice(0,3).map(yr=>{
     const vyr=V.filter(d=>d.yr===yr&&d.pr>0);
     const pp={};vyr.forEach(d=>{if(!pp[d.pn])pp[d.pn]={u:0,m:0};pp[d.pn].u++;pp[d.pn].m+=d.pr;});
     return {año:yr,total:vyr.length,monto:Math.round(vyr.reduce((s,d)=>s+d.pr,0)),proyectos:pp};
   });
+  const ventas_por_mes={};
+  anios.slice(0,3).forEach(yr=>{
+    const mmap={};
+    V.filter(d=>d.yr===yr&&d.pr>0).forEach(d=>{
+      const m=d.ml||'sin mes';
+      if(!mmap[m]) mmap[m]={u:0,m:0};
+      mmap[m].u++; mmap[m].m+=d.pr;
+    });
+    ventas_por_mes[yr]=mmap;
+  });
+  const asesMap={};
+  V.filter(d=>d.pr>0&&d.vnd).forEach(d=>{
+    if(!asesMap[d.vnd]) asesMap[d.vnd]={u:0,m:0};
+    asesMap[d.vnd].u++; asesMap[d.vnd].m+=d.pr;
+  });
+  const top_asesores=Object.entries(asesMap).map(([n,v])=>({nombre:n,...v})).sort((a,b)=>b.u-a.u).slice(0,10);
+  const separaciones_activas=S.filter(d=>d.yr>0).length;
+  const ctx={resumen_anual,ventas_por_mes,top_asesores,separaciones_activas};
   fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg,data:ctx})})
     .then(r=>r.json())
     .then(raw=>{
