@@ -902,6 +902,44 @@ function getMesFromRange(f){
   return mesCorto(ref);
 }
 
+function getMetaForRange(pn, f){
+  if(!f.desde && !f.hasta) return getMeta(pn, 'todos');
+  const d = f.desde || new Date(2023, 0, 1);
+  const h = f.hasta || new Date();
+  // Un solo mes → meta de ese mes
+  if(d.getFullYear()===h.getFullYear() && d.getMonth()===h.getMonth())
+    return getMeta(pn, mesCorto(h));
+  // Rango multi-mes → sumar metas de cada mes incluido
+  let und=0, monto=0;
+  const cur = new Date(d.getFullYear(), d.getMonth(), 1);
+  const end = new Date(h.getFullYear(), h.getMonth(), 1);
+  while(cur <= end){
+    const m = METAS_SHEET[pn + '|' + mesCorto(cur)] || {und:0, monto:0};
+    und += m.und; monto += m.monto;
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  return {und, monto};
+}
+
+function getPFForRange(pn, f){
+  if(!f.desde && !f.hasta) return PF_MAP[pn] || {und:0, monto:0};
+  const d = f.desde || new Date(2023, 0, 1);
+  const h = f.hasta || new Date();
+  if(d.getFullYear()===h.getFullYear() && d.getMonth()===h.getMonth()){
+    const k = pn + '|' + mesCorto(h);
+    return PF_MAP[k] || PF_MAP[pn] || {und:0, monto:0};
+  }
+  let und=0, monto=0;
+  const cur = new Date(d.getFullYear(), d.getMonth(), 1);
+  const end = new Date(h.getFullYear(), h.getMonth(), 1);
+  while(cur <= end){
+    const v = PF_MAP[pn + '|' + mesCorto(cur)];
+    if(v){ und += v.und; monto += v.monto; }
+    cur.setMonth(cur.getMonth() + 1);
+  }
+  return (und||monto) ? {und, monto} : (PF_MAP[pn] || {und:0, monto:0});
+}
+
 function limpiarFechas(){
   $('sfdesde').value = '';
   $('sfhasta').value = '';
@@ -1208,7 +1246,7 @@ function getProyData(pe){
   });
 
   const mes = getMesFromRange(f);
-  const meta = getMeta(pn, mes);
+  const meta = getMetaForRange(pn, f);
 
   return {
     pn,
@@ -1746,11 +1784,8 @@ function renderAvance(){
     const firmMto = firmMtoV + pagandoMto;
 
     // Minutas Por Firmar: viene del Google Sheets, filtra por mes si hay columna MES
-    const mesParaMeta = getMesFromRange(f);
-    const pfKey = mesParaMeta !== 'todos' ? pn + '|' + mesParaMeta : pn;
-    const pfData = PF_MAP[pfKey] || PF_MAP[pn] || {und:0, monto:0};
-
-    const meta = getMeta(pn, mesParaMeta);
+    const pfData = getPFForRange(pn, f);
+    const meta = getMetaForRange(pn, f);
 
     const totUnd = pfData.und + firmCount;
     const totMto = pfData.monto + firmMto;
