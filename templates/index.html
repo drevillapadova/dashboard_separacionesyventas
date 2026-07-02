@@ -1718,29 +1718,32 @@ function renderAvance(){
       d.cl && sepClientes.has(d.cl)
     ).reduce((t,x) => t + (x.pr||0), 0);
 
-    // Minutas Firmadas: conteo solo departamentos (excluye comercios), monto incluye estacionamientos del mismo IdProforma
+    // Minutas Firmadas: CANTIDAD solo departamentos, MONTO todas las unidades (excluye COMERCIO)
     const firmadasDepa = V.filter(d => {
       if(d.p !== pe) return false;
       if(f.desde && d.md && d.md < f.desde) return false;
       if(f.hasta && d.md && d.md > f.hasta) return false;
       return d.ti.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO');
     });
-    const firmadasIPs = new Set(firmadasDepa.filter(d => d.ip).map(d => d.ip));
     const firmMtoV = V.filter(d => {
       if(d.p !== pe) return false;
       if(f.desde && d.md && d.md < f.desde) return false;
       if(f.hasta && d.md && d.md > f.hasta) return false;
-      return (d.ti.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO')) || (d.ip && firmadasIPs.has(d.ip));
+      return !d.mo.includes('COMERCIO');
     }).reduce((t,x) => t + (x.pr||0), 0);
 
-    // PAGANDO SIN MINUTA desde stock: ya pagaron inicial pero aún no tienen minuta
+    // PAGANDO SIN MINUTA: cantidad solo departamentos, monto todas las unidades
     const pagandoStock = S.filter(d =>
       d.p === pe && d.e.includes('pagando') &&
       !d.p.includes('CARABAYLLO') &&
       d.t.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO')
     );
+    const pagandoMto = S.filter(d =>
+      d.p === pe && d.e.includes('pagando') &&
+      !d.p.includes('CARABAYLLO') && !d.mo.includes('COMERCIO')
+    ).reduce((t,x) => t + (x.pr||0), 0);
     const firmCount = firmadasDepa.length + pagandoStock.length;
-    const firmMto = firmMtoV + pagandoStock.reduce((t,x) => t + (x.pr||0), 0);
+    const firmMto = firmMtoV + pagandoMto;
 
     // Minutas Por Firmar: viene del Google Sheets, filtra por mes si hay columna MES
     const mesParaMeta = getMesFromRange(f);
