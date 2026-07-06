@@ -1775,12 +1775,18 @@ function exportOps(){
     });
   }
   rows = sortRows(rows);
-  const hdr = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','Fecha'];
-  const esc = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-  const csv = '﻿' + [hdr, ...rows.map(r=>[r.pn,r.st,r.ti,r.in,r.cl,Math.round(r.pr||0),r.vnd,r.fecha])].map(r=>r.map(esc).join(',')).join('\n');
-  const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const th = s => `<th style="background:#1e3a5f;color:#fff;font-weight:700;padding:8px 10px;border:1px solid #ccc">${s}</th>`;
+  const td = (s,num) => `<td style="padding:6px 10px;border:1px solid #e2e8f0;${num?'text-align:right':''}${num?';font-weight:600':''};">${s==null?'':s}</td>`;
+  const hdrs = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','Fecha'];
+  const body = rows.map(r=>`<tr>
+    ${td(r.pn)}${td(r.st)}${td(r.ti)}${td(r.in)}${td(r.cl)}${td(Math.round(r.pr||0).toLocaleString('es-PE'),true)}${td(r.vnd)}${td(r.fecha)}
+  </tr>`).join('');
+  const xls = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Operaciones</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body><table>${'<thead><tr>'+hdrs.map(th).join('')+'</tr></thead>'}<tbody>${body}</tbody></table></body></html>`;
+  const url = URL.createObjectURL(new Blob(['﻿'+xls],{type:'application/vnd.ms-excel;charset=utf-8'}));
   const a = document.createElement('a');
-  a.href=url; a.download='operaciones.csv'; a.click(); URL.revokeObjectURL(url);
+  a.href=url; a.download='operaciones.xls'; a.click(); URL.revokeObjectURL(url);
 }
 
 function fmtMonto(n){ return Math.round(n||0).toLocaleString('es-PE'); }
