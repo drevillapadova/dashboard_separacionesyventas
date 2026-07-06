@@ -451,7 +451,10 @@ tbody tr:hover td{background:#f8faff}
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div style="font-size:13px;font-weight:700">Listado de operaciones</div>
-        <div style="font-size:11px;color:#94a3b8" id="opc">0 registros</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:11px;color:#94a3b8" id="opc">0 registros</div>
+          <button onclick="exportOps()" class="pill" style="font-size:11px;padding:5px 12px;color:#16a34a;border:1px solid #bbf7d0;background:#f0fdf4;font-weight:600">↓ Excel</button>
+        </div>
       </div>
       <div class="tbl">
         <table>
@@ -1743,6 +1746,41 @@ function rOps(){
         <td style="color:#94a3b8">${x.fecha}</td>
       </tr>`
     ).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
+}
+
+function exportOps(){
+  const f = getFilters();
+  let rows = [];
+  if(f.v==='all' || f.v==='ven'){
+    gfV().forEach(x => {
+      const dt = x.fv || x.fm || null;
+      rows.push({pn:x.pn,st:'Venta',ti:x.ti,in:x.in,cl:x.cl,pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
+    });
+    S.filter(x => {
+      if(!x.e.includes('pagando')) return false;
+      if(x.p.includes('CARABAYLLO')) return false;
+      if(f.p!=='all' && x.p!==f.p) return false;
+      if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
+      if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i,x.t)) return false;
+      if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
+      return true;
+    }).forEach(x => {
+      rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:'',fechaSort:0});
+    });
+  }
+  if(f.v==='all' || f.v==='sep'){
+    gfS().forEach(x => {
+      const dt = x.fd || null;
+      rows.push({pn:x.pn,st:x.isTem?'Separación Tem.':'Separación',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'En stock',fechaSort:dt?dt.getTime():0});
+    });
+  }
+  rows = sortRows(rows);
+  const hdr = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','Fecha'];
+  const esc = v => '"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const csv = '﻿' + [hdr, ...rows.map(r=>[r.pn,r.st,r.ti,r.in,r.cl,Math.round(r.pr||0),r.vnd,r.fecha])].map(r=>r.map(esc).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a = document.createElement('a');
+  a.href=url; a.download='operaciones.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
 function fmtMonto(n){ return Math.round(n||0).toLocaleString('es-PE'); }
