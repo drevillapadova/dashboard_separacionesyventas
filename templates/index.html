@@ -1775,16 +1775,16 @@ function exportOps(){
     });
   }
   rows = sortRows(rows);
-  const th = s => `<th style="background:#1e3a5f;color:#fff;font-weight:700;padding:8px 10px;border:1px solid #ccc">${s}</th>`;
-  const td = (s,num) => `<td style="padding:6px 10px;border:1px solid #e2e8f0;${num?'text-align:right':''}${num?';font-weight:600':''};">${s==null?'':s}</td>`;
   const hdrs = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','Fecha'];
-  const body = rows.map(r=>`<tr>
-    ${td(r.pn)}${td(r.st)}${td(r.ti)}${td(r.in)}${td(r.cl)}${td(Math.round(r.pr||0).toLocaleString('es-PE'),true)}${td(r.vnd)}${td(r.fecha)}
-  </tr>`).join('');
-  const xls = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Operaciones</x:Name></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
-<body><table>${'<thead><tr>'+hdrs.map(th).join('')+'</tr></thead>'}<tbody>${body}</tbody></table></body></html>`;
-  const url = URL.createObjectURL(new Blob(['﻿'+xls],{type:'application/vnd.ms-excel;charset=utf-8'}));
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const cell = (v,num) => `<Cell><Data ss:Type="${num?'Number':'String'}">${esc(v)}</Data></Cell>`;
+  const hRow = '<Row>'+hdrs.map(h=>`<Cell ss:StyleID="h"><Data ss:Type="String">${esc(h)}</Data></Cell>`).join('')+'</Row>';
+  const dRows = rows.map(r=>'<Row>'+
+    cell(r.pn)+cell(r.st)+cell(r.ti)+cell(r.in)+cell(r.cl)+
+    cell(Math.round(r.pr||0),true)+cell(r.vnd)+cell(r.fecha)+
+  '</Row>').join('');
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n<Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1e3a5f" ss:Pattern="Solid"/></Style></Styles>\n<Worksheet ss:Name="Operaciones"><Table>${hRow}${dRows}</Table></Worksheet>\n</Workbook>`;
+  const url = URL.createObjectURL(new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'}));
   const a = document.createElement('a');
   a.href=url; a.download='operaciones.xls'; a.click(); URL.revokeObjectURL(url);
 }
