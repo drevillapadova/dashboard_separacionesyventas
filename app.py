@@ -84,12 +84,16 @@ def api_ai():
         import anthropic
         data = request.get_json()
         question = data.get('question', '')
-        sales_data = data.get('data', [])
+        sales_data = data.get('data', {})
         api_key = os.environ.get('ANTHROPIC_API_KEY', '')
         if not api_key:
             return jsonify({'error': 'ANTHROPIC_API_KEY no configurada. Agrégala como variable de entorno en Railway.'})
         client = anthropic.Anthropic(api_key=api_key)
-        proyectos = list({p for yr in sales_data for p in yr.get('proyectos', {})})
+        resumen_anual = sales_data.get('resumen_anual', []) if isinstance(sales_data, dict) else sales_data
+        ventas_por_mes = sales_data.get('ventas_por_mes', []) if isinstance(sales_data, dict) else []
+        top_asesores = sales_data.get('top_asesores', []) if isinstance(sales_data, dict) else []
+        separaciones_activas = sales_data.get('separaciones_activas', 0) if isinstance(sales_data, dict) else 0
+        proyectos = list({p for yr in resumen_anual for p in yr.get('proyectos', {})})
         system = (
             "Eres un asistente de análisis de ventas inmobiliarias para Padova SAC. "
             "Respondes SIEMPRE en JSON con este formato:\n"
@@ -104,7 +108,10 @@ def api_ai():
         )
         context = (
             f"Proyectos: {', '.join(proyectos)}.\n"
-            f"Datos de ventas:\n{json.dumps(sales_data, ensure_ascii=False, indent=2)}"
+            f"Resumen anual:\n{json.dumps(resumen_anual, ensure_ascii=False, indent=2)}\n\n"
+            f"Ventas por mes:\n{json.dumps(ventas_por_mes, ensure_ascii=False, indent=2)}\n\n"
+            f"Top asesores:\n{json.dumps(top_asesores, ensure_ascii=False, indent=2)}\n\n"
+            f"Separaciones activas: {separaciones_activas}"
         )
         msg = client.messages.create(
             model='claude-sonnet-4-6',
