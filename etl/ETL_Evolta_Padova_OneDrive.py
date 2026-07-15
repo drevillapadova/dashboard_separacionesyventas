@@ -2,6 +2,7 @@ import time
 import os
 import glob
 import json
+import re
 import shutil
 import unicodedata
 import requests
@@ -488,6 +489,57 @@ COLUMNAS_FINALES = [
 ]
 
 COLUMNAS_MAESTRAS = COLUMNAS_BASE + COLUMNAS_INMUEBLES + COLUMNAS_FINALES
+
+
+# Evolta renombró columnas en sus reportes (jul-2026): agregó sufijo '_OC' a los
+# montos de la orden de compra y separó 'Moneda'/'TipoMoneda' en Moneda_Base/Moneda_Lista/Moneda_OC.
+# Estos mapeos traducen los headers nuevos a los nombres internos que usa el resto del ETL,
+# para no tener que reescribir toda la lógica de negocio (unpivot, corrección de moneda, etc).
+_RENAME_VENTAS_GLOBAL = {
+    'PrecioVenta_OC': 'PrecioVenta',
+    'MontoDescuento_OC': 'MontoDescuento',
+    'MontoSeparacion_OC': 'MontoSeparacion',
+    'BonoVerde_OC': 'BonoVerde',
+    'MontoBono_OC': 'MontoBono',
+    'MontoPagadoBono_OC': 'MontoPagadoBono',
+    'MontoCuotaInicial_OC': 'MontoCuotaInicial',
+    'MontoPagadoCI_OC': 'MontoPagadoCI',
+    'MontoFinanciamiento_OC': 'MontoFinanciamiento',
+    'MontoDesembolsado_OC': 'MontoDesembolsado',
+    'Moneda_OC': 'TipoMoneda',
+}
+
+_RENAME_VENTAS_INMUEBLE_PATTERNS = [
+    (re.compile(r'^Precio_Base_(\d+)$'), 'PrecioBase_{}'),
+    (re.compile(r'^PrecioLista_OC_(\d+)$'), 'PrecioLista_{}'),
+    (re.compile(r'^DescuentoLista_OC_(\d+)$'), 'DescuentoLista_{}'),
+    (re.compile(r'^TotalVenta_OC_(\d+)$'), 'TotalLista_{}'),
+]
+
+def rename_ventas_columns(df):
+    """Traduce headers nuevos de Evolta (ventas) a los nombres internos del ETL."""
+    rename_map = {k: v for k, v in _RENAME_VENTAS_GLOBAL.items() if k in df.columns}
+    for col in df.columns:
+        for pattern, target in _RENAME_VENTAS_INMUEBLE_PATTERNS:
+            m = pattern.match(col)
+            if m:
+                rename_map[col] = target.format(m.group(1))
+                break
+    if rename_map:
+        print(f"   -> [HEADERS] Ventas: renombrando {len(rename_map)} columna(s) al formato interno")
+    return df.rename(columns=rename_map)
+
+
+def rename_stock_columns(df):
+    """Traduce headers nuevos de Evolta (stock) a los nombres internos del ETL."""
+    rename_map = {}
+    if 'Moneda_OC' in df.columns:
+        rename_map['Moneda_OC'] = 'Moneda'
+    if 'PrecioVenta_OC' in df.columns:
+        rename_map['PrecioVenta_OC'] = 'PrecioVenta'
+    if rename_map:
+        print(f"   -> [HEADERS] Stock: renombrando {len(rename_map)} columna(s) al formato interno")
+    return df.rename(columns=rename_map)
 
 
 def get_driver(download_dir):
@@ -1053,7 +1105,10 @@ def process_ventas_data(df_stock=None):
                 df = pd.read_csv(ruta, encoding='utf-8', low_memory=False)
             else:
                 df = pd.read_excel(ruta)
-            
+
+            df.columns = df.columns.str.strip()
+            df = rename_ventas_columns(df)
+
             inmuebles = [col for col in df.columns if col.startswith('T/M_')]
             print(f"    {año}: {len(df):,} filas, {len(df.columns)} cols, {len(inmuebles)} inmuebles")
             dataframes[str(año)] = df
@@ -1141,7 +1196,8 @@ def process_stock_data(df_ventas=None):
     
     try:
         df = pd.read_excel(latest_file)
-        df.columns = df.columns.str.strip() 
+        df.columns = df.columns.str.strip()
+        df = rename_stock_columns(df)
         print(f"   -> Filas leídas: {len(df)}")
     except Exception as e:
         raise Exception(f"Error abriendo Excel descargado: {e}")
@@ -1555,6 +1611,7 @@ def main():
             latest_stock = max(list_stock, key=os.path.getctime)
             df_stock_crudo = pd.read_excel(latest_stock)
             df_stock_crudo.columns = df_stock_crudo.columns.str.strip()
+            df_stock_crudo = rename_stock_columns(df_stock_crudo)
             print(f"\n>> [MONEDA] Stock crudo cargado ({len(df_stock_crudo)} filas) para validar moneda")
             # Aplicar correcciones de moneda al stock crudo antes de usarlo como referencia,
             # para que corregir_moneda_con_stock use los valores ya corregidos
