@@ -277,14 +277,30 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
     return df_ventas
 
 
-def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda', col_proyecto='Proyecto'):
+def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda', col_proyecto='Proyecto',
+                           col_tipo='TipoInmueble'):
     """
-    Corrección específica para SUNNY: precios < S/ 600,000 marcados como SOLES
-    son en realidad USD (error sistemático del CRM para este proyecto).
+    Corrección específica para SUNNY.
 
-    Regla: Proyecto=SUNNY + moneda != DOLAR + PrecioVenta < 600,000 → tratar como DOLAR.
+    - Departamentos y demás tipos: precios < S/ 600,000 marcados como SOLES
+      son en realidad USD (error sistemático del CRM para este proyecto).
+      Regla: moneda != DOLAR + PrecioVenta < 600,000 → tratar como DOLAR.
+
+    - ESTACIONAMIENTO: mismo patrón que corregir_moneda_litoral, con rango
+      propio (su precio real en soles cae dentro del umbral de 600,000 de
+      arriba, así que no puede usar esa regla sin confundirse con un
+      departamento mal etiquetado):
+        - Dice SOLES + precio en rango USD (10,000-20,000)  → DOLAR
+        - Dice DOLAR + precio fuera de ese rango (ej. 40,000-100,000 soles) → SOLES
+      Esto revalida el registro por precio en ambas direcciones, así que
+      también corrige el caso en que corregir_moneda_con_stock lo haya
+      marcado mal antes de llegar acá.
+
+    - DEPOSITO: se excluye de la corrección general (precio real bajo en soles).
     """
     UMBRAL = 600_000
+    RANGO_ESTACIONAMIENTO_USD = (10_000, 20_000)
+    TIPO_EXCLUIDO = 'DEPOSITO'
 
     cols_ok = all(c in df.columns for c in [col_precio, col_moneda, col_proyecto])
     if not cols_ok:
@@ -292,26 +308,47 @@ def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda',
 
     df = df.copy()
     corregidos = 0
+    tiene_tipo = col_tipo in df.columns
 
     for idx, row in df.iterrows():
         if 'SUNNY' not in str(row[col_proyecto]).upper():
             continue
 
-        moneda = str(row[col_moneda]).upper().strip()
-        if 'DOLAR' in moneda or 'USD' in moneda:
-            continue  # ya marcado como USD, no tocar
+        tipo = str(row[col_tipo]).upper().strip() if tiene_tipo else ''
+
+        if TIPO_EXCLUIDO in tipo:
+            continue
 
         try:
             precio = float(str(row[col_precio]).replace(',', '')) if row[col_precio] else 0
         except:
             precio = 0
 
+        moneda = str(row[col_moneda]).upper().strip()
+        es_usd = 'DOLAR' in moneda or 'USD' in moneda
+
+        if 'ESTACIONAMIENTO' in tipo:
+            minimo, maximo = RANGO_ESTACIONAMIENTO_USD
+            en_rango = minimo <= precio <= maximo
+            if not es_usd and en_rango:
+                df.at[idx, col_moneda] = 'DOLAR'
+                corregidos += 1
+                print(f"   -> [MONEDA] Sunny estacionamiento: {precio:,.0f} SOLES → DOLAR (rango {minimo:,}-{maximo:,})")
+            elif es_usd and not en_rango:
+                df.at[idx, col_moneda] = 'SOLES'
+                corregidos += 1
+                print(f"   -> [MONEDA] Sunny estacionamiento: {precio:,.0f} DOLAR → SOLES (fuera de rango {minimo:,}-{maximo:,})")
+            continue
+
+        if es_usd:
+            continue  # ya marcado como USD, no tocar
+
         if 0 < precio < UMBRAL:
             df.at[idx, col_moneda] = 'DOLAR'
             corregidos += 1
             print(f"   -> [MONEDA] Sunny: {precio:,.0f} 'SOLES' → DOLAR (< {UMBRAL:,})")
 
-    print(f"   -> [MONEDA] Sunny: {corregidos} registros corregidos a DOLAR")
+    print(f"   -> [MONEDA] Sunny: {corregidos} registros corregidos")
     return df
 
 
