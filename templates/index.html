@@ -449,6 +449,13 @@ tbody tr:hover td{background:#f8faff}
 
   <div class="dv"></div>
 
+  <span class="fl fil-lbl">Asesor</span>
+  <select class="pill fil-sel" id="sasesor" onchange="sfSel('asesor',this.value)">
+    <option value="all">Todos</option>
+  </select>
+
+  <div class="dv"></div>
+
   <div class="sw">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="sbusca" placeholder="Buscar cliente o inmueble..." oninput="renderAll()">
@@ -659,7 +666,7 @@ function matchWhitelist(pUp){
 
 let METAS_SHEET = {};
 let PF_MAP = {};
-let V = [], S = [], F = {p:'all',v:'all',ti:'all'};
+let V = [], S = [], F = {p:'all',v:'all',ti:'all',asesor:'all'};
 let OPS_SORT = { key:'pn', dir:'asc' };
 const $ = id => document.getElementById(id);
 
@@ -921,6 +928,7 @@ function getFilters(){
     p: F.p,
     v: F.v,
     ti: F.ti,
+    asesor: F.asesor,
     busca: ($('sbusca').value || '').toLowerCase().trim()
   };
 }
@@ -1153,7 +1161,21 @@ function init(ultimaActualizacion){
     : 'Actualizado ' + new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
 }
 
+function poblarAsesores(){
+  const sel = $('sasesor');
+  if(!sel) return;
+  const actual = sel.value || 'all';
+  const nombres = new Set();
+  V.forEach(d => { if(d.vnd) nombres.add(d.vnd); });
+  S.forEach(d => { if(d.vnd) nombres.add(d.vnd); });
+  const ordenados = Array.from(nombres).sort((a,b) => a.localeCompare(b,'es'));
+  sel.innerHTML = '<option value="all">Todos</option>' +
+    ordenados.map(n => `<option value="${n}">${n}</option>`).join('');
+  if(actual !== 'all' && nombres.has(actual)) sel.value = actual;
+}
+
 function poblarFiltros(){
+  poblarAsesores();
   const now = new Date();
   const yr = now.getFullYear();
   if(!$('sfdesde').value) $('sfdesde').value = yr + '-01-01';
@@ -1274,6 +1296,19 @@ function getProyData(pe){
     return true;
   });
 
+  // Avance: siempre solo Departamentos, sin importar el filtro de Tipo
+  const ventasDepto = V.filter(d => {
+    if(d.p!==pe) return false;
+    if(f.desde && d.md && d.md < f.desde) return false;
+    if(f.hasta && d.md && d.md > f.hasta) return false;
+    return d.ti.toLowerCase().includes('departamento');
+  });
+  const pagandoDepto = S.filter(d => {
+    if(d.p !== pe || !d.e.includes('pagando')) return false;
+    if(d.p.includes('CARABAYLLO')) return false;
+    return d.t.toLowerCase().includes('departamento');
+  });
+
   const mes = getMesFromRange(f);
   const meta = getMetaForRange(pn, f);
 
@@ -1283,6 +1318,7 @@ function getProyData(pe){
     seps,
     meta,
     undR: ventas.length + pagando.length,
+    undRAvance: ventasDepto.length + pagandoDepto.length,
     mtoR: ventas.reduce((t,x) => t + x.pr, 0) + pagando.reduce((t,x) => t + (x.pr||0), 0),
     sepTot: seps.length,
     sepMto: seps.reduce((t,x) => t + (x.pr||0), 0),
@@ -1295,14 +1331,14 @@ function renderTodos(){
   let html = '';
 
   // Pre-calcular totales
-  let totUndM=0, totMtoM=0, totUndR=0, totMtoR=0, totSep=0;
+  let totUndM=0, totMtoM=0, totUndR=0, totUndRAvance=0, totMtoR=0, totSep=0;
   const proyData = PROJ.map(pe => {
     const d = getProyData(pe);
     totUndM += d.meta.und; totMtoM += d.meta.monto;
-    totUndR += d.undR; totMtoR += d.mtoR; totSep += d.sepTot;
+    totUndR += d.undR; totUndRAvance += d.undRAvance; totMtoR += d.mtoR; totSep += d.sepTot;
     return d;
   });
-  const tpU = pct(totUndR, totUndM);
+  const tpU = pct(totUndRAvance, totUndM);
 
   // ── KPI CARDS ──
   html += `
@@ -1346,9 +1382,9 @@ function renderTodos(){
       <div class="res-group-label" style="color:#ea580c;border-bottom-color:#fed7aa">Monto Meta</div>
     </div>`;
 
-  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta}) => {
+  proyData.forEach(({pn,undR,undRAvance,mtoR,sepTot,sepMto,meta}) => {
     const col = PC[pn] || '#64748b';
-    const pU  = pct(undR, meta.und);
+    const pU  = pct(undRAvance, meta.und);
     const pM  = pct(mtoR, meta.monto);
 
     html += `
@@ -1409,9 +1445,9 @@ function renderTodos(){
   html += `</div>`; // end res-table-desktop
 
   // ── TARJETAS MOBILE ──
-  proyData.forEach(({pn,undR,mtoR,sepTot,sepMto,meta}) => {
+  proyData.forEach(({pn,undR,undRAvance,mtoR,sepTot,sepMto,meta}) => {
     const col = PC[pn] || '#64748b';
-    const pU = pct(undR, meta.und);
+    const pU = pct(undRAvance, meta.und);
     const pM = pct(mtoR, meta.monto);
 
     html += `
@@ -1459,13 +1495,13 @@ function renderTodos(){
 }
 
 function renderSingle(pe){
-  const {pn,undR,mtoR,sepTot,sepMto,meta} = getProyData(pe);
+  const {pn,undR,undRAvance,mtoR,sepTot,sepMto,meta} = getProyData(pe);
   const f = getFilters();
   const fmtD = d => d.toLocaleDateString('es-PE',{day:'2-digit',month:'short',year:'numeric'});
   const periodoLabel = (f.desde || f.hasta)
     ? [(f.desde ? fmtD(f.desde) : ''), (f.hasta ? fmtD(f.hasta) : '')].filter(Boolean).join(' – ')
     : 'Todos';
-  const pU = pct(undR,meta.und);
+  const pU = pct(undRAvance,meta.und);
   const pM = pct(mtoR,meta.monto);
 
   $('vista-single').innerHTML = `
@@ -1692,7 +1728,7 @@ function rOps(){
   let rows = [];
 
   if(f.v==='all' || f.v==='ven'){
-    gfV().forEach(x => {
+    gfV().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
       const dt = x.fv || x.fm || null;
       rows.push({
         pn: x.pn,
@@ -1717,6 +1753,7 @@ function rOps(){
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
       if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
       if(f.busca && !(x.cl||'').toLowerCase().includes(f.busca) && (x.i||'').toLowerCase().trim() !== f.busca) return false;
+      if(f.asesor!=='all' && x.vnd!==f.asesor) return false;
       return true;
     }).forEach(x => {
       rows.push({
@@ -1734,7 +1771,7 @@ function rOps(){
   }
 
   if(f.v==='all' || f.v==='sep'){
-    gfS().forEach(x => {
+    gfS().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
       const dt = x.fd || null;
       rows.push({
         pn: x.pn,
@@ -1780,7 +1817,7 @@ function exportOps(){
   const f = getFilters();
   let rows = [];
   if(f.v==='all' || f.v==='ven'){
-    gfV().forEach(x => {
+    gfV().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
       const dt = x.fv || x.fm || null;
       rows.push({pn:x.pn,st:'Venta',ti:x.ti,in:x.in,cl:x.cl,pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
@@ -1791,13 +1828,14 @@ function exportOps(){
       if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i,x.t)) return false;
       if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
+      if(f.asesor!=='all' && x.vnd!==f.asesor) return false;
       return true;
     }).forEach(x => {
       rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:'',fechaSort:0});
     });
   }
   if(f.v==='all' || f.v==='sep'){
-    gfS().forEach(x => {
+    gfS().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
       const dt = x.fd || null;
       rows.push({pn:x.pn,st:x.isTem?'Separación Tem.':'Separación',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'En stock',fechaSort:dt?dt.getTime():0});
     });
