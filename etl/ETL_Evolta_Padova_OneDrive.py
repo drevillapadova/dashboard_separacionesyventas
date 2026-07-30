@@ -26,12 +26,16 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-def _normalizar_moneda(valor):
-    """Elimina acentos y normaliza a mayúsculas para comparar monedas.
-    Evolta exporta a veces 'DÓLARES' (con acento) en vez de 'DOLARES'.
+def _quitar_tildes(valor):
+    """Elimina acentos y normaliza a mayúsculas (ej: 'Depósito' -> 'DEPOSITO').
+    Necesario porque .upper() NO quita tildes en Python, y Evolta a veces
+    exporta con tilde ('DÓLARES', 'Depósito') y a veces sin ella.
     """
     s = unicodedata.normalize('NFD', str(valor).upper().strip())
     return ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+
+def _normalizar_moneda(valor):
+    return _quitar_tildes(valor)
 
 def _es_usd(valor):
     m = _normalizar_moneda(valor)
@@ -260,7 +264,7 @@ def corregir_moneda_con_stock(df_ventas, df_stock):
         stock_es_usd  = any(_es_usd(m) for m in monedas)
 
         if ventas_es_usd and not stock_es_usd:
-            tipo_v = str(row.get('TipoInmueble', '')).upper()
+            tipo_v = _quitar_tildes(row.get('TipoInmueble', ''))
             if 'LITORAL' in proy_v and ('COMERCI' in tipo_v or 'LOCAL' in tipo_v):
                 continue
             df_ventas.at[idx, col_moneda_v] = 'SOLES'
@@ -314,7 +318,7 @@ def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda',
         if 'SUNNY' not in str(row[col_proyecto]).upper():
             continue
 
-        tipo = str(row[col_tipo]).upper().strip() if tiene_tipo else ''
+        tipo = _quitar_tildes(row[col_tipo]) if tiene_tipo else ''
 
         if TIPO_EXCLUIDO in tipo:
             continue
@@ -324,8 +328,7 @@ def corregir_moneda_sunny(df, col_precio='PrecioVenta', col_moneda='TipoMoneda',
         except:
             precio = 0
 
-        moneda = str(row[col_moneda]).upper().strip()
-        es_usd = 'DOLAR' in moneda or 'USD' in moneda
+        es_usd = _es_usd(row[col_moneda])
 
         if 'ESTACIONAMIENTO' in tipo:
             minimo, maximo = RANGO_ESTACIONAMIENTO_USD
@@ -381,7 +384,7 @@ def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda
         if 'LITORAL' not in str(row[col_proyecto]).upper():
             continue
 
-        tipo = str(row[col_tipo]).upper().strip()
+        tipo = _quitar_tildes(row[col_tipo])
 
         for clave, (minimo, maximo) in REGLAS.items():
             if clave not in tipo:
@@ -395,8 +398,7 @@ def corregir_moneda_litoral(df, col_precio='PrecioVenta', col_moneda='TipoMoneda
             except:
                 precio = 0
 
-            moneda = str(row[col_moneda]).upper().strip()
-            es_usd = 'DOLAR' in moneda or 'USD' in moneda
+            es_usd = _es_usd(row[col_moneda])
             en_rango = minimo <= precio <= maximo
 
             if not es_usd and en_rango:
