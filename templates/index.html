@@ -1177,14 +1177,16 @@ function poblarAsesores(){
 function poblarFiltros(){
   poblarAsesores();
   const now = new Date();
-  const yr = now.getFullYear();
-  if(!$('sfdesde').value) $('sfdesde').value = yr + '-01-01';
+  // Si hoy es el 1º del mes, usar el mes anterior completo
+  // (para que la meta apunte al mes recién cerrado)
+  const ref = now.getDate() === 1
+    ? new Date(now.getFullYear(), now.getMonth(), 0)
+    : now;
+  if(!$('sfdesde').value){
+    const m = String(ref.getMonth()+1).padStart(2,'0');
+    $('sfdesde').value = ref.getFullYear() + '-' + m + '-01';
+  }
   if(!$('sfhasta').value){
-    // Si hoy es el 1º del mes, usar el último día del mes anterior
-    // (para que la meta apunte al mes recién cerrado)
-    const ref = now.getDate() === 1
-      ? new Date(now.getFullYear(), now.getMonth(), 0)
-      : now;
     const m = String(ref.getMonth()+1).padStart(2,'0');
     const d = String(ref.getDate()).padStart(2,'0');
     $('sfhasta').value = ref.getFullYear() + '-' + m + '-' + d;
