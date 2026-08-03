@@ -705,9 +705,12 @@ function parsePFData(raw){
   });
 }
 
+let _datosCargados = false;
+
 async function cargarDatos() {
   try {
     const r = await fetch('/api/data?t=' + Date.now());
+    if(!r.ok) throw new Error('HTTP ' + r.status);
     const d = await r.json();
     RAW_V = d.ventas || [];
     RAW_S = d.stock || [];
@@ -717,9 +720,16 @@ async function cargarDatos() {
     parseMETASSheet(RAW_METAS);
     const ua = d.ultima_actualizacion || null;
     init(ua);
+    _datosCargados = true;
   } catch(e) {
     console.error('Error cargando datos:', e);
-    document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444">Error cargando datos. Revisa /api/data y recarga la página.</div>';
+    if(!_datosCargados){
+      document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444">Error cargando datos. Revisa /api/data y recarga la página.</div>';
+    } else {
+      // Falló un refresco de fondo (no la carga inicial): no borrar el dashboard
+      // ya cargado, solo reintentar en un minuto.
+      setTimeout(cargarDatos, 60 * 1000);
+    }
   }
 }
 
@@ -1292,6 +1302,8 @@ function getProyData(pe){
   const pagando = S.filter(d => {
     if(d.p !== pe || !d.e.includes('pagando')) return false;
     if(d.p.includes('CARABAYLLO')) return false;
+    if(f.desde && d.yr && d.md < f.desde) return false;
+    if(f.hasta && d.yr && d.md > f.hasta) return false;
     if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
     if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
     if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
@@ -1308,6 +1320,8 @@ function getProyData(pe){
   const pagandoDepto = S.filter(d => {
     if(d.p !== pe || !d.e.includes('pagando')) return false;
     if(d.p.includes('CARABAYLLO')) return false;
+    if(f.desde && d.yr && d.md < f.desde) return false;
+    if(f.hasta && d.yr && d.md > f.hasta) return false;
     return d.t.toLowerCase().includes('departamento');
   });
 
@@ -1750,6 +1764,8 @@ function rOps(){
     S.filter(x => {
       if(!x.e.includes('pagando')) return false;
       if(x.p.includes('CARABAYLLO')) return false;
+      if(f.desde && x.yr && x.md < f.desde) return false;
+      if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(f.p!=='all' && x.p!==f.p) return false;
       if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
@@ -1758,6 +1774,7 @@ function rOps(){
       if(f.asesor!=='all' && x.vnd!==f.asesor) return false;
       return true;
     }).forEach(x => {
+      const dt = x.fd || null;
       rows.push({
         pn: x.pn,
         st: 'Pag. sin Minuta',
@@ -1766,8 +1783,8 @@ function rOps(){
         cl: x.cl || '—',
         pr: x.pr,
         vnd: x.vnd || '—',
-        fecha: '—',
-        fechaSort: 0
+        fecha: dt ? fmtDate(dt) : '—',
+        fechaSort: dt ? dt.getTime() : 0
       });
     });
   }
@@ -1826,6 +1843,8 @@ function exportOps(){
     S.filter(x => {
       if(!x.e.includes('pagando')) return false;
       if(x.p.includes('CARABAYLLO')) return false;
+      if(f.desde && x.yr && x.md < f.desde) return false;
+      if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(f.p!=='all' && x.p!==f.p) return false;
       if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i,x.t)) return false;
@@ -1833,7 +1852,8 @@ function exportOps(){
       if(f.asesor!=='all' && x.vnd!==f.asesor) return false;
       return true;
     }).forEach(x => {
-      rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:'',fechaSort:0});
+      const dt = x.fd || null;
+      rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
   }
   if(f.v==='all' || f.v==='sep'){
@@ -1893,15 +1913,22 @@ function renderAvance(){
     }).reduce((t,x) => t + (x.pr||0), 0);
 
     // PAGANDO SIN MINUTA: cantidad solo departamentos, monto todas las unidades
-    const pagandoStock = S.filter(d =>
-      d.p === pe && d.e.includes('pagando') &&
-      !d.p.includes('CARABAYLLO') &&
-      d.t.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO')
-    );
-    const pagandoMto = S.filter(d =>
-      d.p === pe && d.e.includes('pagando') &&
-      !d.p.includes('CARABAYLLO') && !d.mo.includes('COMERCIO')
-    ).reduce((t,x) => t + (x.pr||0), 0);
+    // Se filtra por fecha usando d.md (Fecha Sep. Definitiva / Temporal), igual que firmadasDepa/firmMtoV.
+    // Guard con d.yr (como en gfS): si no hay fecha real (yr===0), no se excluye por rango.
+    const pagandoStock = S.filter(d => {
+      if(d.p !== pe || !d.e.includes('pagando')) return false;
+      if(d.p.includes('CARABAYLLO')) return false;
+      if(f.desde && d.yr && d.md < f.desde) return false;
+      if(f.hasta && d.yr && d.md > f.hasta) return false;
+      return d.t.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO');
+    });
+    const pagandoMto = S.filter(d => {
+      if(d.p !== pe || !d.e.includes('pagando')) return false;
+      if(d.p.includes('CARABAYLLO')) return false;
+      if(f.desde && d.yr && d.md < f.desde) return false;
+      if(f.hasta && d.yr && d.md > f.hasta) return false;
+      return !d.mo.includes('COMERCIO');
+    }).reduce((t,x) => t + (x.pr||0), 0);
     const firmCount = firmadasDepa.length + pagandoStock.length;
     const firmMto = firmMtoV + pagandoMto;
 
