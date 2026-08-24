@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ventas · Padova SAC</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cg transform='scale(0.82)'%3E%3Cpath fill='%232563eb' d='M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM0 346.1c14.9 11.8 34 21.2 54.8 28.6C99.7 390.7 159.5 400 224 400s124.3-9.3 169.2-25.3c20.8-7.4 39.9-16.9 54.8-28.6V432c0 44.2-100.3 80-224 80S0 476.2 0 432V346.1z'/%3E%3C/g%3E%3Ccircle cx='392' cy='392' r='110' fill='%23dbeafe' stroke='%232563eb' stroke-width='14'/%3E%3Ctext x='392' y='430' font-size='130' font-weight='800' fill='%232563eb' text-anchor='middle' font-family='Arial'%3E%24%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
@@ -72,6 +73,32 @@ input[type="date"].pill::-webkit-calendar-picker-indicator{opacity:.45;cursor:po
 .pg.on{display:block}
 .fil-sel{display:block}
 .fil-pills{display:none}
+
+.msel{position:relative;display:inline-block}
+.msel-btn{
+  position:relative;padding-right:26px;text-align:left;
+  min-width:90px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
+}
+.msel-btn::after{
+  content:'';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;
+  border-top:5px solid #94a3b8;pointer-events:none
+}
+.msel-panel{
+  display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:50;
+  background:#fff;border:1px solid #dbe4ff;border-radius:12px;
+  box-shadow:0 8px 24px rgba(15,23,42,.12);padding:6px;
+  min-width:200px;max-width:280px;max-height:280px;overflow-y:auto
+}
+.msel-panel.open{display:block}
+.msel-opt{
+  display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;
+  font-size:12px;color:#334155;cursor:pointer;white-space:nowrap
+}
+.msel-opt:hover{background:#f1f5fb}
+.msel-opt input{cursor:pointer;flex-shrink:0}
+.msel-opt-all{font-weight:700;color:#1e2a4a}
+.msel-sep{height:1px;background:#e2e8f0;margin:4px 2px}
 
 .wrap-wide{width:100%;max-width:1280px;margin:0 auto}
 .single-shell{width:100%;max-width:1180px;margin:0 auto}
@@ -382,7 +409,16 @@ tbody tr:hover td{background:#f8faff}
 </head>
 <body>
 <div class="nav">
-  <div class="brand"><div class="bdot"></div>Padova SAC · Ventas</div>
+  <div class="brand">
+    <svg class="blogo" viewBox="0 0 512 512" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+      <g transform="scale(0.82)">
+        <path fill="#fff" d="M448 80v48c0 44.2-100.3 80-224 80S0 172.2 0 128V80C0 35.8 100.3 0 224 0S448 35.8 448 80zM393.2 214.7c20.8-7.4 39.9-16.9 54.8-28.6V288c0 44.2-100.3 80-224 80S0 332.2 0 288V186.1c14.9 11.8 34 21.2 54.8 28.6C99.7 230.7 159.5 240 224 240s124.3-9.3 169.2-25.3zM0 346.1c14.9 11.8 34 21.2 54.8 28.6C99.7 390.7 159.5 400 224 400s124.3-9.3 169.2-25.3c20.8-7.4 39.9-16.9 54.8-28.6V432c0 44.2-100.3 80-224 80S0 476.2 0 432V346.1z"/>
+      </g>
+      <circle cx="392" cy="392" r="110" fill="#93c5fd" stroke="#fff" stroke-width="14"/>
+      <text x="392" y="430" font-size="130" font-weight="800" fill="#1e3a8a" text-anchor="middle" font-family="Arial">$</text>
+    </svg>
+    <div class="bdot"></div>Padova SAC · Ventas
+  </div>
   <button class="tab on" onclick="showTab('res',this)">Resumen</button>
   <button class="tab" onclick="showTab('ops',this)">Operaciones</button>
   <button class="tab" onclick="showTab('avance',this)">Avance</button>
@@ -410,8 +446,10 @@ tbody tr:hover td{background:#f8faff}
   <div class="dv"></div>
 
   <span class="fl fil-lbl">Proyecto</span>
-  <div id="proy-buttons" class="fil-pills"></div>
-  <select class="pill fil-sel" id="sproy-sel" onchange="sfSel('p',this.value)"></select>
+  <div class="msel" id="msel-p">
+    <button type="button" class="pill fil-sel msel-btn" id="msel-btn-p" onclick="mselToggleOpen('p')">Todos</button>
+    <div class="msel-panel" id="msel-panel-p"></div>
+  </div>
 
   <div class="dv"></div>
 
@@ -420,11 +458,13 @@ tbody tr:hover td{background:#f8faff}
     <button class="pill on" data-g="v" data-v="all" onclick="sf('v','all',this)">Todos</button>
     <button class="pill" data-g="v" data-v="ven" onclick="sf('v','ven',this)">Ventas</button>
     <button class="pill" data-g="v" data-v="sep" onclick="sf('v','sep',this)">Separaciones</button>
+    <button class="pill" data-g="v" data-v="psm" onclick="sf('v','psm',this)">Pag. sin Minuta</button>
   </div>
   <select class="pill fil-sel" id="svista" onchange="sfSel('v',this.value)">
     <option value="all">Todos</option>
     <option value="ven">Ventas</option>
     <option value="sep">Separaciones</option>
+    <option value="psm">Pag. sin Minuta</option>
   </select>
 
   <div class="dv"></div>
@@ -450,9 +490,10 @@ tbody tr:hover td{background:#f8faff}
   <div class="dv"></div>
 
   <span class="fl fil-lbl">Asesor</span>
-  <select class="pill fil-sel" id="sasesor" onchange="sfSel('asesor',this.value)">
-    <option value="all">Todos</option>
-  </select>
+  <div class="msel" id="msel-asesor">
+    <button type="button" class="pill fil-sel msel-btn" id="msel-btn-asesor" onclick="mselToggleOpen('asesor')">Todos</button>
+    <div class="msel-panel" id="msel-panel-asesor"></div>
+  </div>
 
   <div class="dv"></div>
 
@@ -490,6 +531,7 @@ tbody tr:hover td{background:#f8faff}
               <th class="sortable" data-key="cl" onclick="sortOpsBy('cl')">Cliente</th>
               <th class="sortable" data-key="pr" onclick="sortOpsBy('pr')">Precio S/</th>
               <th class="sortable" data-key="vnd" onclick="sortOpsBy('vnd')">Asesor</th>
+              <th class="sortable" data-key="tf" onclick="sortOpsBy('tf')">TipoFinanciamiento</th>
               <th class="sortable" data-key="fechaSort" onclick="sortOpsBy('fechaSort')">Fecha</th>
             </tr>
           </thead>
@@ -666,7 +708,8 @@ function matchWhitelist(pUp){
 
 let METAS_SHEET = {};
 let PF_MAP = {};
-let V = [], S = [], F = {p:'all',v:'all',ti:'all',asesor:'all'};
+// p y asesor son arrays (multi-select): [] = Todos, [v1,v2,...] = solo esos valores
+let V = [], S = [], F = {p:[],v:'all',ti:'all',asesor:[]};
 let OPS_SORT = { key:'pn', dir:'asc' };
 const $ = id => document.getElementById(id);
 
@@ -994,39 +1037,7 @@ function limpiarFechas(){
 }
 
 function init(ultimaActualizacion){
-  const wrap = document.getElementById('proy-buttons');
-  wrap.innerHTML = '';
-
-  const btnTodos = document.createElement('button');
-  btnTodos.className = 'pill on';
-  btnTodos.dataset.g = 'p';
-  btnTodos.dataset.v = 'all';
-  btnTodos.textContent = 'Todos';
-  btnTodos.onclick = function(){ sf('p','all',this); };
-  wrap.appendChild(btnTodos);
-
-  PROJ.forEach(pe => {
-    const btn = document.createElement('button');
-    btn.className = 'pill';
-    btn.dataset.g = 'p';
-    btn.dataset.v = pe;
-    btn.textContent = PROJ_MAP[pe];
-    btn.onclick = function(){ sf('p',pe,this); };
-    wrap.appendChild(btn);
-  });
-
-  // Poblar select de Proyecto para mobile
-  const sel = document.getElementById('sproy-sel');
-  if(sel){
-    sel.innerHTML = '<option value="all">Todos</option>';
-    PROJ.forEach(pe => {
-      const opt = document.createElement('option');
-      opt.value = pe;
-      opt.textContent = PROJ_MAP[pe];
-      sel.appendChild(opt);
-    });
-    sel.onchange = function(){ sfSel('p', this.value); };
-  }
+  mselSetOptions('p', PROJ.map(pe => ({value: pe, label: PROJ_MAP[pe] || pe})));
 
   const hV = RAW_V[0] || [];
   const ix = n => hV.findIndex(h => h.toString().trim() === n);
@@ -1044,6 +1055,7 @@ function init(ultimaActualizacion){
   const iFM = ix('FechaEntrega_Minuta');
   const iEO = ix('EstadoOC');
   const iVnd = ix('Vendedor');
+  const iTF = ix('TipoFinanciamiento');
   const iIP = ix('IdProforma');
   const iEt = hV.findIndex(h => h.toString().trim().toUpperCase() === 'ETAPA');
 
@@ -1084,6 +1096,7 @@ function init(ultimaActualizacion){
       cl: tc(g(iCl)),
       ca: tc(g(iCa)),
       vnd: fmtVendedor(tc(g(iVnd))),
+      tf: g(iTF).split('/')[0].trim(),
       pr,
       fv,
       fm,
@@ -1109,6 +1122,7 @@ function init(ultimaActualizacion){
   const siCa = six('ComoSeEntero');
   const siFT  = six('FechaSepTemporal');
   const siVnd = six('Vendedor');
+  const siTF = six('TipoFinanciamiento');
   const siEt = hS.findIndex(h => h.toString().trim().toUpperCase() === 'ETAPA');
 
   S = RAW_S.slice(1).map(r => {
@@ -1147,6 +1161,7 @@ function init(ultimaActualizacion){
       cl: tc(g(siCl)),
       ca: tc(g(siCa)),
       vnd: fmtVendedor(tc(g(siVnd))),
+      tf: g(siTF).split('/')[0].trim(),
       isTem,
       fd,
       ml: fd ? mesCorto(fd) : '',
@@ -1172,16 +1187,12 @@ function init(ultimaActualizacion){
 }
 
 function poblarAsesores(){
-  const sel = $('sasesor');
-  if(!sel) return;
-  const actual = sel.value || 'all';
   const nombres = new Set();
   V.forEach(d => { if(d.vnd) nombres.add(d.vnd); });
   S.forEach(d => { if(d.vnd) nombres.add(d.vnd); });
   const ordenados = Array.from(nombres).sort((a,b) => a.localeCompare(b,'es'));
-  sel.innerHTML = '<option value="all">Todos</option>' +
-    ordenados.map(n => `<option value="${n}">${n}</option>`).join('');
-  if(actual !== 'all' && nombres.has(actual)) sel.value = actual;
+  F.asesor = F.asesor.filter(v => nombres.has(v));
+  mselSetOptions('asesor', ordenados.map(n => ({value: n, label: n})));
 }
 
 function poblarFiltros(){
@@ -1218,7 +1229,7 @@ function gfV(){
     if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
     if(f.desde && d.md && d.md < f.desde) return false;
     if(f.hasta && d.md && d.md > f.hasta) return false;
-    if(f.p!=='all' && d.p!==f.p) return false;
+    if(f.p.length && !f.p.includes(d.p)) return false;
     if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false; }
     if(f.busca && !d.cl.toLowerCase().includes(f.busca) && (d.in||'').toLowerCase().trim() !== f.busca) return false;
     return true;
@@ -1231,7 +1242,7 @@ function gfS(){
     if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
     if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
     if(!d.e.includes('separac')) return false;
-    if(f.p!=='all' && d.p!==f.p) return false;
+    if(f.p.length && !f.p.includes(d.p)) return false;
     if(f.desde && d.yr && d.md < f.desde) return false;
     if(f.hasta && d.yr && d.md > f.hasta) return false;
     if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
@@ -1260,15 +1271,72 @@ function showTab(id,btn){
   btn.classList.add('on');
   renderAll();
 }
+
+// ── Filtros multi-select (Proyecto, Asesor) ──
+const MSEL_OPTIONS = { p: [], asesor: [] };
+
+function mselSetOptions(key, opts){
+  MSEL_OPTIONS[key] = opts;
+  mselRender(key);
+}
+
+function mselRender(key){
+  const btn = $('msel-btn-'+key);
+  const panel = $('msel-panel-'+key);
+  if(!btn || !panel) return;
+  const opts = MSEL_OPTIONS[key] || [];
+  const sel = F[key];
+
+  if(sel.length === 0) btn.textContent = 'Todos';
+  else if(sel.length === 1){
+    const o = opts.find(o => o.value === sel[0]);
+    btn.textContent = o ? o.label : sel[0];
+  } else {
+    btn.textContent = sel.length + ' seleccionados';
+  }
+
+  panel.innerHTML =
+    `<label class="msel-opt msel-opt-all"><input type="checkbox" ${sel.length===0?'checked':''} onchange="mselClear('${key}')"><span>Todos</span></label>` +
+    `<div class="msel-sep"></div>` +
+    opts.map((o,i) => `<label class="msel-opt"><input type="checkbox" ${sel.includes(o.value)?'checked':''} onchange="mselToggleVal('${key}',${i})"><span>${o.label}</span></label>`).join('');
+}
+
+function mselClear(key){
+  F[key] = [];
+  mselRender(key);
+  renderAll();
+}
+
+function mselToggleVal(key, i){
+  const val = MSEL_OPTIONS[key][i].value;
+  const arr = F[key];
+  const pos = arr.indexOf(val);
+  if(pos >= 0) arr.splice(pos,1); else arr.push(val);
+  mselRender(key);
+  renderAll();
+}
+
+function mselToggleOpen(key){
+  const panel = $('msel-panel-'+key);
+  const wasOpen = panel.classList.contains('open');
+  document.querySelectorAll('.msel-panel').forEach(p => p.classList.remove('open'));
+  if(!wasOpen) panel.classList.add('open');
+}
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.msel')){
+    document.querySelectorAll('.msel-panel').forEach(p => p.classList.remove('open'));
+  }
+});
 function renderAll(){
-  if(F.p==='all'){
+  if(F.p.length === 1){
+    $('vista-todos').style.display = 'none';
+    $('vista-single').style.display = 'block';
+    renderSingle(F.p[0]);
+  } else {
     $('vista-todos').style.display = 'block';
     $('vista-single').style.display = 'none';
     renderTodos();
-  } else {
-    $('vista-todos').style.display = 'none';
-    $('vista-single').style.display = 'block';
-    renderSingle(F.p);
   }
   rOps();
   renderAvance();
@@ -1347,8 +1415,9 @@ function renderTodos(){
   let html = '';
 
   // Pre-calcular totales
+  const proyList = F.p.length ? PROJ.filter(pe => F.p.includes(pe)) : PROJ;
   let totUndM=0, totMtoM=0, totUndR=0, totUndRAvance=0, totMtoR=0, totSep=0;
-  const proyData = PROJ.map(pe => {
+  const proyData = proyList.map(pe => {
     const d = getProyData(pe);
     totUndM += d.meta.und; totMtoM += d.meta.monto;
     totUndR += d.undR; totUndRAvance += d.undRAvance; totMtoR += d.mtoR; totSep += d.sepTot;
@@ -1506,7 +1575,7 @@ function renderTodos(){
     </div>`;
   });
 
-  html += renderStock();
+  html += renderStock(F.p);
   wrap.innerHTML = html;
 }
 
@@ -1628,7 +1697,9 @@ function renderSingle(pe){
 }
 
 function renderStock(filtroProy){
-  const proys = filtroProy ? [filtroProy] : PROJ;
+  const proys = Array.isArray(filtroProy)
+    ? (filtroProy.length ? filtroProy : PROJ)
+    : (filtroProy ? [filtroProy] : PROJ);
   let html = `
   <div class="section-title">Stock</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">`;
@@ -1744,7 +1815,7 @@ function rOps(){
   let rows = [];
 
   if(f.v==='all' || f.v==='ven'){
-    gfV().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
+    gfV().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fv || x.fm || null;
       rows.push({
         pn: x.pn,
@@ -1754,24 +1825,25 @@ function rOps(){
         cl: x.cl,
         pr: x.pr,
         vnd: x.vnd || '—',
+        tf: x.tf || '—',
         fecha: fmtDate(dt),
         fechaSort: dt ? dt.getTime() : 0
       });
     });
   }
 
-  if(f.v==='all' || f.v==='ven'){
+  if(f.v==='all' || f.v==='psm'){
     S.filter(x => {
       if(!x.e.includes('pagando')) return false;
       if(x.p.includes('CARABAYLLO')) return false;
       if(f.desde && x.yr && x.md < f.desde) return false;
       if(f.hasta && x.yr && x.md > f.hasta) return false;
-      if(f.p!=='all' && x.p!==f.p) return false;
+      if(f.p.length && !f.p.includes(x.p)) return false;
       if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
       if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
       if(f.busca && !(x.cl||'').toLowerCase().includes(f.busca) && (x.i||'').toLowerCase().trim() !== f.busca) return false;
-      if(f.asesor!=='all' && x.vnd!==f.asesor) return false;
+      if(f.asesor.length && !f.asesor.includes(x.vnd)) return false;
       return true;
     }).forEach(x => {
       const dt = x.fd || null;
@@ -1783,6 +1855,7 @@ function rOps(){
         cl: x.cl || '—',
         pr: x.pr,
         vnd: x.vnd || '—',
+        tf: x.tf || '—',
         fecha: dt ? fmtDate(dt) : '—',
         fechaSort: dt ? dt.getTime() : 0
       });
@@ -1790,7 +1863,7 @@ function rOps(){
   }
 
   if(f.v==='all' || f.v==='sep'){
-    gfS().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
+    gfS().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fd || null;
       rows.push({
         pn: x.pn,
@@ -1800,6 +1873,7 @@ function rOps(){
         cl: x.cl || '—',
         pr: x.pr,
         vnd: x.vnd || '—',
+        tf: x.tf || '—',
         fecha: dt ? fmtDate(dt) : 'En stock',
         fechaSort: dt ? dt.getTime() : 0
       });
@@ -1827,49 +1901,52 @@ function rOps(){
         <td>${x.cl || '—'}</td>
         <td style="font-family:monospace;font-weight:700;color:#2563eb">${x.pr ? 'S/ '+Math.round(x.pr).toLocaleString('es-PE') : '—'}</td>
         <td style="color:#64748b">${x.vnd||'—'}</td>
+        <td style="color:#64748b">${x.tf||'—'}</td>
         <td style="color:#94a3b8">${x.fecha}</td>
       </tr>`
-    ).join('') || '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
+    ).join('') || '<tr><td colspan="9" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
 }
 
 function exportOps(){
   const f = getFilters();
   let rows = [];
   if(f.v==='all' || f.v==='ven'){
-    gfV().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
+    gfV().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fv || x.fm || null;
-      rows.push({pn:x.pn,st:'Venta',ti:x.ti,in:x.in,cl:x.cl,pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
+      rows.push({pn:x.pn,st:'Venta',ti:x.ti,in:x.in,cl:x.cl,pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
+  }
+  if(f.v==='all' || f.v==='psm'){
     S.filter(x => {
       if(!x.e.includes('pagando')) return false;
       if(x.p.includes('CARABAYLLO')) return false;
       if(f.desde && x.yr && x.md < f.desde) return false;
       if(f.hasta && x.yr && x.md > f.hasta) return false;
-      if(f.p!=='all' && x.p!==f.p) return false;
+      if(f.p.length && !f.p.includes(x.p)) return false;
       if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
       if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i,x.t)) return false;
       if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
-      if(f.asesor!=='all' && x.vnd!==f.asesor) return false;
+      if(f.asesor.length && !f.asesor.includes(x.vnd)) return false;
       return true;
     }).forEach(x => {
       const dt = x.fd || null;
-      rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
+      rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
   }
   if(f.v==='all' || f.v==='sep'){
-    gfS().filter(x => f.asesor==='all' || x.vnd===f.asesor).forEach(x => {
+    gfS().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fd || null;
-      rows.push({pn:x.pn,st:x.isTem?'Separación Tem.':'Separación',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',fecha:dt?fmtDate(dt):'En stock',fechaSort:dt?dt.getTime():0});
+      rows.push({pn:x.pn,st:x.isTem?'Separación Tem.':'Separación',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'En stock',fechaSort:dt?dt.getTime():0});
     });
   }
   rows = sortRows(rows);
-  const hdrs = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','Fecha'];
+  const hdrs = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','TipoFinanciamiento','Fecha'];
   const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   const cell = (v,num) => `<Cell><Data ss:Type="${num?'Number':'String'}">${esc(v)}</Data></Cell>`;
   const hRow = '<Row>'+hdrs.map(h=>`<Cell ss:StyleID="h"><Data ss:Type="String">${esc(h)}</Data></Cell>`).join('')+'</Row>';
   const dRows = rows.map(r=>'<Row>'+
     cell(r.pn)+cell(r.st)+cell(r.ti)+cell(r.in)+cell(r.cl)+
-    cell(Math.round(r.pr||0),true)+cell(r.vnd)+cell(r.fecha)+
+    cell(Math.round(r.pr||0),true)+cell(r.vnd)+cell(r.tf)+cell(r.fecha)+
   '</Row>').join('');
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n<Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1e3a5f" ss:Pattern="Solid"/></Style></Styles>\n<Worksheet ss:Name="Operaciones"><Table>${hRow}${dRows}</Table></Worksheet>\n</Workbook>`;
   const url = URL.createObjectURL(new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'}));
