@@ -441,6 +441,10 @@ TARGET_PROJECTS = [
     'DOMINGO ORUE'
 ]
 
+# En VENTAS, Lomas de Carabayllo solo debe incluir las etapas 4 y 5
+# (las etapas 1-3 ya cerraron y no se reportan).
+VENTAS_LOMAS_ETAPAS = ['ETAPA 4', 'ETAPA 5']
+
 # Detectar entorno: nube (Linux) o local (Windows)
 IS_CLOUD = os.name != 'nt'
 
@@ -1219,7 +1223,27 @@ def process_ventas_data(df_stock=None):
         df_consolidado = convertir_precios_a_soles(
             df_consolidado, "PrecioVenta", "TipoMoneda", col_fecha=col_fecha_usar
         )
-    
+
+    # --- FILTRO DE PROYECTOS PARA VENTAS ---
+    # Solo se reportan los proyectos de TARGET_PROJECTS; Lomas de Carabayllo
+    # además se restringe a Etapa 4 y Etapa 5 (ver VENTAS_LOMAS_ETAPAS).
+    if "Proyecto" in df_consolidado.columns:
+        proy_upper = df_consolidado["Proyecto"].astype(str).str.upper().str.strip()
+        es_lomas = proy_upper == "LOMAS DE CARABAYLLO"
+        es_otro_target = proy_upper.isin(TARGET_PROJECTS) & ~es_lomas
+
+        if "Etapa" in df_consolidado.columns:
+            etapa_upper = df_consolidado["Etapa"].astype(str).str.upper().str.strip()
+            lomas_ok = es_lomas & etapa_upper.isin(VENTAS_LOMAS_ETAPAS)
+        else:
+            print("   [Warning] Columna 'Etapa' no encontrada, se excluye Lomas de Carabayllo del filtro de ventas.")
+            lomas_ok = pd.Series(False, index=df_consolidado.index)
+
+        filas_antes = len(df_consolidado)
+        df_consolidado = df_consolidado[es_otro_target | lomas_ok]
+        print(f"   -> [FILTRO VENTAS] {filas_antes:,} -> {len(df_consolidado):,} filas "
+              f"(proyectos: {', '.join(TARGET_PROJECTS)}; Lomas de Carabayllo solo {'/'.join(VENTAS_LOMAS_ETAPAS)})")
+
     return df_consolidado
 
 
