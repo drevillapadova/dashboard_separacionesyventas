@@ -97,7 +97,6 @@ input[type="date"].pill::-webkit-calendar-picker-indicator{opacity:.45;cursor:po
 .msel-opt:hover{background:#f1f5fb}
 .msel-opt input{cursor:pointer;flex-shrink:0}
 .msel-opt-all{font-weight:700;color:#1e2a4a}
-.msel-opt-sel{font-weight:700;color:#2563eb;background:#eff6ff}
 .msel-sep{height:1px;background:#e2e8f0;margin:4px 2px}
 
 .wrap-wide{width:100%;max-width:1280px;margin:0 auto}
@@ -1284,15 +1283,15 @@ function mselToggleOpen(key){
 }
 
 // ── Filtros desplegables de selección única (Vista, Tipo) ──
+// Mismo look que Proyecto/Asesor (checkbox + "Todos" arriba), pero solo
+// puede quedar marcada una opción a la vez.
 const SSEL_OPTIONS = {
   v: [
-    {value:'all', label:'Todos'},
     {value:'ven', label:'Ventas'},
     {value:'sep', label:'Separaciones'},
     {value:'psm', label:'Pag. sin Minuta'},
   ],
   ti: [
-    {value:'all', label:'Todos'},
     {value:'Departamento', label:'Departamento'},
     {value:'Azotea', label:'Azotea'},
     {value:'Estacionamiento', label:'Estacionamiento'},
@@ -1309,9 +1308,12 @@ function sselRender(key){
   const sel = F[key];
   const o = opts.find(o => o.value === sel);
   btn.textContent = o ? o.label : 'Todos';
-  panel.innerHTML = opts.map(o =>
-    `<div class="msel-opt${o.value===sel?' msel-opt-sel':''}" onclick="sselPick('${key}','${o.value}')"><span>${o.label}</span></div>`
-  ).join('');
+  panel.innerHTML =
+    `<label class="msel-opt msel-opt-all"><input type="checkbox" ${sel==='all'?'checked':''} onchange="sselPick('${key}','all')"><span>Todos</span></label>` +
+    `<div class="msel-sep"></div>` +
+    opts.map(o =>
+      `<label class="msel-opt"><input type="checkbox" ${sel===o.value?'checked':''} onchange="sselPick('${key}','${o.value}')"><span>${o.label}</span></label>`
+    ).join('');
 }
 
 function sselPick(key, val){
