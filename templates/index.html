@@ -72,7 +72,6 @@ input[type="date"].pill::-webkit-calendar-picker-indicator{opacity:.45;cursor:po
 .pg{display:none;padding:24px}
 .pg.on{display:block}
 .fil-sel{display:block}
-.fil-pills{display:none}
 
 .msel{position:relative;display:inline-block}
 .msel-btn{
@@ -98,6 +97,7 @@ input[type="date"].pill::-webkit-calendar-picker-indicator{opacity:.45;cursor:po
 .msel-opt:hover{background:#f1f5fb}
 .msel-opt input{cursor:pointer;flex-shrink:0}
 .msel-opt-all{font-weight:700;color:#1e2a4a}
+.msel-opt-sel{font-weight:700;color:#2563eb;background:#eff6ff}
 .msel-sep{height:1px;background:#e2e8f0;margin:4px 2px}
 
 .wrap-wide{width:100%;max-width:1280px;margin:0 auto}
@@ -354,8 +354,7 @@ tbody tr:hover td{background:#f8faff}
   .res-mobile-grid{grid-template-columns:1fr 1fr}
   .fil{padding:8px 12px;gap:6px}
   .block{padding:14px 12px}
-  /* Filtros: ocultar botones y separadores, mostrar selects */
-  .fil-pills{display:none !important}
+  /* Filtros: ocultar etiquetas y separadores en mobile */
   .fil-sel{display:block}
   .fil-lbl{display:none}
   .dv{display:none}
@@ -446,38 +445,18 @@ tbody tr:hover td{background:#f8faff}
   <div class="dv"></div>
 
   <span class="fl fil-lbl">Vista</span>
-  <div class="fil-pills">
-    <button class="pill on" data-g="v" data-v="all" onclick="sf('v','all',this)">Todos</button>
-    <button class="pill" data-g="v" data-v="ven" onclick="sf('v','ven',this)">Ventas</button>
-    <button class="pill" data-g="v" data-v="sep" onclick="sf('v','sep',this)">Separaciones</button>
-    <button class="pill" data-g="v" data-v="psm" onclick="sf('v','psm',this)">Pag. sin Minuta</button>
+  <div class="msel" id="msel-v">
+    <button type="button" class="pill fil-sel msel-btn" id="msel-btn-v" onclick="mselToggleOpen('v')">Todos</button>
+    <div class="msel-panel" id="msel-panel-v"></div>
   </div>
-  <select class="pill fil-sel" id="svista" onchange="sfSel('v',this.value)">
-    <option value="all">Todos</option>
-    <option value="ven">Ventas</option>
-    <option value="sep">Separaciones</option>
-    <option value="psm">Pag. sin Minuta</option>
-  </select>
 
   <div class="dv"></div>
 
   <span class="fl fil-lbl">Tipo</span>
-  <div class="fil-pills">
-    <button class="pill on" data-g="ti" data-v="all" onclick="sf('ti','all',this)">Todos</button>
-    <button class="pill" data-g="ti" data-v="Departamento" onclick="sf('ti','Departamento',this)">Dpto.</button>
-    <button class="pill" data-g="ti" data-v="Azotea" onclick="sf('ti','Azotea',this)">Azotea</button>
-    <button class="pill" data-g="ti" data-v="Estacionamiento" onclick="sf('ti','Estacionamiento',this)">Estac.</button>
-    <button class="pill" data-g="ti" data-v="Depósito" onclick="sf('ti','Depósito',this)">Depósito</button>
-    <button class="pill" data-g="ti" data-v="comercio" onclick="sf('ti','comercio',this)">Comercial</button>
+  <div class="msel" id="msel-ti">
+    <button type="button" class="pill fil-sel msel-btn" id="msel-btn-ti" onclick="mselToggleOpen('ti')">Todos</button>
+    <div class="msel-panel" id="msel-panel-ti"></div>
   </div>
-  <select class="pill fil-sel" id="stipo" onchange="sfSel('ti',this.value)">
-    <option value="all">Todos</option>
-    <option value="Departamento">Departamento</option>
-    <option value="Azotea">Azotea</option>
-    <option value="Estacionamiento">Estacionamiento</option>
-    <option value="Depósito">Depósito</option>
-    <option value="comercio">Local Comercial</option>
-  </select>
 
   <div class="dv"></div>
 
@@ -1030,6 +1009,8 @@ function limpiarFechas(){
 
 function init(ultimaActualizacion){
   mselSetOptions('p', PROJ.map(pe => ({value: pe, label: PROJ_MAP[pe] || pe})));
+  sselRender('v');
+  sselRender('ti');
 
   const hV = RAW_V[0] || [];
   const ix = n => hV.findIndex(h => h.toString().trim() === n);
@@ -1243,19 +1224,6 @@ function gfS(){
   });
 }
 
-function sf(g,v,btn){
-  F[g] = v;
-  document.querySelectorAll('[data-g="'+g+'"]').forEach(b => b.classList.remove('on'));
-  if(btn) btn.classList.add('on');
-  renderAll();
-}
-function sfSel(g,v){
-  F[g] = v;
-  document.querySelectorAll('[data-g="'+g+'"]').forEach(b => b.classList.remove('on'));
-  const match = document.querySelector('[data-g="'+g+'"][data-v="'+v+'"]');
-  if(match) match.classList.add('on');
-  renderAll();
-}
 function showTab(id,btn){
   ['res','ops','avance','analisis'].forEach(t => $('pg-'+t).classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
@@ -1313,6 +1281,44 @@ function mselToggleOpen(key){
   const wasOpen = panel.classList.contains('open');
   document.querySelectorAll('.msel-panel').forEach(p => p.classList.remove('open'));
   if(!wasOpen) panel.classList.add('open');
+}
+
+// ── Filtros desplegables de selección única (Vista, Tipo) ──
+const SSEL_OPTIONS = {
+  v: [
+    {value:'all', label:'Todos'},
+    {value:'ven', label:'Ventas'},
+    {value:'sep', label:'Separaciones'},
+    {value:'psm', label:'Pag. sin Minuta'},
+  ],
+  ti: [
+    {value:'all', label:'Todos'},
+    {value:'Departamento', label:'Departamento'},
+    {value:'Azotea', label:'Azotea'},
+    {value:'Estacionamiento', label:'Estacionamiento'},
+    {value:'Depósito', label:'Depósito'},
+    {value:'comercio', label:'Local Comercial'},
+  ],
+};
+
+function sselRender(key){
+  const btn = $('msel-btn-'+key);
+  const panel = $('msel-panel-'+key);
+  if(!btn || !panel) return;
+  const opts = SSEL_OPTIONS[key] || [];
+  const sel = F[key];
+  const o = opts.find(o => o.value === sel);
+  btn.textContent = o ? o.label : 'Todos';
+  panel.innerHTML = opts.map(o =>
+    `<div class="msel-opt${o.value===sel?' msel-opt-sel':''}" onclick="sselPick('${key}','${o.value}')"><span>${o.label}</span></div>`
+  ).join('');
+}
+
+function sselPick(key, val){
+  F[key] = val;
+  sselRender(key);
+  document.querySelectorAll('.msel-panel').forEach(p => p.classList.remove('open'));
+  renderAll();
 }
 
 document.addEventListener('click', e => {
