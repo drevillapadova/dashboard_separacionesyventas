@@ -406,6 +406,7 @@ tbody tr:hover td{background:#f8faff}
 @media(max-width:900px){.ana-charts-grid{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
 <div class="nav">
@@ -1932,17 +1933,25 @@ function exportOps(){
   }
   rows = sortRows(rows);
   const hdrs = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','TipoFinanciamiento','Fecha'];
-  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const cell = (v,num) => `<Cell><Data ss:Type="${num?'Number':'String'}">${esc(v)}</Data></Cell>`;
-  const hRow = '<Row>'+hdrs.map(h=>`<Cell ss:StyleID="h"><Data ss:Type="String">${esc(h)}</Data></Cell>`).join('')+'</Row>';
-  const dRows = rows.map(r=>'<Row>'+
-    cell(r.pn)+cell(r.st)+cell(r.ti)+cell(r.in)+cell(r.cl)+
-    cell(Math.round(r.pr||0),true)+cell(r.vnd)+cell(r.tf)+cell(r.fecha)+
-  '</Row>').join('');
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n<Styles><Style ss:ID="h"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1e3a5f" ss:Pattern="Solid"/></Style></Styles>\n<Worksheet ss:Name="Operaciones"><Table>${hRow}${dRows}</Table></Worksheet>\n</Workbook>`;
-  const url = URL.createObjectURL(new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8'}));
-  const a = document.createElement('a');
-  a.href=url; a.download='operaciones.xls'; a.click(); URL.revokeObjectURL(url);
+
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Operaciones');
+  const headerRow = ws.addRow(hdrs);
+  headerRow.eachCell(c => {
+    c.font = { bold:true, color:{argb:'FFFFFFFF'} };
+    c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF1E3A5F'} };
+  });
+  rows.forEach(r => {
+    ws.addRow([r.pn||'', r.st||'', r.ti||'', r.in||'', r.cl||'', Math.round(r.pr||0), r.vnd||'', r.tf||'', r.fecha||'']);
+  });
+  ws.columns.forEach(col => { col.width = 18; });
+
+  wb.xlsx.writeBuffer().then(buffer => {
+    const blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='operaciones.xlsx'; a.click(); URL.revokeObjectURL(url);
+  });
 }
 
 function fmtMonto(n){ return Math.round(n||0).toLocaleString('es-PE'); }
