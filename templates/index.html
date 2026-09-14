@@ -679,7 +679,7 @@ function matchWhitelist(pUp){
 let METAS_SHEET = {};
 let PF_MAP = {};
 // p y asesor son arrays (multi-select): [] = Todos, [v1,v2,...] = solo esos valores
-let V = [], S = [], F = {p:[],v:'all',ti:'all',asesor:[]};
+let V = [], S = [], F = {p:[],v:[],ti:[],asesor:[]};
 let OPS_SORT = { key:'pn', dir:'asc' };
 const $ = id => document.getElementById(id);
 
@@ -956,6 +956,19 @@ function getFilters(){
   };
 }
 
+function tiComercioOn(f){
+  return f.ti.includes('comercio');
+}
+
+function tiMatch(f, tipoStr, moStr){
+  if(!f.ti.length) return true;
+  return f.ti.some(v => v==='comercio' ? (moStr||'').includes('COMERCIO') : (tipoStr||'').toLowerCase().includes(v.toLowerCase()));
+}
+
+function vMatch(f, val){
+  return !f.v.length || f.v.includes(val);
+}
+
 function getMesFromRange(f){
   const ref = f.hasta || f.desde;
   if(!ref) return 'todos';
@@ -1008,8 +1021,8 @@ function limpiarFechas(){
 
 function init(ultimaActualizacion){
   mselSetOptions('p', PROJ.map(pe => ({value: pe, label: PROJ_MAP[pe] || pe})));
-  sselRender('v');
-  sselRender('ti');
+  mselRender('v');
+  mselRender('ti');
 
   const hV = RAW_V[0] || [];
   const ix = n => hV.findIndex(h => h.toString().trim() === n);
@@ -1197,12 +1210,12 @@ function isComercial(num, tipo){
 function gfV(){
   const f = getFilters();
   return V.filter(d => {
-    if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
-    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
+    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(f.desde && d.md && d.md < f.desde) return false;
     if(f.hasta && d.md && d.md > f.hasta) return false;
     if(f.p.length && !f.p.includes(d.p)) return false;
-    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false; }
+    if(!tiMatch(f, d.ti, d.mo)) return false;
     if(f.busca && !d.cl.toLowerCase().includes(f.busca) && (d.in||'').toLowerCase().trim() !== f.busca) return false;
     return true;
   });
@@ -1211,13 +1224,13 @@ function gfV(){
 function gfS(){
   const f = getFilters();
   return S.filter(d => {
-    if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
-    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
+    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(!d.e.includes('separac')) return false;
     if(f.p.length && !f.p.includes(d.p)) return false;
     if(f.desde && d.yr && d.md < f.desde) return false;
     if(f.hasta && d.yr && d.md > f.hasta) return false;
-    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
+    if(!tiMatch(f, d.t, d.mo)) return false;
     if(f.busca && !(d.cl || '').toLowerCase().includes(f.busca) && (d.i || '').toLowerCase().trim() !== f.busca) return false;
     return true;
   });
@@ -1232,7 +1245,22 @@ function showTab(id,btn){
 }
 
 // ── Filtros multi-select (Proyecto, Asesor) ──
-const MSEL_OPTIONS = { p: [], asesor: [] };
+const MSEL_OPTIONS = {
+  p: [],
+  asesor: [],
+  v: [
+    {value:'ven', label:'Ventas'},
+    {value:'sep', label:'Separaciones'},
+    {value:'psm', label:'Pag. sin Minuta'},
+  ],
+  ti: [
+    {value:'Departamento', label:'Departamento'},
+    {value:'Azotea', label:'Azotea'},
+    {value:'Estacionamiento', label:'Estacionamiento'},
+    {value:'Depósito', label:'Depósito'},
+    {value:'comercio', label:'Local Comercial'},
+  ],
+};
 
 function mselSetOptions(key, opts){
   MSEL_OPTIONS[key] = opts;
@@ -1282,47 +1310,6 @@ function mselToggleOpen(key){
   if(!wasOpen) panel.classList.add('open');
 }
 
-// ── Filtros desplegables de selección única (Vista, Tipo) ──
-// Mismo look que Proyecto/Asesor (checkbox + "Todos" arriba), pero solo
-// puede quedar marcada una opción a la vez.
-const SSEL_OPTIONS = {
-  v: [
-    {value:'ven', label:'Ventas'},
-    {value:'sep', label:'Separaciones'},
-    {value:'psm', label:'Pag. sin Minuta'},
-  ],
-  ti: [
-    {value:'Departamento', label:'Departamento'},
-    {value:'Azotea', label:'Azotea'},
-    {value:'Estacionamiento', label:'Estacionamiento'},
-    {value:'Depósito', label:'Depósito'},
-    {value:'comercio', label:'Local Comercial'},
-  ],
-};
-
-function sselRender(key){
-  const btn = $('msel-btn-'+key);
-  const panel = $('msel-panel-'+key);
-  if(!btn || !panel) return;
-  const opts = SSEL_OPTIONS[key] || [];
-  const sel = F[key];
-  const o = opts.find(o => o.value === sel);
-  btn.textContent = o ? o.label : 'Todos';
-  panel.innerHTML =
-    `<label class="msel-opt msel-opt-all"><input type="checkbox" ${sel==='all'?'checked':''} onchange="sselPick('${key}','all')"><span>Todos</span></label>` +
-    `<div class="msel-sep"></div>` +
-    opts.map(o =>
-      `<label class="msel-opt"><input type="checkbox" ${sel===o.value?'checked':''} onchange="sselPick('${key}','${o.value}')"><span>${o.label}</span></label>`
-    ).join('');
-}
-
-function sselPick(key, val){
-  F[key] = val;
-  sselRender(key);
-  document.querySelectorAll('.msel-panel').forEach(p => p.classList.remove('open'));
-  renderAll();
-}
-
 document.addEventListener('click', e => {
   if(!e.target.closest('.msel')){
     document.querySelectorAll('.msel-panel').forEach(p => p.classList.remove('open'));
@@ -1349,21 +1336,21 @@ function getProyData(pe){
 
   const ventas = V.filter(d => {
     if(d.p!==pe) return false;
-    if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
-    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
+    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(f.desde && d.md && d.md < f.desde) return false;
     if(f.hasta && d.md && d.md > f.hasta) return false;
-    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.ti.toLowerCase().includes(f.ti.toLowerCase())) return false; }
+    if(!tiMatch(f, d.ti, d.mo)) return false;
     return true;
   });
 
   const seps = S.filter(d => {
     if(d.p!==pe || !d.e.includes('separac')) return false;
-    if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
-    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
+    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
+    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(f.desde && d.yr && d.md < f.desde) return false;
     if(f.hasta && d.yr && d.md > f.hasta) return false;
-    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
+    if(!tiMatch(f, d.t, d.mo)) return false;
     return true;
   });
 
@@ -1372,9 +1359,9 @@ function getProyData(pe){
     if(d.p.includes('CARABAYLLO')) return false;
     if(f.desde && d.yr && d.md < f.desde) return false;
     if(f.hasta && d.yr && d.md > f.hasta) return false;
-    if(f.ti !== 'comercio' && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
-    if(f.ti !== 'comercio' && d.mo.includes('COMERCIO')) return false;
-    if(f.ti!=='all') { if(f.ti==='comercio' ? !d.mo.includes('COMERCIO') : !d.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
+    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
+    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
+    if(!tiMatch(f, d.t, d.mo)) return false;
     return true;
   });
 
@@ -1710,11 +1697,11 @@ function renderStock(filtroProy){
 
     const st = S.filter(x => {
       if(x.p!==pe) return false;
-      if(f.ti !== 'comercio' && x.p === 'LITORAL 900' && isComercial(x.i, x.t)) return false;
-      if(f.ti !== 'comercio' && x.mo.includes('COMERCIO')) return false;
+      if(!tiComercioOn(f) && x.p === 'LITORAL 900' && isComercial(x.i, x.t)) return false;
+      if(!tiComercioOn(f) && x.mo.includes('COMERCIO')) return false;
       if(f.desde && x.yr && x.md < f.desde) return false;
       if(f.hasta && x.yr && x.md > f.hasta) return false;
-      if(f.ti!=='all') { if(f.ti==='comercio' ? !x.mo.includes('COMERCIO') : !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false; }
+      if(!tiMatch(f, x.t, x.mo)) return false;
       return true;
     });
 
@@ -1814,7 +1801,7 @@ function rOps(){
   const f = getFilters();
   let rows = [];
 
-  if(f.v==='all' || f.v==='ven'){
+  if(vMatch(f,'ven')){
     gfV().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fv || x.fm || null;
       rows.push({
@@ -1832,16 +1819,16 @@ function rOps(){
     });
   }
 
-  if(f.v==='all' || f.v==='psm'){
+  if(vMatch(f,'psm')){
     S.filter(x => {
       if(!x.e.includes('pagando')) return false;
       if(x.p.includes('CARABAYLLO')) return false;
       if(f.desde && x.yr && x.md < f.desde) return false;
       if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(f.p.length && !f.p.includes(x.p)) return false;
-      if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
-      if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
-      if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
+      if(!tiMatch(f, x.t, x.mo)) return false;
+      if(!tiComercioOn(f) && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
+      if(!tiComercioOn(f) && x.mo.includes('COMERCIO')) return false;
       if(f.busca && !(x.cl||'').toLowerCase().includes(f.busca) && (x.i||'').toLowerCase().trim() !== f.busca) return false;
       if(f.asesor.length && !f.asesor.includes(x.vnd)) return false;
       return true;
@@ -1862,7 +1849,7 @@ function rOps(){
     });
   }
 
-  if(f.v==='all' || f.v==='sep'){
+  if(vMatch(f,'sep')){
     gfS().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fd || null;
       rows.push({
@@ -1910,22 +1897,22 @@ function rOps(){
 function exportOps(){
   const f = getFilters();
   let rows = [];
-  if(f.v==='all' || f.v==='ven'){
+  if(vMatch(f,'ven')){
     gfV().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fv || x.fm || null;
       rows.push({pn:x.pn,st:'Venta',ti:x.ti,in:x.in,cl:x.cl,pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
   }
-  if(f.v==='all' || f.v==='psm'){
+  if(vMatch(f,'psm')){
     S.filter(x => {
       if(!x.e.includes('pagando')) return false;
       if(x.p.includes('CARABAYLLO')) return false;
       if(f.desde && x.yr && x.md < f.desde) return false;
       if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(f.p.length && !f.p.includes(x.p)) return false;
-      if(f.ti!=='all' && f.ti!=='comercio' && !x.t.toLowerCase().includes(f.ti.toLowerCase())) return false;
-      if(f.ti!=='comercio' && x.p==='LITORAL 900' && isComercial(x.i,x.t)) return false;
-      if(f.ti!=='comercio' && x.mo.includes('COMERCIO')) return false;
+      if(!tiMatch(f, x.t, x.mo)) return false;
+      if(!tiComercioOn(f) && x.p==='LITORAL 900' && isComercial(x.i,x.t)) return false;
+      if(!tiComercioOn(f) && x.mo.includes('COMERCIO')) return false;
       if(f.asesor.length && !f.asesor.includes(x.vnd)) return false;
       return true;
     }).forEach(x => {
@@ -1933,7 +1920,7 @@ function exportOps(){
       rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
   }
-  if(f.v==='all' || f.v==='sep'){
+  if(vMatch(f,'sep')){
     gfS().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fd || null;
       rows.push({pn:x.pn,st:x.isTem?'Separación Tem.':'Separación',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'En stock',fechaSort:dt?dt.getTime():0});
