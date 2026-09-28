@@ -501,6 +501,7 @@ tbody tr:hover td{background:#f8faff}
               <th class="sortable" data-key="cl" onclick="sortOpsBy('cl')">Cliente</th>
               <th class="sortable" data-key="pr" onclick="sortOpsBy('pr')">Precio S/</th>
               <th class="sortable" data-key="vnd" onclick="sortOpsBy('vnd')">Asesor</th>
+              <th class="sortable" data-key="ca" onclick="sortOpsBy('ca')">Canal</th>
               <th class="sortable" data-key="tf" onclick="sortOpsBy('tf')">TipoFinanciamiento</th>
               <th class="sortable" data-key="fechaSort" onclick="sortOpsBy('fechaSort')">Fecha</th>
             </tr>
@@ -1034,7 +1035,7 @@ function init(ultimaActualizacion){
   const iNr = ix('NroInmueble');
   const iEd = ix('T/M');
   const iCl = ix('NombresTitular');
-  const iCa = ix('ComoSeEntero');
+  const iCa = hV.findIndex(h => h.toString().trim().toUpperCase() === 'COMOSEENTERO');
   const iPr = ix('PrecioVentaSoles') >= 0 ? ix('PrecioVentaSoles') : ix('PrecioVenta');
   const iFV = ix('FechaVenta');
   const iFM = ix('FechaEntrega_Minuta');
@@ -1104,7 +1105,7 @@ function init(ultimaActualizacion){
   const siPrL = six('PrecioLista');
   const siFD = six('FechaSepDefinitiva');
   const siCl = six('Nombres');
-  const siCa = six('ComoSeEntero');
+  const siCa = hS.findIndex(h => h.toString().trim().toUpperCase() === 'COMOSEENTERO');
   const siFT  = six('FechaSepTemporal');
   const siVnd = six('Vendedor');
   const siTF = six('TipoFinanciamiento');
@@ -1812,6 +1813,7 @@ function rOps(){
         cl: x.cl,
         pr: x.pr,
         vnd: x.vnd || '—',
+        ca: x.ca || '—',
         tf: x.tf || '—',
         fecha: fmtDate(dt),
         fechaSort: dt ? dt.getTime() : 0
@@ -1842,6 +1844,7 @@ function rOps(){
         cl: x.cl || '—',
         pr: x.pr,
         vnd: x.vnd || '—',
+        ca: x.ca || '—',
         tf: x.tf || '—',
         fecha: dt ? fmtDate(dt) : '—',
         fechaSort: dt ? dt.getTime() : 0
@@ -1860,6 +1863,7 @@ function rOps(){
         cl: x.cl || '—',
         pr: x.pr,
         vnd: x.vnd || '—',
+        ca: x.ca || '—',
         tf: x.tf || '—',
         fecha: dt ? fmtDate(dt) : 'En stock',
         fechaSort: dt ? dt.getTime() : 0
@@ -1888,10 +1892,11 @@ function rOps(){
         <td>${x.cl || '—'}</td>
         <td style="font-family:monospace;font-weight:700;color:#2563eb">${x.pr ? 'S/ '+Math.round(x.pr).toLocaleString('es-PE') : '—'}</td>
         <td style="color:#64748b">${x.vnd||'—'}</td>
+        <td style="color:#64748b">${x.ca||'—'}</td>
         <td style="color:#64748b">${x.tf||'—'}</td>
         <td style="color:#94a3b8">${x.fecha}</td>
       </tr>`
-    ).join('') || '<tr><td colspan="9" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
+    ).join('') || '<tr><td colspan="10" style="text-align:center;padding:32px;color:#94a3b8">Sin registros</td></tr>';
 }
 
 function exportOps(){
@@ -1900,7 +1905,7 @@ function exportOps(){
   if(vMatch(f,'ven')){
     gfV().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fv || x.fm || null;
-      rows.push({pn:x.pn,st:'Venta',ti:x.ti,in:x.in,cl:x.cl,pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
+      rows.push({pn:x.pn,st:'Venta',ti:x.ti,in:x.in,cl:x.cl,pr:x.pr||0,vnd:x.vnd||'',ca:x.ca||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
   }
   if(vMatch(f,'psm')){
@@ -1917,17 +1922,17 @@ function exportOps(){
       return true;
     }).forEach(x => {
       const dt = x.fd || null;
-      rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
+      rows.push({pn:x.pn,st:'Pag. sin Minuta',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',ca:x.ca||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'',fechaSort:dt?dt.getTime():0});
     });
   }
   if(vMatch(f,'sep')){
     gfS().filter(x => !f.asesor.length || f.asesor.includes(x.vnd)).forEach(x => {
       const dt = x.fd || null;
-      rows.push({pn:x.pn,st:x.isTem?'Separación Tem.':'Separación',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'En stock',fechaSort:dt?dt.getTime():0});
+      rows.push({pn:x.pn,st:x.isTem?'Separación Tem.':'Separación',ti:x.t,in:x.i||'',cl:x.cl||'',pr:x.pr||0,vnd:x.vnd||'',ca:x.ca||'',tf:x.tf||'',fecha:dt?fmtDate(dt):'En stock',fechaSort:dt?dt.getTime():0});
     });
   }
   rows = sortRows(rows);
-  const hdrs = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','TipoFinanciamiento','Fecha'];
+  const hdrs = ['Proyecto','Estado','Tipo','Inmueble','Cliente','Precio S/','Asesor','Canal','TipoFinanciamiento','Fecha'];
 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Operaciones');
@@ -1937,7 +1942,7 @@ function exportOps(){
     c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF1E3A5F'} };
   });
   rows.forEach(r => {
-    ws.addRow([r.pn||'', r.st||'', r.ti||'', r.in||'', r.cl||'', Math.round(r.pr||0), r.vnd||'', r.tf||'', r.fecha||'']);
+    ws.addRow([r.pn||'', r.st||'', r.ti||'', r.in||'', r.cl||'', Math.round(r.pr||0), r.vnd||'', r.ca||'', r.tf||'', r.fecha||'']);
   });
   ws.columns.forEach(col => { col.width = 18; });
 
