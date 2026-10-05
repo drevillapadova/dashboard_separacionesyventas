@@ -1981,8 +1981,13 @@ function renderAvance(){
     ? [(f.desde ? _fmtD(f.desde) : ''), (f.hasta ? _fmtD(f.hasta) : '')].filter(Boolean).join(' – ')
     : 'Todos';
 
-  const rows = PROJ.map(pe => {
+  // Las ventas de Carabayllo 1, 2 y 3 se suman a la fila de Carabayllo 4 (solo en Avance).
+  const _LOMAS_ANT = ['LOMAS DE CARABAYLLO - ETAPA 1','LOMAS DE CARABAYLLO - ETAPA 2','LOMAS DE CARABAYLLO - ETAPA 3'];
+  const _LOMAS_4 = 'LOMAS DE CARABAYLLO - ETAPA 4';
+
+  const rows = PROJ.filter(pe => !_LOMAS_ANT.includes(pe)).map(pe => {
     const pn = PROJ_MAP[pe] || pe;
+    const pesV = pe === _LOMAS_4 ? [pe, ..._LOMAS_ANT] : [pe];
 
     // Separaciones Vivas: conteo solo departamentos, monto incluye est/dep del mismo cliente
     const sepDepa = S.filter(d => d.p===pe && d.e.includes('separac') && d.t.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO'));
@@ -1995,13 +2000,13 @@ function renderAvance(){
 
     // Minutas Firmadas: CANTIDAD solo departamentos, MONTO todas las unidades (excluye COMERCIO)
     const firmadasDepa = V.filter(d => {
-      if(d.p !== pe) return false;
+      if(!pesV.includes(d.p)) return false;
       if(f.desde && d.md && d.md < f.desde) return false;
       if(f.hasta && d.md && d.md > f.hasta) return false;
       return d.ti.toLowerCase().includes('departamento') && !d.mo.includes('COMERCIO');
     });
     const firmMtoV = V.filter(d => {
-      if(d.p !== pe) return false;
+      if(!pesV.includes(d.p)) return false;
       if(f.desde && d.md && d.md < f.desde) return false;
       if(f.hasta && d.md && d.md > f.hasta) return false;
       return !d.mo.includes('COMERCIO');
