@@ -1162,9 +1162,12 @@ function init(ultimaActualizacion){
   // mal algunas unidades (ej. 106 aparece en USD cuando es SOLES).
   // Sobreescribimos el precio de ventas con el precio del stock si coincide unidad.
   const _sunnyPr = {};
-  S.filter(x => x.p === 'SUNNY' && x.pr > 0).forEach(x => { _sunnyPr[x.i] = x.pr; });
+  // La clave incluye el tipo: un estacionamiento y un depósito pueden compartir número (ej. 28).
+  const _sunnyKey = (t, n) => (t || '') + '|' + (n || '');
+  S.filter(x => x.p === 'SUNNY' && x.pr > 0).forEach(x => { _sunnyPr[_sunnyKey(x.t, x.i)] = x.pr; });
   V.forEach(d => {
-    if(d.p === 'SUNNY' && d.in && _sunnyPr[d.in]) d.pr = _sunnyPr[d.in];
+    const k = _sunnyKey(d.ti, d.in);
+    if(d.p === 'SUNNY' && d.in && _sunnyPr[k]) d.pr = _sunnyPr[k];
   });
 
   poblarFiltros();
