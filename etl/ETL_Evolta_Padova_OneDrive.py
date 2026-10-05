@@ -441,9 +441,8 @@ TARGET_PROJECTS = [
     'DOMINGO ORUE'
 ]
 
-# En VENTAS, Lomas de Carabayllo solo debe incluir las etapas 4 y 5
-# (las etapas 1-3 ya cerraron y no se reportan).
-VENTAS_LOMAS_ETAPAS = ['ETAPA 4', 'ETAPA 5']
+# En VENTAS, Lomas de Carabayllo incluye las etapas 1 a 5.
+VENTAS_LOMAS_ETAPAS = ['ETAPA 1', 'ETAPA 2', 'ETAPA 3', 'ETAPA 4', 'ETAPA 5']
 
 # Detectar entorno: nube (Linux) o local (Windows)
 IS_CLOUD = os.name != 'nt'

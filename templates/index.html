@@ -645,6 +645,9 @@ let RAW_V = [], RAW_S = [], RAW_PF = [], RAW_METAS = [];
 let PROJ_MAP = {
   'HELIO - SANTA BEATRIZ': 'Helio - Santa Beatriz',
   'LITORAL 900': 'Litoral 900',
+  'LOMAS DE CARABAYLLO - ETAPA 1': 'Carabayllo 1',
+  'LOMAS DE CARABAYLLO - ETAPA 2': 'Carabayllo 2',
+  'LOMAS DE CARABAYLLO - ETAPA 3': 'Carabayllo 3',
   'LOMAS DE CARABAYLLO - ETAPA 4': 'Carabayllo 4',
   'LOMAS DE CARABAYLLO - ETAPA 5': 'Carabayllo 5',
   'SUNNY': 'Sunny',
@@ -654,6 +657,9 @@ let PROJ_MAP = {
 let PROJ = [
   'HELIO - SANTA BEATRIZ',
   'LITORAL 900',
+  'LOMAS DE CARABAYLLO - ETAPA 1',
+  'LOMAS DE CARABAYLLO - ETAPA 2',
+  'LOMAS DE CARABAYLLO - ETAPA 3',
   'LOMAS DE CARABAYLLO - ETAPA 4',
   'LOMAS DE CARABAYLLO - ETAPA 5',
   'SUNNY',
@@ -663,6 +669,9 @@ let PROJ = [
 let PC = {
   'Helio - Santa Beatriz':'#3b82f6',
   'Litoral 900':'#10b981',
+  'Carabayllo 1':'#14b8a6',
+  'Carabayllo 2':'#06b6d4',
+  'Carabayllo 3':'#ec4899',
   'Carabayllo 4':'#ef4444',
   'Carabayllo 5':'#f97316',
   'Sunny':'#f59e0b',
@@ -679,6 +688,12 @@ function matchWhitelist(pUp){
   return null;
 }
 
+// Lomas de Carabayllo se divide por etapa (1-5): '4' / 'ETAPA 4' → {pn:'Carabayllo 4', key:'LOMAS DE CARABAYLLO - ETAPA 4'}
+function lomasEtapa(etapaUp){
+  const m = (etapaUp || '').toString().match(/[1-5]/);
+  return m ? { pn: 'Carabayllo ' + m[0], key: 'LOMAS DE CARABAYLLO - ETAPA ' + m[0] } : null;
+}
+
 let METAS_SHEET = {};
 let PF_MAP = {};
 // p y asesor son arrays (multi-select): [] = Todos, [v1,v2,...] = solo esos valores
@@ -690,9 +705,9 @@ const $ = id => document.getElementById(id);
 function resolverProyectos(pUp){
   if(!pUp) return [];
   if(pUp.includes('LOMAS') || pUp.includes('CARABAYLLO')){
-    if(pUp.includes('4') && !pUp.includes('5')) return ['Carabayllo 4'];
-    if(pUp.includes('5') && !pUp.includes('4')) return ['Carabayllo 5'];
-    return ['Carabayllo 4', 'Carabayllo 5'];
+    const nums = [...new Set(pUp.match(/[1-5]/g) || [])];
+    if(nums.length === 1) return ['Carabayllo ' + nums[0]];
+    return ['Carabayllo 1', 'Carabayllo 2', 'Carabayllo 3', 'Carabayllo 4', 'Carabayllo 5'];
   }
   const pn = matchWhitelist(pUp);
   return pn ? [pn] : [];
@@ -820,7 +835,7 @@ function formatInmueblePorProyecto(proyKey, inmueble, edificio){
 
   if(!inm) return '—';
 
-  if(proyKey === 'LOMAS DE CARABAYLLO - ETAPA 4' || proyKey === 'LOMAS DE CARABAYLLO - ETAPA 5'){
+  if(proyKey.startsWith('LOMAS DE CARABAYLLO - ETAPA')){
     // Formato largo (stock): "TORRE G - EDIFICIO 27" → "G27 - 502"
     const torreMatch = edi.match(/TORRE\s+([A-Z])/i);
     const edificioMatch = edi.match(/EDIFICIO\s+(\d+)/i);
@@ -1056,10 +1071,9 @@ function init(ultimaActualizacion){
 
     let proyKey;
     if(proyectoCanon === 'Lomas de Carabayllo'){
-      const etapa = g(iEt).toUpperCase();
-      if(etapa.includes('4')){ proyectoCanon = 'Carabayllo 4'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 4'; }
-      else if(etapa.includes('5')){ proyectoCanon = 'Carabayllo 5'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 5'; }
-      else return null;
+      const le = lomasEtapa(g(iEt).toUpperCase());
+      if(!le) return null;
+      proyectoCanon = le.pn; proyKey = le.key;
     } else {
       proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
       if(!proyKey) return null;
@@ -1122,10 +1136,9 @@ function init(ultimaActualizacion){
 
     let proyKey;
     if(proyectoCanon === 'Lomas de Carabayllo'){
-      const etapa = g(siEt).toUpperCase();
-      if(etapa.includes('4')){ proyectoCanon = 'Carabayllo 4'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 4'; }
-      else if(etapa.includes('5')){ proyectoCanon = 'Carabayllo 5'; proyKey = 'LOMAS DE CARABAYLLO - ETAPA 5'; }
-      else return null;
+      const le = lomasEtapa(g(siEt).toUpperCase());
+      if(!le) return null;
+      proyectoCanon = le.pn; proyKey = le.key;
     } else {
       proyKey = Object.keys(PROJ_MAP).find(k => PROJ_MAP[k] === proyectoCanon);
       if(!proyKey) return null;
