@@ -118,12 +118,17 @@ def api_ai():
             messages=[{'role': 'user', 'content': context + '\n\nPregunta: ' + question}]
         )
         raw = msg.content[0].text.strip()
-        # Intentar parsear como JSON; si falla devolver como texto
-        try:
-            parsed = json.loads(raw)
+        # El modelo a veces envuelve el JSON en ```json ... ``` o agrega texto alrededor
+        parsed = None
+        ini, fin = raw.find('{'), raw.rfind('}')
+        if ini != -1 and fin > ini:
+            try:
+                parsed = json.loads(raw[ini:fin + 1], strict=False)
+            except Exception:
+                parsed = None
+        if isinstance(parsed, dict) and parsed.get('type') in ('text', 'chart'):
             return jsonify(parsed)
-        except Exception:
-            return jsonify({'type': 'text', 'content': raw})
+        return jsonify({'type': 'text', 'content': raw})
     except Exception as e:
         return jsonify({'error': str(e)})
 
