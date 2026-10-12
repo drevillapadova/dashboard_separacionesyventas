@@ -1229,8 +1229,6 @@ function isComercial(num, tipo){
 function gfV(){
   const f = getFilters();
   return V.filter(d => {
-    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
-    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(f.desde && d.md && d.md < f.desde) return false;
     if(f.hasta && d.md && d.md > f.hasta) return false;
     if(f.p.length && !f.p.includes(d.p)) return false;
@@ -1243,8 +1241,6 @@ function gfV(){
 function gfS(){
   const f = getFilters();
   return S.filter(d => {
-    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
-    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(!d.e.includes('separac')) return false;
     if(f.p.length && !f.p.includes(d.p)) return false;
     if(f.desde && d.yr && d.md < f.desde) return false;
@@ -1355,8 +1351,6 @@ function getProyData(pe){
 
   const ventas = V.filter(d => {
     if(d.p!==pe) return false;
-    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.in, d.ti)) return false;
-    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(f.desde && d.md && d.md < f.desde) return false;
     if(f.hasta && d.md && d.md > f.hasta) return false;
     if(!tiMatch(f, d.ti, d.mo)) return false;
@@ -1365,8 +1359,6 @@ function getProyData(pe){
 
   const seps = S.filter(d => {
     if(d.p!==pe || !d.e.includes('separac')) return false;
-    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
-    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(f.desde && d.yr && d.md < f.desde) return false;
     if(f.hasta && d.yr && d.md > f.hasta) return false;
     if(!tiMatch(f, d.t, d.mo)) return false;
@@ -1378,8 +1370,6 @@ function getProyData(pe){
     if(d.p.includes('CARABAYLLO')) return false;
     if(f.desde && d.yr && d.md < f.desde) return false;
     if(f.hasta && d.yr && d.md > f.hasta) return false;
-    if(!tiComercioOn(f) && d.p === 'LITORAL 900' && isComercial(d.i, d.t)) return false;
-    if(!tiComercioOn(f) && d.mo.includes('COMERCIO')) return false;
     if(!tiMatch(f, d.t, d.mo)) return false;
     return true;
   });
@@ -1716,8 +1706,6 @@ function renderStock(filtroProy){
 
     const st = S.filter(x => {
       if(x.p!==pe) return false;
-      if(!tiComercioOn(f) && x.p === 'LITORAL 900' && isComercial(x.i, x.t)) return false;
-      if(!tiComercioOn(f) && x.mo.includes('COMERCIO')) return false;
       if(f.desde && x.yr && x.md < f.desde) return false;
       if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(!tiMatch(f, x.t, x.mo)) return false;
@@ -1847,8 +1835,6 @@ function rOps(){
       if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(f.p.length && !f.p.includes(x.p)) return false;
       if(!tiMatch(f, x.t, x.mo)) return false;
-      if(!tiComercioOn(f) && x.p==='LITORAL 900' && isComercial(x.i, x.t)) return false;
-      if(!tiComercioOn(f) && x.mo.includes('COMERCIO')) return false;
       if(f.busca && !(x.cl||'').toLowerCase().includes(f.busca) && (x.i||'').toLowerCase().trim() !== f.busca) return false;
       if(f.asesor.length && !f.asesor.includes(x.vnd)) return false;
       return true;
@@ -1934,8 +1920,6 @@ function exportOps(){
       if(f.hasta && x.yr && x.md > f.hasta) return false;
       if(f.p.length && !f.p.includes(x.p)) return false;
       if(!tiMatch(f, x.t, x.mo)) return false;
-      if(!tiComercioOn(f) && x.p==='LITORAL 900' && isComercial(x.i,x.t)) return false;
-      if(!tiComercioOn(f) && x.mo.includes('COMERCIO')) return false;
       if(f.asesor.length && !f.asesor.includes(x.vnd)) return false;
       return true;
     }).forEach(x => {
