@@ -696,13 +696,6 @@ tbody tr:hover td{background:#f8faff}
     <div id="ana-t-ia" class="ana-tab">
       <div class="ia-insights" id="ia-insights"></div>
       <div class="ia-card">
-        <div class="ia-card-hd">
-          <div><h3>✦ Diagnóstico IA</h3><p>Lectura de tendencias, riesgos y recomendaciones sobre todas tus ventas</p></div>
-          <button class="ia-go" id="ia-go-btn" onclick="anaAnalizar()">✦ Analizar ahora</button>
-        </div>
-        <div class="ia-result" id="ia-result">Haz clic en "Analizar ahora" para generar el diagnóstico con los datos actuales.</div>
-      </div>
-      <div class="ia-card">
         <div class="ia-card-hd"><div><h3>💬 Pregúntale a la IA</h3><p>Texto o gráficos: pide lo que necesites sobre tus ventas</p></div></div>
         <div class="ana-chat-wrap">
           <div class="ana-chat-msgs" id="ana-chat-msgs">
@@ -2583,19 +2576,6 @@ function renderAnaInsights(){
     kpi('Mejor mes', mejor ? cap(mejor[0]) : '—', mejor ? anaN(mejor[1])+' unidades' : 'Sin datos') +
     kpi('Proyecto con más monto', gp ? anaEsc(PROJ_MAP[gp[0]]||gp[0]) : '—', gp && monto ? Math.round(gp[1].m/monto*100)+'% del monto · '+fmtM(gp[1].m) : 'Sin datos') +
     kpi('Ticket promedio', vy.length ? 'S/ '+anaN(Math.round(monto/vy.length)) : '—', 'Monto ÷ unidades · '+yr);
-}
-
-async function anaAnalizar(){
-  const res = $('ia-result'), btn = $('ia-go-btn');
-  if(!res || V.length===0) return;
-  btn.disabled = true;
-  res.innerHTML = '<span style="color:#94a3b8">Generando diagnóstico...</span>';
-  try{
-    const r = await fetch('/api/analizar_ia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:anaSnapshot()})});
-    const j = await r.json();
-    res.innerHTML = j.analisis ? `<div class="ana-md">${anaMd(j.analisis)}</div>` : `<span style="color:#dc2626">${anaEsc(j.error||'Sin respuesta')}</span>`;
-  }catch(e){ res.innerHTML = '<span style="color:#dc2626">Error al conectar con el servidor</span>'; }
-  finally{ btn.disabled = false; }
 }
 
 // ── CHAT IA ───────────────────────────────────────

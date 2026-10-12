@@ -135,34 +135,6 @@ def api_ai():
     except Exception as e:
         return jsonify({'error': str(e)})
 
-@app.route('/api/analizar_ia', methods=['POST'])
-def api_analizar_ia():
-    try:
-        import anthropic
-        data = (request.get_json() or {}).get('data', {})
-        api_key = os.environ.get('ANTHROPIC_API_KEY', '')
-        if not api_key:
-            return jsonify({'error': 'ANTHROPIC_API_KEY no configurada. Agrégala como variable de entorno en Railway.'})
-        client = anthropic.Anthropic(api_key=api_key)
-        system = (
-            "Eres un analista comercial senior de una inmobiliaria peruana (Padova SAC). "
-            "Recibes un JSON con las ventas por año, mes, proyecto, asesor, canal y tipo de inmueble. "
-            "Los montos están en soles. El mes en curso está incompleto: no lo compares como si estuviera cerrado. "
-            "Responde en español, en markdown, con estas secciones exactas: "
-            "## Resumen, ## Lo que va bien, ## Alertas, ## Recomendaciones. "
-            "Usa listas cortas y cifras concretas del JSON (unidades, montos, %); no inventes datos que no estén. "
-            "Máximo 350 palabras."
-        )
-        msg = client.messages.create(
-            model='claude-sonnet-4-6',
-            max_tokens=1500,
-            system=system,
-            messages=[{'role': 'user', 'content': json.dumps(data, ensure_ascii=False)}]
-        )
-        return jsonify({'analisis': msg.content[0].text.strip()})
-    except Exception as e:
-        return jsonify({'error': str(e)})
-
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
