@@ -104,6 +104,9 @@ def api_ai():
             "y options básicas (responsive:true, maintainAspectRatio:false). "
             "Colores sugeridos por proyecto: Helio=#3b82f6, Litoral=#10b981, "
             "Carabayllo 4=#ef4444, Carabayllo 5=#f97316, Sunny=#f59e0b, D.Orue=#8b5cf6. "
+            "Las separaciones vigentes están en separaciones_activas (total, por_proyecto con canal/vendedor/tipo, y detalle); "
+            "las ventas por canal y vendedor de cada proyecto están en ventas_por_proyecto_canal y ventas_por_proyecto_vendedor. "
+            "Úsalos antes de decir que no tienes un dato. "
             "En \"content\" puedes usar markdown (listas, **negritas**). "
             "NO incluyas texto fuera del JSON. Responde en español."
         )

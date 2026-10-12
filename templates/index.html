@@ -2547,7 +2547,23 @@ function anaSnapshot(){
     top_asesores: topN(agg(act,d=>d.vnd),10),
     canales: topN(agg(act,d=>d.ca),8),
     tipos: agg(act,d=>d.ti),
-    separaciones_activas: S.filter(d=>d.yr>0).length,
+    // Separaciones vigentes (estado "separación") con su detalle: proyecto, canal, vendedor, tipo y fecha.
+    separaciones_activas: (()=>{
+      const sep = S.filter(d=>(d.e||'').includes('separac'));
+      const por = {};
+      sep.forEach(d=>{
+        const p = d.pn||'—';
+        if(!por[p]) por[p] = {total:0,por_canal:{},por_vendedor:{},por_tipo:{}};
+        por[p].total++;
+        const inc = (o,k)=>{ k=k||'Sin dato'; o[k]=(o[k]||0)+1; };
+        inc(por[p].por_canal,d.ca); inc(por[p].por_vendedor,d.vnd); inc(por[p].por_tipo,d.t);
+      });
+      return {total:sep.length, por_proyecto:por,
+        detalle:sep.slice(0,200).map(d=>({proyecto:d.pn,tipo:d.t,inmueble:d.i,canal:d.ca||'Sin dato',vendedor:d.vnd||'Sin dato',monto:Math.round(d.pr||0),fecha:d.fd?d.fd.toISOString().slice(0,10):'',temporal:!!d.isTem}))};
+    })(),
+    // Ventas cruzadas por proyecto: canal y vendedor (año actual) para preguntas tipo "¿de qué canal vienen las ventas de Helio?".
+    ventas_por_proyecto_canal: (()=>{ const o={}; act.forEach(d=>{ const p=d.pn, c=d.ca||'Sin dato'; if(!o[p]) o[p]={}; o[p][c]=(o[p][c]||0)+1; }); return o; })(),
+    ventas_por_proyecto_vendedor: (()=>{ const o={}; act.forEach(d=>{ if(!d.vnd) return; const p=d.pn; if(!o[p]) o[p]={}; o[p][d.vnd]=(o[p][d.vnd]||0)+1; }); return o; })(),
   };
 }
 
