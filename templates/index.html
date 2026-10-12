@@ -360,52 +360,110 @@ tbody tr:hover td{background:#f8faff}
   .fil-lbl{display:none}
   .dv{display:none}
 }
-/* ── ANÁLISIS ─────────────────────────────────────── */
-.ana-subnav{display:flex;gap:4px;margin-bottom:16px;background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 4px rgba(30,42,74,.08)}
-.ana-snb{padding:8px 20px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#64748b;background:none;transition:all .15s}
-.ana-snb.on{background:#2563eb;color:#fff}
+/* ── ANÁLISIS ─────────────────────────────────────────── */
+.ana-subnav{display:flex;gap:4px;margin-bottom:16px;background:#fff;border-radius:12px;padding:6px;box-shadow:0 1px 4px rgba(30,42,74,.08);width:fit-content;max-width:100%;overflow-x:auto}
+.ana-snb{padding:8px 20px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#64748b;background:none;transition:all .15s;white-space:nowrap}
+.ana-snb:hover{color:#2563eb}
+.ana-snb.on{background:#2563eb;color:#fff;box-shadow:none}
+.ana-snb.ia.on{background:#7c3aed;color:#fff;box-shadow:none}
 .ana-tab{display:none}.ana-tab.on{display:block}
-.ana-filters{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;padding:14px 18px}
-.ana-fgroup{display:flex;flex-direction:column;gap:5px}
-.ana-fgroup label{font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.04em}
-.ana-fgroup select{padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:#1e2a4a;cursor:pointer}
-.ana-fgroup select:focus{outline:none;border-color:#3b82f6}
-.ana-projs{display:flex;flex-wrap:wrap;gap:6px}
-.ana-pchk{display:none}
-.ana-plbl{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--pc,#d1d5db);color:var(--pc,#64748b);background:#fff;transition:all .15s;white-space:nowrap}
-.ana-pchk:checked + .ana-plbl{background:var(--pc,#64748b);border-color:var(--pc,#64748b);color:#fff!important}
-.ana-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-.ana-chart-card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(30,42,74,.08);padding:20px}
-.ana-chart-title{font-size:13px;font-weight:700;color:#1e2a4a;margin-bottom:4px}
-.ana-chart-sub{font-size:11px;color:#94a3b8;margin-bottom:14px}
-.ana-chart-wrap{position:relative;height:260px}
-.piv-ctrl{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;padding:14px 18px;margin-bottom:12px}
-.pivot-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.pivot-tbl th{background:#f1f5f9;font-weight:600;padding:7px 12px;border:1px solid #e2e8f0;color:#475569;text-align:center}
-.pivot-tbl td{padding:6px 12px;border:1px solid #e2e8f0;text-align:right;color:#1e2a4a}
-.pivot-tbl td:first-child{text-align:left;font-weight:600;background:#fafbfc}
-.pivot-tbl tr.ptot td{background:#f1f5f9;font-weight:700}
-.pivot-tbl tr:hover td{background:#f0f9ff}
-.ana-chat-wrap{display:flex;flex-direction:column;height:480px;background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(30,42,74,.08);overflow:hidden}
-.ana-chat-msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px}
-.ana-msg.user .ana-bubble{align-self:flex-end;background:#2563eb;color:#fff;border-radius:16px 16px 4px 16px}
-.ana-msg.ai .ana-bubble{align-self:flex-start;background:#f1f5f9;color:#1e2a4a;border-radius:16px 16px 16px 4px;white-space:pre-wrap}
-.ana-bubble{padding:10px 16px;max-width:82%;font-size:13px;line-height:1.55;display:inline-block}
-.ana-chart-bubble{align-self:flex-start;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;width:min(520px,90vw)}
+.ana-filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 18px;margin-bottom:14px}
+.ana-fgroup{display:flex;align-items:center;gap:8px}
+.ana-filters .pill,.piv-ctrl .pill,.ana-filters .msel-opt,.piv-ctrl .msel-opt{font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:12px;font-weight:500;line-height:1.3;letter-spacing:0;height:32px;box-sizing:border-box}
+.ana-filters .pill,.piv-ctrl .pill{color:#475569;min-width:110px}
+.ana-filters .msel-opt,.piv-ctrl .msel-opt{height:auto;color:#334155}
+.ana-filters select.pill option,.piv-ctrl select.pill option{font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:12px;font-weight:500;color:#334155}
+.ana-fgroup label{font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+
+
+
+
+
+
+
+
+.ana-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.ana-kpi{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px 12px;box-shadow:0 1px 3px rgba(10,22,40,.04);display:flex;flex-direction:column;gap:3px;min-width:0}
+.ana-kpi .lbl{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
+.ana-kpi .val{font-size:24px;font-weight:700;color:#1e2a4a;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ana-kpi .val small{font-size:12px;font-weight:500;color:#6b7280;margin-left:3px}
+.ana-kpi .sub{font-size:11px;color:#6b7280;display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-height:16px}
+.ana-delta{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:99px}
+.ana-delta.up{background:#ecfdf5;color:#059669}.ana-delta.down{background:#fef2f2;color:#dc2626}.ana-delta.neu{background:#f1f5f9;color:#64748b}
+.ana-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.ana-charts-grid.g3{grid-template-columns:1fr 1.15fr 1fr}
+.ana-chart-card{background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(15,23,42,.06);overflow:hidden;min-width:0}
+.ana-chart-hd{padding:14px 18px 10px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.ana-chart-title{font-size:13px;font-weight:700;color:#1e2a4a}
+.ana-chart-sub{font-size:11px;color:#94a3b8;margin-top:2px}
+.ana-legend{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#334155;min-width:130px}
+.ana-legend span.k{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.ana-legend b{font-family:ui-monospace,Menlo,Consolas,monospace;color:#0a1628}
+.ana-chart-wrap{position:relative;height:270px;padding:10px 14px 14px}
+.ana-donut-leg{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;padding:0 18px 16px}
+.ana-donut-leg div{display:flex;align-items:center;gap:6px;font-size:11px;color:#334155}
+.ana-donut-leg i{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.ana-donut-leg span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ana-donut-leg b{font-family:ui-monospace,Menlo,Consolas,monospace;color:#0a1628}
+.ana-donut-leg em{font-style:normal;font-family:ui-monospace,Menlo,Consolas,monospace;color:#94a3b8;min-width:30px;text-align:right}
+.ana-empty{padding:40px 20px;text-align:center;color:#94a3b8;font-size:13px}
+.piv-ctrl{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;padding:14px 18px;margin-bottom:16px}
+.piv-card{background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(15,23,42,.06);overflow:hidden}
+.piv-hd{padding:14px 18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.piv-btn{background:#fff;border:1px solid #e5e7eb;color:#334155;font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:inherit}
+.piv-btn:hover{border-color:#3b82f6;color:#2563eb}
+.piv-wrap{overflow:auto;max-height:70vh}
+.pivot-tbl{width:100%;min-width:0;border-collapse:collapse;font-size:12px}
+.pivot-tbl th{position:sticky;top:0;z-index:2;background:#f8faff;font-size:10px;font-weight:800;text-transform:uppercase;padding:10px 12px;border-bottom:1px solid #e2e8f0;color:#64748b;text-align:center;white-space:nowrap}
+.pivot-tbl th:first-child{text-align:left;left:0;z-index:3}
+.pivot-tbl td{padding:8px 12px;border-bottom:1px solid #f1f5f9;text-align:center;color:#0a1628;font-variant-numeric:tabular-nums}
+.pivot-tbl td:first-child{text-align:left;font-weight:600;background:#fff;position:sticky;left:0;border-right:1px solid #e5e7eb;white-space:nowrap}
+.pivot-tbl td.tot{font-weight:700;background:#f8fafc}
+.pivot-tbl td.empty{color:#cbd5e1}
+.pivot-tbl tr.ptot td{background:#eff6ff;font-weight:700;color:#1d4ed8;border-top:2px solid #bfdbfe}
+.pivot-tbl tr:hover td:not(.hm){background:#f8fafc}
+.ia-insights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.ia-card{background:#fff;border-radius:16px;box-shadow:0 6px 18px rgba(15,23,42,.06);margin-bottom:16px;overflow:hidden}
+.ia-card-hd{padding:14px 18px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ia-card-hd h3{font-size:13px;font-weight:700;color:#1e2a4a}
+.ia-card-hd p{font-size:11px;color:#94a3b8;margin-top:2px}
+.ia-go{font-family:inherit;font-size:12.5px;font-weight:700;padding:8px 16px;border-radius:20px;border:1.5px solid #a78bfa;background:#f5f3ff;color:#7c3aed;cursor:pointer}
+.ia-go:hover{background:#ede9fe}.ia-go:disabled{opacity:.55;cursor:wait}
+.ia-result{padding:16px 20px;color:#6b7280;font-size:13px;min-height:70px}
+.ana-md{font-size:13px;line-height:1.7;color:#1e2a4a}
+.ana-md h1,.ana-md h2,.ana-md h3{margin:18px 0 8px;font-weight:700;color:#0a1628;line-height:1.35}
+.ana-md h1:first-child,.ana-md h2:first-child,.ana-md h3:first-child{margin-top:0}
+.ana-md h1{font-size:16px}.ana-md h2{font-size:14.5px;padding-bottom:6px;border-bottom:1px solid #eef0f3}.ana-md h3{font-size:13.5px}
+.ana-md p{margin:0 0 10px}.ana-md ul,.ana-md ol{margin:0 0 12px;padding-left:20px}.ana-md li{margin-bottom:5px}
+.ana-md strong{font-weight:700;color:#0a1628}
+.ana-md code{background:#f1f5f9;padding:1px 5px;border-radius:4px;font-size:12px}
+.ana-md table{border-collapse:collapse;margin:0 0 12px;font-size:12px}.ana-md th,.ana-md td{border:1px solid #e5e7eb;padding:5px 10px}.ana-md th{background:#fafafa}
+.ana-chat-wrap{display:flex;flex-direction:column;height:520px}
+.ana-chat-msgs{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px}
+.ana-msg{display:flex;gap:9px;align-items:flex-start}
+.ana-msg.user{flex-direction:row-reverse}
+.ana-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px;background:#f5f3ff}
+.ana-msg.user .ana-av{background:#e0e7ff}
+.ana-bubble{padding:10px 14px;max-width:82%;font-size:13px;line-height:1.6;border-radius:12px;background:#f5f3ff;color:#4c1d95}
+.ana-msg.user .ana-bubble{background:#2563eb;color:#fff;border-radius:12px 4px 12px 12px;white-space:pre-wrap}
+.ana-bubble.ana-md{color:#1e2a4a;background:#f8fafc;border:1px solid #eef0f3}
+.ana-chart-bubble{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px;width:min(540px,90vw)}
 .ana-chart-bubble .ana-chart-lbl{font-size:12px;font-weight:700;color:#1e2a4a;margin-bottom:10px}
-.ana-chart-bubble canvas{height:220px!important}
-.ana-sugs{display:flex;flex-wrap:wrap;gap:6px;padding:6px 18px 0}
-.ana-sug{padding:5px 13px;border:1px solid #d1d5db;border-radius:20px;font-size:11.5px;color:#475569;cursor:pointer;background:none;font-family:inherit;transition:all .15s}
-.ana-sug:hover{border-color:#3b82f6;color:#3b82f6}
-.ana-chat-bar{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #e2e8f0}
-.ana-chat-bar input{flex:1;padding:9px 14px;border:1px solid #d1d5db;border-radius:24px;font-size:13px;font-family:inherit;outline:none}
-.ana-chat-bar input:focus{border-color:#3b82f6}
-.ana-chat-bar button{padding:9px 20px;background:#2563eb;color:#fff;border:none;border-radius:24px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
-.ana-chat-bar button:hover{background:#1d4ed8}
-.ana-chat-bar button:disabled{background:#94a3b8;cursor:not-allowed}
-@media(max-width:900px){.ana-charts-grid{grid-template-columns:1fr}}
+.ana-chart-bubble .cw{position:relative;height:230px}
+.ana-sugs{display:flex;flex-wrap:wrap;gap:7px;padding:10px 16px 0;border-top:1px solid #f3f4f6}
+.ana-sug{padding:6px 13px;border:1px solid #e5e7eb;border-radius:20px;font-size:11.5px;color:#475569;cursor:pointer;background:#f8fafc;font-family:inherit;transition:all .15s}
+.ana-sug:hover{border-color:#a78bfa;color:#7c3aed;background:#f5f3ff}
+.ana-chat-bar{display:flex;gap:8px;padding:10px 16px 14px}
+.ana-chat-bar input{flex:1;padding:9px 14px;border:1px solid #e5e7eb;border-radius:24px;font-size:13px;font-family:inherit;outline:none;background:#f8fafc}
+.ana-chat-bar input:focus{border-color:#a78bfa;background:#fff}
+.ana-chat-bar button{padding:9px 20px;background:#7c3aed;color:#fff;border:none;border-radius:24px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.ana-chat-bar button:hover{background:#6d28d9}.ana-chat-bar button:disabled{background:#94a3b8;cursor:not-allowed}
+@media(max-width:1100px){.ana-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ana-charts-grid.g3{grid-template-columns:1fr 1fr}.ia-insights{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.ana-charts-grid,.ana-charts-grid.g3{grid-template-columns:1fr}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 </head>
 <body>
@@ -525,112 +583,143 @@ tbody tr:hover td{background:#f8faff}
 
 <div id="pg-analisis" class="pg">
   <div class="wrap-wide">
-    <!-- Sub-nav -->
     <div class="ana-subnav">
-      <button class="ana-snb on" onclick="anaShowTab('graficos',this)">📊 Gráficos</button>
-      <button class="ana-snb" onclick="anaShowTab('pivot',this)">📋 Tabla Dinámica</button>
-      <button class="ana-snb" onclick="anaShowTab('ia',this)">✨ Asistente IA</button>
+      <button class="ana-snb on" onclick="anaShowTab('graficos',this)">Gráficos</button>
+      <button class="ana-snb" onclick="anaShowTab('pivot',this)">Tabla dinámica</button>
+      <button class="ana-snb ia" onclick="anaShowTab('ia',this)">✦ Análisis IA</button>
     </div>
 
     <!-- Tab: Gráficos -->
     <div id="ana-t-graficos" class="ana-tab on">
       <div class="card ana-filters">
-        <div class="ana-fgroup"><label>Año A</label>
-          <select id="ana-yr-a" onchange="renderAnaGraficos()"></select></div>
+        <div class="ana-fgroup"><label>Año</label>
+          <select class="pill" id="ana-yr-a" onchange="renderAnaGraficos()"></select></div>
         <div class="ana-fgroup"><label>Comparar con</label>
-          <select id="ana-yr-b" onchange="renderAnaGraficos()"><option value="">— ninguno —</option></select></div>
+          <select class="pill" id="ana-yr-b" onchange="renderAnaGraficos()"><option value="">— ninguno —</option></select></div>
+        <div class="dv"></div>
         <div class="ana-fgroup"><label>Mes inicio</label>
-          <select id="ana-mes-ini" onchange="renderAnaGraficos()">
+          <select class="pill" id="ana-mes-ini" onchange="renderAnaGraficos()">
             <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
             <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
             <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
             <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
           </select></div>
         <div class="ana-fgroup"><label>Mes fin</label>
-          <select id="ana-mes-fin" onchange="renderAnaGraficos()">
+          <select class="pill" id="ana-mes-fin" onchange="renderAnaGraficos()">
             <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
             <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
             <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
             <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11" selected>Diciembre</option>
           </select></div>
-        <div class="ana-fgroup"><label>Proyectos</label>
-          <div class="ana-projs" id="ana-proj-list"></div></div>
+        <div class="dv"></div>
+        <div class="ana-fgroup"><label>Proyecto</label>
+          <div class="msel" id="msel-anap">
+            <button type="button" class="pill fil-sel msel-btn" id="msel-btn-anap" onclick="mselToggleOpen('anap')">Todos</button>
+            <div class="msel-panel" id="msel-panel-anap"></div>
+          </div></div>
+        <div class="ana-fgroup"><label>Tipo</label>
+          <select class="pill" id="ana-tipo" onchange="renderAnaGraficos()">
+            <option value="">Todos</option><option value="departamento">Departamento</option>
+            <option value="estacionamiento">Estacionamiento</option><option value="deposito">Depósito</option>
+            <option value="azotea">Azotea</option><option value="comercio">Local comercial</option>
+          </select></div>
       </div>
+
+      <div class="ana-kpis" id="ana-kpis"></div>
+
       <div class="ana-charts-grid">
         <div class="ana-chart-card">
-          <div class="ana-chart-title">Unidades vendidas por mes</div>
-          <div class="ana-chart-sub" id="ana-sub-u"></div>
+          <div class="ana-chart-hd"><div><div class="ana-chart-title">Unidades vendidas por mes</div><div class="ana-chart-sub" id="ana-sub-u"></div></div><div class="ana-legend" id="ana-leg-u"></div></div>
           <div class="ana-chart-wrap"><canvas id="chart-unidades"></canvas></div>
         </div>
         <div class="ana-chart-card">
-          <div class="ana-chart-title">Monto vendido por mes (S/)</div>
-          <div class="ana-chart-sub" id="ana-sub-m"></div>
+          <div class="ana-chart-hd"><div><div class="ana-chart-title">Monto vendido por mes</div><div class="ana-chart-sub" id="ana-sub-m"></div></div><div class="ana-legend" id="ana-leg-m"></div></div>
           <div class="ana-chart-wrap"><canvas id="chart-monto"></canvas></div>
         </div>
       </div>
-      <div class="ana-charts-grid">
+      <div class="ana-charts-grid g3">
         <div class="ana-chart-card">
-          <div class="ana-chart-title">Ventas por proyecto</div>
-          <div class="ana-chart-sub" id="ana-sub-p"></div>
-          <div class="ana-chart-wrap" style="height:220px"><canvas id="chart-proyectos"></canvas></div>
+          <div class="ana-chart-hd"><div><div class="ana-chart-title">Composición del portafolio</div><div class="ana-chart-sub" id="ana-sub-d"></div></div></div>
+          <div class="ana-chart-wrap" style="height:210px"><canvas id="chart-donut"></canvas></div>
+          <div class="ana-donut-leg" id="ana-donut-leg"></div>
         </div>
         <div class="ana-chart-card">
-          <div class="ana-chart-title">Top asesores</div>
-          <div class="ana-chart-sub" id="ana-sub-a"></div>
-          <div class="ana-chart-wrap" style="height:220px"><canvas id="chart-asesores"></canvas></div>
+          <div class="ana-chart-hd"><div><div class="ana-chart-title">Ventas por proyecto</div><div class="ana-chart-sub" id="ana-sub-p"></div></div></div>
+          <div class="ana-chart-wrap"><canvas id="chart-proyectos"></canvas></div>
+        </div>
+        <div class="ana-chart-card">
+          <div class="ana-chart-hd"><div><div class="ana-chart-title">Top asesores</div><div class="ana-chart-sub" id="ana-sub-a"></div></div></div>
+          <div class="ana-chart-wrap"><canvas id="chart-asesores"></canvas></div>
         </div>
       </div>
     </div>
 
-    <!-- Tab: Tabla Dinámica -->
+    <!-- Tab: Tabla dinámica -->
     <div id="ana-t-pivot" class="ana-tab">
       <div class="card piv-ctrl">
         <div class="ana-fgroup"><label>Filas</label>
-          <select id="piv-row" onchange="renderPivot()">
+          <select class="pill" id="piv-row" onchange="renderPivot()">
             <option value="pn">Proyecto</option><option value="vnd">Asesor</option>
-            <option value="ti">Tipo Inmueble</option><option value="ca">Canal</option>
+            <option value="ti">Tipo inmueble</option><option value="ca">Canal</option>
             <option value="yr">Año</option>
           </select></div>
         <div class="ana-fgroup"><label>Columnas</label>
-          <select id="piv-col" onchange="renderPivot()">
+          <select class="pill" id="piv-col" onchange="renderPivot()">
             <option value="ml">Mes</option><option value="yr">Año</option>
             <option value="pn">Proyecto</option><option value="ti">Tipo</option>
             <option value="vnd">Asesor</option>
           </select></div>
         <div class="ana-fgroup"><label>Valor</label>
-          <select id="piv-val" onchange="renderPivot()">
+          <select class="pill" id="piv-val" onchange="renderPivot()">
             <option value="u">Unidades</option><option value="m">Monto S/</option>
           </select></div>
         <div class="ana-fgroup"><label>Año</label>
-          <select id="piv-yr" onchange="renderPivot()"><option value="">Todos</option></select></div>
+          <select class="pill" id="piv-yr" onchange="renderPivot()"><option value="">Todos</option></select></div>
         <div class="ana-fgroup"><label>Proyecto</label>
-          <select id="piv-proy" onchange="renderPivot()"><option value="">Todos</option></select></div>
+          <select class="pill" id="piv-proy" onchange="renderPivot()"><option value="">Todos</option></select></div>
         <div class="ana-fgroup"><label>Tipo</label>
-          <select id="piv-tipo" onchange="renderPivot()">
+          <select class="pill" id="piv-tipo" onchange="renderPivot()">
             <option value="">Todos</option><option value="Departamento">Dpto</option>
             <option value="Estacionamiento">Estac.</option><option value="Deposito">Depósito</option>
           </select></div>
       </div>
-      <div class="card" style="overflow-x:auto;padding:16px">
-        <div id="pivot-output"></div>
+      <div class="piv-card">
+        <div class="piv-hd">
+          <div><div class="ana-chart-title">Tabla dinámica</div><div class="ana-chart-sub" id="piv-sub"></div></div>
+          <button class="piv-btn" onclick="anaPivotCSV()">⬇ Descargar CSV</button>
+        </div>
+        <div class="piv-wrap"><div id="pivot-output"></div></div>
       </div>
     </div>
 
-    <!-- Tab: Asistente IA -->
+    <!-- Tab: Análisis IA -->
     <div id="ana-t-ia" class="ana-tab">
-      <div class="ana-chat-wrap">
-        <div class="ana-chat-msgs" id="ana-chat-msgs">
-          <div class="ana-msg ai"><div class="ana-bubble">¡Hola! Soy tu asistente de análisis de ventas de Padova SAC. Puedo responder preguntas sobre tus proyectos, ventas y tendencias. ¿Qué quieres saber?</div></div>
+      <div class="ia-insights" id="ia-insights"></div>
+      <div class="ia-card">
+        <div class="ia-card-hd">
+          <div><h3>✦ Diagnóstico IA</h3><p>Lectura de tendencias, riesgos y recomendaciones sobre todas tus ventas</p></div>
+          <button class="ia-go" id="ia-go-btn" onclick="anaAnalizar()">✦ Analizar ahora</button>
         </div>
-        <div class="ana-sugs" id="ana-sugs">
-          <button class="ana-sug" onclick="anaSend('Hazme un gráfico de barras con ventas por proyecto este año')">📊 Gráfico por proyecto</button>
-          <button class="ana-sug" onclick="anaSend('Hazme un gráfico de línea con la evolución mensual de ventas')">📈 Evolución mensual</button>
-          <button class="ana-sug" onclick="anaSend('Hazme un gráfico de torta con la distribución de ventas por proyecto')">🥧 Torta por proyecto</button>
-          <button class="ana-sug" onclick="anaSend('¿Quién es el asesor con más ventas?')">Top asesor</button>
-        </div>
-        <div class="ana-chat-bar">
-          <input type="text" id="ana-chat-in" placeholder="Pregúntame sobre las ventas..." onkeydown="if(event.key==='Enter')anaSend()">
-          <button id="ana-send-btn" onclick="anaSend()">Enviar</button>
+        <div class="ia-result" id="ia-result">Haz clic en "Analizar ahora" para generar el diagnóstico con los datos actuales.</div>
+      </div>
+      <div class="ia-card">
+        <div class="ia-card-hd"><div><h3>💬 Pregúntale a la IA</h3><p>Texto o gráficos: pide lo que necesites sobre tus ventas</p></div></div>
+        <div class="ana-chat-wrap">
+          <div class="ana-chat-msgs" id="ana-chat-msgs">
+            <div class="ana-msg ai"><div class="ana-av">✦</div><div class="ana-bubble">¡Hola! Soy tu asistente de análisis de ventas de Padova SAC. Puedo responder preguntas y armarte gráficos. ¿Qué quieres saber?</div></div>
+          </div>
+          <div class="ana-sugs" id="ana-sugs">
+            <button class="ana-sug" onclick="anaSend('Hazme un gráfico de barras con ventas por proyecto este año')">📊 Ventas por proyecto</button>
+            <button class="ana-sug" onclick="anaSend('Hazme un gráfico de línea con la evolución mensual de ventas')">📈 Evolución mensual</button>
+            <button class="ana-sug" onclick="anaSend('Hazme un gráfico de dona con el monto vendido por proyecto')">🍩 Monto por proyecto</button>
+            <button class="ana-sug" onclick="anaSend('¿Qué proyecto está rindiendo mejor y cuál peor? ¿Por qué?')">¿Mejor y peor proyecto?</button>
+            <button class="ana-sug" onclick="anaSend('Compara este año con el anterior mes a mes')">Comparar con año anterior</button>
+            <button class="ana-sug" onclick="anaSend('¿Qué canal me trae más ventas?')">Canales</button>
+          </div>
+          <div class="ana-chat-bar">
+            <input type="text" id="ana-chat-in" placeholder="Pregúntame sobre las ventas..." onkeydown="if(event.key==='Enter')anaSend()">
+            <button id="ana-send-btn" onclick="anaSend()">Enviar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2139,6 +2228,32 @@ const MESES_ANA = ['enero','febrero','marzo','abril','mayo','junio',
                    'julio','agosto','septiembre','octubre','noviembre','diciembre'];
 let _anaCharts = {};
 let _anaCtrlsBuilt = false;
+const ANA_FF = "'Plus Jakarta Sans',sans-serif";
+const ANA_AZUL = '#3b82f6', ANA_NARJ = '#f97316';
+// El plugin de etiquetas se registra solo al cargarlo: se apaga por defecto y se prende en los gráficos que lo usan.
+if(window.Chart && Chart.defaults && Chart.defaults.plugins) Chart.defaults.plugins.datalabels = {display:false};
+
+const anaN = n => Number(n||0).toLocaleString('es-PE');
+function fmtM(v){ return 'S/'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k'); }
+const anaEsc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function anaMd(texto){
+  if(!texto) return '';
+  try{ return marked.parse(String(texto), {breaks:true}); }
+  catch(e){ return '<p>'+anaEsc(texto).replace(/\n/g,'<br>')+'</p>'; }
+}
+function anaLinReg(ys){
+  const n = ys.length; if(n<2) return ys.slice();
+  let sx=0,sy=0,sxy=0,sxx=0;
+  ys.forEach((y,i)=>{ sx+=i; sy+=y; sxy+=i*y; sxx+=i*i; });
+  const m=(n*sxy-sx*sy)/(n*sxx-sx*sx||1), b=(sy-m*sx)/n;
+  return ys.map((_,i)=>+(b+m*i).toFixed(2));
+}
+function anaDelta(a, b){
+  if(b==null || !b) return '';
+  const p = Math.round((a-b)/b*100);
+  const cls = p>0?'up':p<0?'down':'neu';
+  return `<span class="ana-delta ${cls}">${p>0?'▲ +':p<0?'▼ ':''}${p}%</span>`;
+}
 
 function anaShowTab(id, btn){
   document.querySelectorAll('.ana-snb').forEach(b=>b.classList.remove('on'));
@@ -2163,17 +2278,27 @@ function anaBuildControls(){
   if(!_anaCtrlsBuilt){
     const now = new Date();
     if($('ana-mes-fin')) $('ana-mes-fin').value = String(now.getMonth());
-    const list = $('ana-proj-list');
-    list.innerHTML = '';
-    Object.entries(PROJ_MAP).forEach(([key, name]) => {
-      const col = PC[name] || '#64748b';
-      list.innerHTML += `<input type="checkbox" class="ana-pchk" id="apc-${key}" value="${key}" checked onchange="renderAnaGraficos()">
-        <label for="apc-${key}" class="ana-plbl" style="--pc:${col}">${name}</label>`;
-    });
+    anaPRender();
     const pp = $('piv-proy');
     if(pp) pp.innerHTML = '<option value="">Todos</option>' + Object.entries(PROJ_MAP).map(([k,n])=>`<option value="${k}">${n}</option>`).join('');
     _anaCtrlsBuilt = true;
   }
+}
+// Filtro de proyecto (lista con casillas, igual que en las demás pestañas). [] = todos.
+let ANA_P = [];
+function anaPRender(){
+  const btn = $('msel-btn-anap'), panel = $('msel-panel-anap'); if(!btn||!panel) return;
+  const keys = Object.keys(PROJ_MAP);
+  btn.textContent = ANA_P.length===0 ? 'Todos' : ANA_P.length===1 ? (PROJ_MAP[ANA_P[0]]||ANA_P[0]) : ANA_P.length+' seleccionados';
+  panel.innerHTML =
+    `<label class="msel-opt msel-opt-all"><input type="checkbox" ${ANA_P.length===0?'checked':''} onchange="anaPClear()"><span>Todos</span></label><div class="msel-sep"></div>` +
+    keys.map((k,i)=>`<label class="msel-opt"><input type="checkbox" ${ANA_P.includes(k)?'checked':''} onchange="anaPToggle(${i})"><span>${PROJ_MAP[k]}</span></label>`).join('');
+}
+function anaPClear(){ ANA_P = []; anaPRender(); renderAnaGraficos(); }
+function anaPToggle(i){
+  const k = Object.keys(PROJ_MAP)[i], pos = ANA_P.indexOf(k);
+  if(pos>=0) ANA_P.splice(pos,1); else ANA_P.push(k);
+  anaPRender(); renderAnaGraficos();
 }
 
 function anaGetGrFilters(){
@@ -2182,17 +2307,20 @@ function anaGetGrFilters(){
   const yrB = yrBv ? parseInt(yrBv) : null;
   const mesIni = parseInt($('ana-mes-ini').value)||0;
   const mesFin = parseInt($('ana-mes-fin').value)||11;
-  const projs = [...document.querySelectorAll('.ana-pchk:checked')].map(c=>c.value);
+  const projs = ANA_P.slice();
   return {yrA, yrB, mesIni, mesFin, projs};
 }
 
 function anaFilter(yr, mesIni, mesFin, projs){
+  const tipo = ($('ana-tipo')||{}).value || '';
   return V.filter(d => {
     if(d.yr!==yr || d.pr<=0) return false;
     const mi = d.md ? d.md.getMonth() : -1;
     if(mi<0) return false;
     const lo=Math.min(mesIni,mesFin), hi=Math.max(mesIni,mesFin);
     if(mi<lo || mi>hi) return false;
+    if(tipo==='comercio'){ if(!(d.mo||'').includes('COMERCIO')) return false; }
+    else if(tipo && !(d.ti||'').toLowerCase().includes(tipo)) return false;
     return projs.length===0 || projs.includes(d.p);
   });
 }
@@ -2204,30 +2332,28 @@ function anaGroupByMes(arr, mesIni, mesFin){
   arr.forEach(d=>{ if(d.ml&&r[d.ml]){ r[d.ml].u++; r[d.ml].m+=d.pr; }});
   return {meses, data: meses.map(m=>r[m])};
 }
+function anaGroupByProj(arr){ const r={}; arr.forEach(d=>{ if(!r[d.p]) r[d.p]={u:0,m:0}; r[d.p].u++; r[d.p].m+=d.pr; }); return r; }
+function anaGroupByVnd(arr){ const r={}; arr.forEach(d=>{ if(!d.vnd) return; if(!r[d.vnd]) r[d.vnd]={u:0,m:0}; r[d.vnd].u++; r[d.vnd].m+=d.pr; }); return r; }
 
-function anaGroupByProj(arr){
-  const r = {};
-  arr.forEach(d => {
-    if(!r[d.p]) r[d.p] = {unidades:0, monto:0};
-    r[d.p].unidades++; r[d.p].monto += d.pr;
-  });
-  return r;
+function anaChart(id,cfg){
+  if(_anaCharts[id]) _anaCharts[id].destroy();
+  const cv = $(id); if(!cv) return;
+  _anaCharts[id] = new Chart(cv.getContext('2d'), cfg);
 }
+// Etiqueta de dato en "pastilla": legible sobre cualquier fondo del gráfico.
+const anaLbl = (color, extra) => Object.assign({
+  color, backgroundColor:'rgba(255,255,255,.9)', borderRadius:4,
+  padding:{top:2,bottom:2,left:5,right:5}, font:{family:ANA_FF,size:10,weight:'700'},
+  anchor:'end', align:'top', offset:4
+}, extra||{});
+const _anaTick = {font:{family:ANA_FF,size:10}, color:'#6b7280'};
+const _anaTip = {titleFont:{family:ANA_FF,size:11}, bodyFont:{family:ANA_FF,size:11}};
+const _anaGrid = {color:'#f3f4f6'};
 
-function anaGroupByVnd(arr){
-  const r = {};
-  arr.forEach(d => {
-    if(!d.vnd) return;
-    if(!r[d.vnd]) r[d.vnd] = {unidades:0, monto:0};
-    r[d.vnd].unidades++; r[d.vnd].monto += d.pr;
-  });
-  return r;
+function anaLegend(el, items){
+  const e = $(el); if(!e) return;
+  e.innerHTML = items.map(i=>`<div><span class="k" style="background:${i.c}"></span>${anaEsc(i.l)} <b>${i.v}</b></div>`).join('');
 }
-
-function fmtM(v){ return 'S/'+(v>=1e6?(v/1e6).toFixed(1)+'M':(v/1e3).toFixed(0)+'k'); }
-function anaChart(id,cfg){ if(_anaCharts[id]) _anaCharts[id].destroy(); _anaCharts[id]=new Chart($(id).getContext('2d'),cfg); }
-const _OPT_BASE = (cb) => ({responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}},tooltip:{mode:'index',intersect:false,...(cb?{callbacks:cb}:{})}},scales:{y:{beginAtZero:true,ticks:{font:{size:11}},grid:{color:'#f1f5f9'}},x:{ticks:{font:{size:11}},grid:{display:false}}}});
-const _OPT_H = () => ({responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}},tooltip:{mode:'index',intersect:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:'#f1f5f9'}},y:{ticks:{font:{size:11}},grid:{display:false}}}});
 
 function renderAnalisis(){
   if(!$('pg-analisis').classList.contains('on')) return;
@@ -2235,6 +2361,7 @@ function renderAnalisis(){
   if(V.length===0) return;
   if($('ana-t-graficos').classList.contains('on')) renderAnaGraficos();
   else if($('ana-t-pivot').classList.contains('on')) renderPivot();
+  else if($('ana-t-ia').classList.contains('on')) renderAnaInsights();
 }
 
 function renderAnaGraficos(){
@@ -2244,44 +2371,105 @@ function renderAnaGraficos(){
   if(!yrA) return;
   const vA = anaFilter(yrA,mesIni,mesFin,projs);
   const vB = yrB ? anaFilter(yrB,mesIni,mesFin,projs) : null;
-  const etA=String(yrA), etB=yrB?String(yrB):null;
-  const azul='#3b82f6', azulL='rgba(59,130,246,.18)', narj='#f97316', narjL='rgba(249,115,22,.18)';
+  const etA = String(yrA), etB = yrB ? String(yrB) : null;
+  const sum = a => a.reduce((s,d)=>s+d.pr,0);
+  const montoA = sum(vA), montoB = vB ? sum(vB) : null;
 
-  $('ana-sub-u').textContent = vA.length+' unid.'+(vB?' vs '+vB.length+' unid.':'');
-  $('ana-sub-m').textContent = fmtM(vA.reduce((s,d)=>s+d.pr,0))+(vB?' vs '+fmtM(vB.reduce((s,d)=>s+d.pr,0)):'');
-  $('ana-sub-p').textContent = etA+(etB?' vs '+etB:'');
+  // ── KPIs ──
+  const gpA = anaGroupByProj(vA), gaA = anaGroupByVnd(vA);
+  const topP = Object.entries(gpA).sort((a,b)=>b[1].u-a[1].u)[0];
+  const topA = Object.entries(gaA).sort((a,b)=>b[1].u-a[1].u)[0];
+  const tkA = vA.length ? montoA/vA.length : 0, tkB = (vB && vB.length) ? montoB/vB.length : null;
+  const kpi = (lbl,val,sub) => `<div class="ana-kpi"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
+  $('ana-kpis').innerHTML =
+    kpi('Unidades vendidas', anaN(vA.length)+'<small>und.</small>', vB ? anaDelta(vA.length,vB.length)+' vs '+anaN(vB.length)+' en '+etB : etA) +
+    kpi('Monto vendido', 'S/ '+anaN(Math.round(montoA)), vB ? anaDelta(montoA,montoB)+' vs '+fmtM(montoB) : etA) +
+    kpi('Ticket promedio', vA.length ? 'S/ '+anaN(Math.round(tkA)) : '—', vB ? anaDelta(tkA,tkB)+' vs '+(tkB?fmtM(tkB):'—') : 'Monto ÷ unidades') +
+    kpi('Proyecto líder', topP ? anaEsc(PROJ_MAP[topP[0]]||topP[0]) : '—', topP ? anaN(topP[1].u)+' und. · '+Math.round(topP[1].u/vA.length*100)+'% del total' : 'Sin ventas') +
+    kpi('Asesor líder', topA ? anaEsc(topA[0]) : '—', topA ? anaN(topA[1].u)+' und. · '+fmtM(topA[1].m) : 'Sin ventas');
+
+  $('ana-sub-u').textContent = etA+(etB?' vs '+etB:'')+' · '+anaN(vA.length)+' unid.';
+  $('ana-sub-m').textContent = etA+(etB?' vs '+etB:'')+' · '+fmtM(montoA);
+  $('ana-sub-d').textContent = etA+' · '+anaN(vA.length)+' unid.';
+  $('ana-sub-p').textContent = etA+(etB?' (sólido) vs '+etB+' (tenue)':'')+' · unidades';
   $('ana-sub-a').textContent = 'Top 10 · '+etA+(etB?' vs '+etB:'');
+  const lgU = [{l:etA,c:ANA_AZUL,v:anaN(vA.length)}]; if(vB) lgU.push({l:etB,c:ANA_NARJ,v:anaN(vB.length)});
+  anaLegend('ana-leg-u', lgU);
+  const lgM = [{l:etA,c:ANA_AZUL,v:fmtM(montoA)}]; if(vB) lgM.push({l:etB,c:ANA_NARJ,v:fmtM(montoB)});
+  anaLegend('ana-leg-m', lgM);
 
   const {meses,data:mA} = anaGroupByMes(vA,mesIni,mesFin);
   const mBd = vB ? anaGroupByMes(vB,mesIni,mesFin).data : null;
   const lbls = meses.map(m=>m.charAt(0).toUpperCase()+m.slice(1,3));
+  const nSer = vB ? 2 : 1;
+  const showLbl = lbls.length*nSer <= 26;
 
-  const dsLine = (etA,azulL,azul,mBd,etB,narjL,narj,fn) => [
-    {label:etA,data:mA.map(fn),backgroundColor:azul+'33',borderColor:azul,borderWidth:2,tension:0.35,fill:true,pointRadius:4,pointHoverRadius:6},
-    ...(mBd?[{label:etB,data:mBd.map(fn),backgroundColor:narj+'33',borderColor:narj,borderWidth:2,tension:0.35,fill:true,pointRadius:4,pointHoverRadius:6}]:[])
-  ];
+  // ── Unidades por mes (línea con relleno + tendencia) ──
+  const cvU = $('chart-unidades');
+  if(cvU){
+    const g = cvU.getContext('2d').createLinearGradient(0,0,0,260);
+    g.addColorStop(0,'rgba(59,130,246,.28)'); g.addColorStop(1,'rgba(59,130,246,.02)');
+    const pt = c => ({pointBackgroundColor:'#fff',pointBorderColor:c,pointBorderWidth:2,pointRadius:4,pointHoverRadius:6,pointHitRadius:10});
+    const dsU = [
+      Object.assign({label:etA,data:mA.map(m=>m.u),borderColor:ANA_AZUL,backgroundColor:g,borderWidth:2.5,tension:.35,fill:true,
+        datalabels:anaLbl(ANA_AZUL,{display:c=>showLbl&&c.dataset.data[c.dataIndex]>0,formatter:v=>anaN(v)})},pt(ANA_AZUL))
+    ];
+    if(mBd) dsU.push(Object.assign({label:etB,data:mBd.map(m=>m.u),borderColor:ANA_NARJ,backgroundColor:'transparent',borderWidth:2.5,borderDash:[6,4],tension:.35,fill:false,
+        datalabels:anaLbl(ANA_NARJ,{align:'bottom',display:c=>showLbl&&c.dataset.data[c.dataIndex]>0,formatter:v=>anaN(v)})},pt(ANA_NARJ)));
+    else if(lbls.length>=3) dsU.push({label:'Tendencia',data:anaLinReg(mA.map(m=>m.u)),borderColor:'#cbd5e1',borderWidth:1.5,borderDash:[4,4],pointRadius:0,pointHitRadius:0,tension:0,fill:false,datalabels:{display:false}});
+    anaChart('chart-unidades',{type:'line',plugins:[ChartDataLabels],data:{labels:lbls,datasets:dsU},options:{
+      responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},layout:{padding:{top:16}},
+      plugins:{legend:{display:false},tooltip:Object.assign({filter:c=>c.dataset.label!=='Tendencia',callbacks:{label:c=>' '+c.dataset.label+': '+anaN(c.parsed.y)+' und.'}},_anaTip)},
+      scales:{y:{beginAtZero:true,grid:_anaGrid,ticks:Object.assign({precision:0},_anaTick)},x:{grid:_anaGrid,ticks:_anaTick}}}});
+  }
 
-  anaChart('chart-unidades',{type:'line',data:{labels:lbls,datasets:dsLine(etA,azulL,azul,mBd,etB,narjL,narj,m=>m.u)},options:_OPT_BASE()});
-  anaChart('chart-monto',{type:'line',data:{labels:lbls,datasets:dsLine(etA,azulL,azul,mBd,etB,narjL,narj,m=>Math.round(m.m))},options:_OPT_BASE({label:c=>c.dataset.label+': '+fmtM(c.raw),yTick:v=>fmtM(v)})});
+  // ── Monto por mes (barras con punta redondeada) ──
+  const bar = (label,data,color) => ({label,data,backgroundColor:color,borderRadius:{topLeft:6,topRight:6},borderSkipped:false,maxBarThickness:vB?26:44,
+    datalabels:anaLbl('#334155',{offset:2,display:c=>showLbl&&c.dataset.data[c.dataIndex]>0,formatter:v=>fmtM(v)})});
+  const dsM = [bar(etA,mA.map(m=>Math.round(m.m)),'rgba(59,130,246,.85)')];
+  if(mBd) dsM.push(bar(etB,mBd.map(m=>Math.round(m.m)),'rgba(249,115,22,.85)'));
+  anaChart('chart-monto',{type:'bar',plugins:[ChartDataLabels],data:{labels:lbls,datasets:dsM},options:{
+    responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},
+    plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>' '+c.dataset.label+': S/ '+anaN(c.raw)}},_anaTip)},
+    scales:{y:{beginAtZero:true,grid:_anaGrid,ticks:Object.assign({callback:v=>fmtM(v)},_anaTick)},x:{grid:{display:false},ticks:_anaTick}}}});
 
-  const gpA=anaGroupByProj(vA), gpB=vB?anaGroupByProj(vB):null;
-  const pks=Object.keys(PROJ_MAP).filter(k=>gpA[k]||(gpB&&gpB[k]));
-  const pnms=pks.map(k=>PROJ_MAP[k]||k), pcols=pks.map(k=>PC[PROJ_MAP[k]]||'#64748b');
-  anaChart('chart-proyectos',{type:'bar',data:{labels:pnms,datasets:[
-    {label:etA,data:pks.map(k=>(gpA[k]||{}).u||0),backgroundColor:pcols.map(c=>c+'33'),borderColor:pcols,borderWidth:2,borderRadius:4},
-    ...(gpB?[{label:etB,data:pks.map(k=>(gpB[k]||{}).u||0),backgroundColor:pcols.map(c=>c+'18'),borderColor:pcols,borderWidth:1.5,borderRadius:4}]:[])
-  ]},options:_OPT_H()});
+  // ── Dona: portafolio ──
+  const pks = Object.keys(PROJ_MAP).filter(k=>gpA[k]);
+  const totU = vA.length || 1;
+  const dCol = pks.map(k=>PC[PROJ_MAP[k]]||'#64748b');
+  anaChart('chart-donut',{type:'doughnut',plugins:[ChartDataLabels],data:{labels:pks.map(k=>PROJ_MAP[k]||k),datasets:[{
+    data:pks.map(k=>gpA[k].u),backgroundColor:dCol,borderWidth:3,borderColor:'#fff',hoverOffset:6,
+    datalabels:{color:'#fff',font:{family:ANA_FF,size:10,weight:'700'},display:c=>c.dataset.data[c.dataIndex]/totU>=.08,formatter:v=>Math.round(v/totU*100)+'%'}}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',plugins:{legend:{display:false},
+      tooltip:Object.assign({callbacks:{label:c=>' '+c.label+': '+c.raw+' und. ('+Math.round(c.raw/totU*100)+'%)'}},_anaTip)}}});
+  $('ana-donut-leg').innerHTML = pks.length ? [...pks].sort((a,b)=>gpA[b].u-gpA[a].u).map(k=>
+    `<div><i style="background:${PC[PROJ_MAP[k]]||'#64748b'}"></i><span>${anaEsc(PROJ_MAP[k]||k)}</span><b>${gpA[k].u}</b><em>${Math.round(gpA[k].u/totU*100)}%</em></div>`).join('')
+    : '<div class="ana-empty" style="padding:0">Sin ventas</div>';
 
-  const gaA=anaGroupByVnd(vA), gaB=vB?anaGroupByVnd(vB):null;
-  const top10=[...new Set([...Object.keys(gaA),...(gaB?Object.keys(gaB):[])])].sort((a,b)=>((gaA[b]||{}).u||0)-((gaA[a]||{}).u||0)).slice(0,10);
-  anaChart('chart-asesores',{type:'bar',data:{labels:top10,datasets:[
-    {label:etA,data:top10.map(v=>(gaA[v]||{}).u||0),backgroundColor:'rgba(59,130,246,.25)',borderColor:'#3b82f6',borderWidth:2,borderRadius:4},
-    ...(gaB?[{label:etB,data:top10.map(v=>(gaB[v]||{}).u||0),backgroundColor:'rgba(249,115,22,.2)',borderColor:'#f97316',borderWidth:1.5,borderRadius:4}]:[])
-  ]},options:_OPT_H()});
+  // ── Ventas por proyecto (horizontal) ──
+  const gpB = vB ? anaGroupByProj(vB) : null;
+  const pk2 = Object.keys(PROJ_MAP).filter(k=>gpA[k]||(gpB&&gpB[k]));
+  const pcols = pk2.map(k=>PC[PROJ_MAP[k]]||'#64748b');
+  const hb = (label,data,bg,bd) => ({label,data,backgroundColor:bg,borderColor:bd,borderWidth:bd?1.5:0,borderRadius:6,borderSkipped:false,maxBarThickness:22,
+    datalabels:anaLbl('#334155',{anchor:'end',align:'right',offset:4,display:c=>c.dataset.data[c.dataIndex]>0,formatter:v=>anaN(v)})});
+  const dsP = [hb(etA,pk2.map(k=>(gpA[k]||{}).u||0),pcols)];
+  if(gpB) dsP.push(hb(etB,pk2.map(k=>(gpB[k]||{}).u||0),pcols.map(c=>c+'40'),pcols));
+  anaChart('chart-proyectos',{type:'bar',plugins:[ChartDataLabels],data:{labels:pk2.map(k=>PROJ_MAP[k]||k),datasets:dsP},options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:34}},
+    plugins:{legend:{display:false},tooltip:Object.assign({callbacks:{label:c=>' '+c.dataset.label+': '+anaN(c.raw)+' und.'}},_anaTip)},
+    scales:{x:{beginAtZero:true,grid:_anaGrid,ticks:Object.assign({precision:0},_anaTick)},y:{grid:{display:false},ticks:_anaTick}}}});
+
+  // ── Top asesores (horizontal) ──
+  const gaB = vB ? anaGroupByVnd(vB) : null;
+  const top10 = [...new Set([...Object.keys(gaA),...(gaB?Object.keys(gaB):[])])].sort((a,b)=>((gaA[b]||{}).u||0)-((gaA[a]||{}).u||0)).slice(0,10);
+  const dsA = [hb(etA,top10.map(v=>(gaA[v]||{}).u||0),'rgba(59,130,246,.85)')];
+  if(gaB) dsA.push(hb(etB,top10.map(v=>(gaB[v]||{}).u||0),'rgba(249,115,22,.85)'));
+  anaChart('chart-asesores',{type:'bar',plugins:[ChartDataLabels],data:{labels:top10,datasets:dsA},options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:34}},
+    plugins:{legend:{display:!!gaB,position:'bottom',labels:{font:{family:ANA_FF,size:10},boxWidth:10,usePointStyle:true}},
+      tooltip:Object.assign({callbacks:{label:c=>' '+c.dataset.label+': '+anaN(c.raw)+' und. · '+fmtM(((c.datasetIndex?gaB:gaA)[c.label]||{}).m||0)}},_anaTip)},
+    scales:{x:{beginAtZero:true,grid:_anaGrid,ticks:Object.assign({precision:0},_anaTick)},y:{grid:{display:false},ticks:_anaTick}}}});
 }
-
-function anaGroupByProj(arr){ const r={}; arr.forEach(d=>{ if(!r[d.p]) r[d.p]={u:0,m:0}; r[d.p].u++; r[d.p].m+=d.pr; }); return r; }
-function anaGroupByVnd(arr){ const r={}; arr.forEach(d=>{ if(!d.vnd) return; if(!r[d.vnd]) r[d.vnd]={u:0,m:0}; r[d.vnd].u++; r[d.vnd].m+=d.pr; }); return r; }
 
 // ── TABLA DINÁMICA ────────────────────────────────
 function renderPivot(){
@@ -2299,92 +2487,145 @@ function renderPivot(){
   const grid={};
   data.forEach(d=>{ const rk=gk(d,rf),ck=gk(d,cf); if(!grid[rk]) grid[rk]={}; if(!grid[rk][ck]) grid[rk][ck]={u:0,m:0}; grid[rk][ck].u++; grid[rk][ck].m+=d.pr; });
   const fv = o => vf==='u'?(o?.u||0):(o?.m||0);
-  const fmt = v => vf==='u'?(v||'—'):(v?fmtM(v):'—');
+  const fmt = v => vf==='u'?(v?anaN(v):'—'):(v?fmtM(v):'—');
   const rLbl = {'pn':'Proyecto','vnd':'Asesor','ti':'Tipo','yr':'Año','ml':'Mes','ca':'Canal'};
   const colHdr = c => (cf==='ml'?(c.charAt(0).toUpperCase()+c.slice(1,3)):c);
-  let html=`<table class="pivot-tbl"><thead><tr><th>${rLbl[rf]||rf}</th>${cks.map(c=>`<th>${colHdr(c)}</th>`).join('')}<th>Total</th></tr></thead><tbody>`;
-  const ct={};cks.forEach(c=>ct[c]=0); let gt=0;
+  let maxCell = 1;
+  rks.forEach(rk=>cks.forEach(c=>{ maxCell = Math.max(maxCell, fv(grid[rk]?.[c])); }));
+  const ct={}; cks.forEach(c=>ct[c]=0); let gt=0;
+  let body='';
   rks.forEach(rk=>{
-    const rt=cks.reduce((s,c)=>s+fv(grid[rk]?.[c]),0); gt+=rt;
-    html+=`<tr><td>${rk}</td>`;
-    cks.forEach(c=>{const v=fv(grid[rk]?.[c]);ct[c]+=v;html+=`<td>${fmt(v)}</td>`;});
-    html+=`<td><strong>${fmt(rt)}</strong></td></tr>`;
+    const rt = cks.reduce((s,c)=>s+fv(grid[rk]?.[c]),0); gt+=rt;
+    body += `<tr><td>${anaEsc(rk)}</td>`;
+    cks.forEach(c=>{
+      const v = fv(grid[rk]?.[c]); ct[c]+=v;
+      if(!v){ body += '<td class="empty">—</td>'; return; }
+      const i = Math.min(1, v/maxCell);
+      body += `<td class="hm" style="background:color-mix(in srgb,#3b82f6 ${Math.round(12+i*78)}%,#fff);color:${i>.55?'#fff':'#0a1628'};font-weight:${i>.55?700:500}">${fmt(v)}</td>`;
+    });
+    body += `<td class="tot">${fmt(rt)}</td></tr>`;
   });
-  html+=`<tr class="ptot"><td>Total</td>${cks.map(c=>`<td>${fmt(ct[c])}</td>`).join('')}<td>${fmt(gt)}</td></tr></tbody></table>`;
-  $('pivot-output').innerHTML=html;
+  body += `<tr class="ptot"><td>Total</td>${cks.map(c=>`<td>${fmt(ct[c])}</td>`).join('')}<td>${fmt(gt)}</td></tr>`;
+  $('pivot-output').innerHTML = rks.length
+    ? `<table class="pivot-tbl" id="pivot-tbl"><thead><tr><th>${rLbl[rf]||rf}</th>${cks.map(c=>`<th>${anaEsc(colHdr(c))}</th>`).join('')}<th>Total</th></tr></thead><tbody>${body}</tbody></table>`
+    : '<div class="ana-empty">Sin datos para esta combinación de filtros</div>';
+  $('piv-sub').textContent = (rLbl[rf]||rf)+' × '+(rLbl[cf]||cf)+' · '+(vf==='u'?'Unidades':'Monto S/')+' · '+anaN(data.length)+' ventas';
+}
+function anaPivotCSV(){
+  const t = $('pivot-tbl'); if(!t) return;
+  const csv = [...t.rows].map(r=>[...r.cells].map(c=>'"'+c.textContent.replace(/"/g,'""').trim()+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download = 'tabla_dinamica_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
-// ── ASISTENTE IA ──────────────────────────────────
+// ── ANÁLISIS IA ───────────────────────────────────
+// Resumen de TODAS las ventas (no depende de los filtros de pantalla) que se manda a la IA.
+function anaSnapshot(){
+  const anios = [...new Set(V.map(d=>d.yr).filter(Boolean))].sort((a,b)=>b-a).slice(0,3);
+  const base = V.filter(d=>d.pr>0);
+  const agg = (arr,kf) => { const m={}; arr.forEach(d=>{ const k=kf(d); if(!k) return; if(!m[k]) m[k]={u:0,m:0}; m[k].u++; m[k].m+=d.pr; }); Object.values(m).forEach(o=>{o.m=Math.round(o.m);}); return m; };
+  const topN = (m,n) => Object.entries(m).map(([nombre,v])=>({nombre,...v})).sort((a,b)=>b.u-a.u).slice(0,n);
+  const resumen_anual = anios.map(yr=>{
+    const a = base.filter(d=>d.yr===yr), m = a.reduce((s,d)=>s+d.pr,0);
+    return {año:yr,total:a.length,monto:Math.round(m),ticket_promedio:a.length?Math.round(m/a.length):0,proyectos:agg(a,d=>d.pn)};
+  });
+  const ventas_por_mes = {}, por_proyecto_mes = {};
+  anios.forEach(yr=>{ ventas_por_mes[yr] = agg(base.filter(d=>d.yr===yr), d=>d.ml||'sin mes'); });
+  anios.slice(0,2).forEach(yr=>{
+    const o = {};
+    base.filter(d=>d.yr===yr).forEach(d=>{ const p=d.pn, m=d.ml||'sin mes'; if(!o[p]) o[p]={}; if(!o[p][m]) o[p][m]={u:0,m:0}; o[p][m].u++; o[p][m].m+=Math.round(d.pr); });
+    por_proyecto_mes[yr] = o;
+  });
+  const act = base.filter(d=>d.yr===anios[0]);
+  return {
+    fecha_hoy: new Date().toISOString().slice(0,10),
+    mes_en_curso: MESES_ANA[new Date().getMonth()],
+    nota: 'El mes en curso está incompleto: no lo compares como si estuviera cerrado.',
+    resumen_anual, ventas_por_mes, por_proyecto_mes,
+    top_asesores: topN(agg(act,d=>d.vnd),10),
+    canales: topN(agg(act,d=>d.ca),8),
+    tipos: agg(act,d=>d.ti),
+    separaciones_activas: S.filter(d=>d.yr>0).length,
+  };
+}
+
+function renderAnaInsights(){
+  const el = $('ia-insights'); if(!el || V.length===0) return;
+  const anios = V.map(d=>d.yr).filter(Boolean);
+  const yr = Math.max(...anios);
+  const vy = V.filter(d=>d.yr===yr && d.pr>0);
+  const monto = vy.reduce((s,d)=>s+d.pr,0);
+  const porMes = {}; vy.forEach(d=>{ if(d.ml) porMes[d.ml]=(porMes[d.ml]||0)+1; });
+  const mejor = Object.entries(porMes).sort((a,b)=>b[1]-a[1])[0];
+  const gp = Object.entries(anaGroupByProj(vy)).sort((a,b)=>b[1].m-a[1].m)[0];
+  const kpi = (lbl,val,sub) => `<div class="ana-kpi"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
+  const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+  el.innerHTML =
+    kpi('Ventas '+yr, anaN(vy.length)+'<small>und.</small>', 'S/ '+anaN(Math.round(monto))) +
+    kpi('Mejor mes', mejor ? cap(mejor[0]) : '—', mejor ? anaN(mejor[1])+' unidades' : 'Sin datos') +
+    kpi('Proyecto con más monto', gp ? anaEsc(PROJ_MAP[gp[0]]||gp[0]) : '—', gp && monto ? Math.round(gp[1].m/monto*100)+'% del monto · '+fmtM(gp[1].m) : 'Sin datos') +
+    kpi('Ticket promedio', vy.length ? 'S/ '+anaN(Math.round(monto/vy.length)) : '—', 'Monto ÷ unidades · '+yr);
+}
+
+async function anaAnalizar(){
+  const res = $('ia-result'), btn = $('ia-go-btn');
+  if(!res || V.length===0) return;
+  btn.disabled = true;
+  res.innerHTML = '<span style="color:#94a3b8">Generando diagnóstico...</span>';
+  try{
+    const r = await fetch('/api/analizar_ia',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:anaSnapshot()})});
+    const j = await r.json();
+    res.innerHTML = j.analisis ? `<div class="ana-md">${anaMd(j.analisis)}</div>` : `<span style="color:#dc2626">${anaEsc(j.error||'Sin respuesta')}</span>`;
+  }catch(e){ res.innerHTML = '<span style="color:#dc2626">Error al conectar con el servidor</span>'; }
+  finally{ btn.disabled = false; }
+}
+
+// ── CHAT IA ───────────────────────────────────────
+function anaAddMsg(role, html, cls){
+  const msgs = $('ana-chat-msgs');
+  const d = document.createElement('div');
+  d.className = 'ana-msg '+role;
+  d.innerHTML = `<div class="ana-av">${role==='user'?'👤':'✦'}</div><div class="ana-bubble ${cls||''}">${html}</div>`;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+  return d;
+}
 function anaSend(txt){
-  const inp=$('ana-chat-in');
-  const msg=txt||inp.value.trim(); if(!msg) return;
-  inp.value='';
-  const msgs=$('ana-chat-msgs');
-  msgs.innerHTML+=`<div class="ana-msg user"><div class="ana-bubble">${msg}</div></div>`;
-  const lid='al'+Date.now();
-  msgs.innerHTML+=`<div class="ana-msg ai" id="${lid}"><div class="ana-bubble" style="color:#94a3b8">Analizando...</div></div>`;
-  msgs.scrollTop=msgs.scrollHeight;
-  $('ana-send-btn').disabled=true;
-  $('ana-sugs').style.display='none';
-  const anios=[...new Set(V.map(d=>d.yr).filter(Boolean))].sort((a,b)=>b-a);
-  const resumen_anual=anios.slice(0,3).map(yr=>{
-    const vyr=V.filter(d=>d.yr===yr&&d.pr>0);
-    const pp={};vyr.forEach(d=>{if(!pp[d.pn])pp[d.pn]={u:0,m:0};pp[d.pn].u++;pp[d.pn].m+=d.pr;});
-    return {año:yr,total:vyr.length,monto:Math.round(vyr.reduce((s,d)=>s+d.pr,0)),proyectos:pp};
-  });
-  const ventas_por_mes={};
-  anios.slice(0,3).forEach(yr=>{
-    const mmap={};
-    V.filter(d=>d.yr===yr&&d.pr>0).forEach(d=>{
-      const m=d.ml||'sin mes';
-      if(!mmap[m]) mmap[m]={u:0,m:0};
-      mmap[m].u++; mmap[m].m+=d.pr;
-    });
-    ventas_por_mes[yr]=mmap;
-  });
-  const asesMap={};
-  V.filter(d=>d.pr>0&&d.vnd).forEach(d=>{
-    if(!asesMap[d.vnd]) asesMap[d.vnd]={u:0,m:0};
-    asesMap[d.vnd].u++; asesMap[d.vnd].m+=d.pr;
-  });
-  const top_asesores=Object.entries(asesMap).map(([n,v])=>({nombre:n,...v})).sort((a,b)=>b.u-a.u).slice(0,10);
-  const separaciones_activas=S.filter(d=>d.yr>0).length;
-  const ctx={resumen_anual,ventas_por_mes,top_asesores,separaciones_activas};
-  fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg,data:ctx})})
+  const inp = $('ana-chat-in');
+  const msg = (typeof txt==='string' ? txt : inp.value).trim(); if(!msg) return;
+  inp.value = '';
+  $('ana-sugs').style.display = 'none';
+  anaAddMsg('user', anaEsc(msg));
+  const row = anaAddMsg('ai', '<span style="color:#94a3b8">Analizando...</span>');
+  $('ana-send-btn').disabled = true;
+  fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:msg,data:anaSnapshot()})})
     .then(r=>r.json())
     .then(raw=>{
-      // compatibilidad: si el backend devuelve {response:"..."} intentar parsear el string
       let resp = raw;
-      if(raw.response && typeof raw.response === 'string' && raw.response.trim().startsWith('{')){
-        try { resp = JSON.parse(raw.response); } catch(e) { resp = {type:'text',content:raw.response}; }
-      } else if(raw.response) {
-        resp = {type:'text', content: raw.response};
-      }
-      const el=document.getElementById(lid);
-      if(!el) return;
-      if(resp.error){ el.querySelector('.ana-bubble').innerHTML='❌ '+resp.error; return; }
+      if(raw.response && typeof raw.response==='string' && raw.response.trim().startsWith('{')){
+        try{ resp = JSON.parse(raw.response); }catch(e){ resp = {type:'text',content:raw.response}; }
+      } else if(raw.response){ resp = {type:'text',content:raw.response}; }
+      const b = row.querySelector('.ana-bubble');
+      if(resp.error){ b.innerHTML = '❌ '+anaEsc(resp.error); return; }
       if(resp.type==='chart' && resp.chart){
-        const cid='aic'+Date.now();
-        const bubble=el.querySelector('.ana-bubble');
-        bubble.className='ana-chart-bubble';
-        bubble.style='';
-        bubble.innerHTML=`<div class="ana-chart-lbl">${resp.title||'Gráfico'}</div><canvas id="${cid}" style="height:220px;width:100%"></canvas>`;
-        msgs.scrollTop=msgs.scrollHeight;
-        const cfg=resp.chart;
-        if(!cfg.options) cfg.options={};
-        cfg.options.responsive=true;
-        cfg.options.maintainAspectRatio=false;
-        // limpiar callbacks vacíos que rompen Chart.js
+        const cid = 'aic'+Date.now();
+        b.className = 'ana-chart-bubble';
+        b.innerHTML = `<div class="ana-chart-lbl">${anaEsc(resp.title||'Gráfico')}</div><div class="cw"><canvas id="${cid}"></canvas></div>`;
+        const cfg = resp.chart;
+        cfg.options = cfg.options || {};
+        cfg.options.responsive = true; cfg.options.maintainAspectRatio = false;
         try{ if(cfg.options.plugins?.tooltip?.callbacks) delete cfg.options.plugins.tooltip.callbacks; }catch(e){}
-        try{ new Chart(document.getElementById(cid).getContext('2d'),cfg); }
-        catch(e){ bubble.innerHTML='❌ Error al renderizar: '+e.message; }
+        try{ new Chart($(cid).getContext('2d'), cfg); }
+        catch(e){ b.className='ana-bubble'; b.innerHTML = '❌ Error al renderizar: '+anaEsc(e.message); }
       } else {
-        el.querySelector('.ana-bubble').innerHTML=(resp.content||resp.response||'Sin respuesta').replace(/\n/g,'<br>');
+        b.className = 'ana-bubble ana-md';
+        b.innerHTML = anaMd(resp.content||resp.response||'Sin respuesta');
       }
-      msgs.scrollTop=msgs.scrollHeight;
+      $('ana-chat-msgs').scrollTop = $('ana-chat-msgs').scrollHeight;
     })
-    .catch(()=>{ const el=document.getElementById(lid); if(el) el.querySelector('.ana-bubble').innerHTML='❌ Error de conexión con el asistente.'; })
-    .finally(()=>{ $('ana-send-btn').disabled=false; });
+    .catch(()=>{ row.querySelector('.ana-bubble').innerHTML = '❌ Error de conexión con el asistente.'; })
+    .finally(()=>{ $('ana-send-btn').disabled = false; });
 }
 </script>
 </body>
