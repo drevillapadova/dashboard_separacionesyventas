@@ -555,6 +555,55 @@ thead th{background:var(--surface-2)}
 .res-table-desktop.single-kpis{background:none;border:none;box-shadow:none;padding:0;border-radius:0;overflow:visible}
 /* Operaciones: columna Proyecto alineada a la izquierda */
 .ops-table thead th:first-child,.ops-table tbody td:first-child{text-align:left}
+/* ===== Móvil: lista compacta de proyectos ===== */
+.mlist{display:none;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh-1);overflow:hidden;margin-bottom:22px}
+.mlist-hd,.mrow summary{display:grid;grid-template-columns:minmax(0,1fr) 40px 50px 62px;align-items:center;gap:6px;padding:0 14px}
+.mlist-hd{height:36px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);background:var(--surface-2);border-bottom:1px solid var(--line)}
+.mlist-hd span:not(:first-child){text-align:center}
+.mrow{border-bottom:1px solid var(--line-2)}
+.mrow summary{list-style:none;min-height:54px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mrow summary::-webkit-details-marker{display:none}
+.mname{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--navy);min-width:0;line-height:1.2}
+.mnum{text-align:center;font-weight:800;font-size:17px}
+.mpct{justify-self:center;font-size:12.5px;font-weight:800;padding:4px 9px;border-radius:999px}
+.mrow[open]{background:var(--surface-2)}
+.mdet{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px 12px 14px}
+.mtile{background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px 10px;box-shadow:var(--sh-1);min-width:0}
+.mtile small{display:flex;align-items:center;gap:6px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+.mtile small i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mtile b{display:block;font-size:15px;font-weight:800;color:var(--navy);letter-spacing:-.01em;white-space:nowrap}
+.mtile b span{font-size:11px;font-weight:600;color:var(--muted)}
+.mhint{padding:10px 14px;font-size:11.5px;color:var(--faint);text-align:center}
+
+@media (max-width:900px){
+  .mlist{display:block}
+  .res-mobile-card{display:none !important}
+
+  /* filtros: fechas sin superponerse (iPhone) */
+  .fil > .ff{min-width:0}
+  .ff-row{min-width:0;width:100%}
+  .fil input[type=date],.fil input[type=date].pill,input[type="date"].pill{
+    -webkit-appearance:none !important;appearance:none !important;display:block;
+    min-width:0 !important;width:100% !important;max-width:100% !important;box-sizing:border-box;
+    text-align:left;padding:0 10px !important;font-size:13px;line-height:34px;overflow:hidden}
+  .ff-row input[type=date]{flex:1 1 0 !important;width:0 !important}
+  .fil input[type=date]::-webkit-date-and-time-value{text-align:left}
+  .fil .btn-clear{flex:0 0 36px}
+  /* vista de un proyecto: las tarjetas KPI también se ven en móvil */
+  .res-table-desktop.single-kpis{display:block !important}
+  .single-kpis .kpi-summary{margin-bottom:16px}
+}
+
+/* ===== Móvil: filtros que se resumen al bajar ===== */
+.fil-mini{display:none}
+@media (max-width:900px){
+  .fil-mini.show{display:flex;position:fixed;left:0;right:0;z-index:39;height:42px;align-items:center;justify-content:space-between;gap:10px;padding:0 16px;background:#fff;border:none;border-bottom:1px solid var(--line);box-shadow:var(--sh-1);font-family:inherit;font-size:12.5px;font-weight:700;color:var(--navy);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .fil-mini #fil-mini-txt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fil-mini .fil-chev{flex-shrink:0;color:var(--teal);transition:transform .2s}
+  .fil-mini.open .fil-chev{transform:rotate(180deg)}
+  .fil.fil-open{position:fixed;left:0;right:0;width:auto;margin:0;padding:14px 16px 18px;background:#fff;z-index:38;overflow-y:auto;border-bottom:1px solid var(--line);box-shadow:var(--sh-2)}
+}
+
 /* Stock: 3 tarjetas por fila */
 .stock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 @media (max-width:900px){.stock-grid{grid-template-columns:1fr 1fr}}
@@ -579,6 +628,8 @@ thead th{background:var(--surface-2)}
   </div>
 </header>
 
+<button type="button" id="fil-mini" class="fil-mini" onclick="filToggle()"><span id="fil-mini-txt">Filtros</span><svg class="fil-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+<div id="fil-wrap">
 <div class="fil">
   <div class="ff"><span class="fl">Desde</span><input type="date" class="pill" id="sfdesde" onchange="renderAll()"></div>
   <div class="ff"><span class="fl">Hasta</span>
@@ -596,6 +647,7 @@ thead th{background:var(--surface-2)}
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7686" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="sbusca" placeholder="Buscar cliente o inmueble..." oninput="renderAll()">
   </div>
+</div>
 </div>
 
 <div id="pg-res" class="pg on">
@@ -1520,7 +1572,53 @@ document.addEventListener('click', e => {
     document.querySelectorAll('.msel-panel').forEach(p => p.classList.remove('open'));
   }
 });
+// ── Filtros en móvil: al bajar se resumen en una barra; al tocarla se despliegan ──
+const NONE_TXT = '__none__';
+function filMobile(){ return window.matchMedia('(max-width:900px)').matches; }
+function filMiniRender(){
+  const el = $('fil-mini-txt'); if(!el) return;
+  const f = getFilters();
+  const sh = d => d.toLocaleDateString('es-PE',{day:'2-digit',month:'short'}).replace('.','');
+  const fechas = (f.desde || f.hasta) ? [f.desde?sh(f.desde):'…', f.hasta?sh(f.hasta):'…'].join(' – ') : 'Todas las fechas';
+  const proy = F.p.length===0 ? 'Todos los proyectos' : F.p[0]===NONE_TXT ? 'Ningún proyecto' : F.p.length===1 ? (PROJ_MAP[F.p[0]]||F.p[0]) : F.p.length+' proyectos';
+  const extra = (F.v.length?1:0) + (F.ti.length?1:0) + (F.asesor.length?1:0) + (f.busca?1:0);
+  el.textContent = fechas + ' · ' + proy + (extra ? ' · +' + extra : '');
+}
+function filToggle(force){
+  const w = $('fil-wrap'), f = w && w.querySelector('.fil'), mini = $('fil-mini'); if(!f) return;
+  const open = typeof force === 'boolean' ? force : !f.classList.contains('fil-open');
+  if(open && !filMobile()) return;
+  if(open){
+    if(!f.classList.contains('fil-open')) w.style.height = f.offsetHeight + 'px'; // reserva el espacio para que no salte la página
+    f.classList.add('fil-open');
+    const top = document.querySelector('.topbar').offsetHeight + mini.offsetHeight;
+    f.style.top = top + 'px';
+    f.style.maxHeight = (window.innerHeight - top - 12) + 'px';
+  } else {
+    f.classList.remove('fil-open'); f.style.top = ''; f.style.maxHeight = ''; w.style.height = '';
+  }
+  mini.classList.toggle('open', open);
+}
+function filUpdate(){
+  const w = $('fil-wrap'), mini = $('fil-mini'); if(!w || !mini) return;
+  if(!filMobile()){ mini.classList.remove('show'); filToggle(false); return; }
+  const tbh = document.querySelector('.topbar').offsetHeight;
+  mini.style.top = tbh + 'px';
+  const past = w.getBoundingClientRect().bottom <= tbh + 4;
+  mini.classList.toggle('show', past);
+  if(!past) filToggle(false);
+  else if(w.querySelector('.fil').classList.contains('fil-open')) filToggle(true);
+}
+window.addEventListener('scroll', filUpdate, {passive:true});
+window.addEventListener('resize', filUpdate);
+// Tocar fuera del panel abierto lo cierra
+document.addEventListener('click', e => {
+  const f = document.querySelector('#fil-wrap .fil');
+  if(f && f.classList.contains('fil-open') && !e.target.closest('#fil-wrap') && !e.target.closest('#fil-mini')) filToggle(false);
+});
+
 function renderAll(){
+  filMiniRender();
   if(F.p.length === 1 && F.p[0] !== NONE){
     $('vista-todos').style.display = 'none';
     $('vista-single').style.display = 'block';
@@ -1533,6 +1631,7 @@ function renderAll(){
   rOps();
   renderAvance();
   renderAnalisis();
+  filUpdate();
 }
 
 // Las ventas de Carabayllo 1, 2 y 3 se suman a Carabayllo 4 (igual que en Avance).
@@ -1734,51 +1833,25 @@ function renderTodos(){
 
   html += `</div>`; // end res-table-desktop
 
-  // ── TARJETAS MOBILE ──
+  // ── LISTA MOBILE ──
+  html += `<div class="mlist"><div class="mlist-hd"><span>Proyecto</span><span>Sep.</span><span>Ventas</span><span>Avance</span></div>`;
   proyData.forEach(({pn,undR,undRAvance,mtoR,sepTot,sepMto,meta}) => {
     const col = PC[pn] || '#64748b';
     const pU = pct(undRAvance, meta.und);
-    const pM = pct(mtoR, meta.monto);
-
-    html += `
-    <div class="res-mobile-card">
-      <div class="res-mobile-header">
-        <div class="res-mobile-dot"></div>
-        <div class="res-mobile-name">${pn}</div>
-      </div>
-      <div class="res-mobile-grid">
-        <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:var(--sep)">Separaciones</div>
-          <div class="res-mobile-val" style="color:var(--sep)">${sepTot}</div>
-        </div>
-        <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:var(--sep)">Monto Sep.</div>
-          <div class="res-mobile-val money" style="color:var(--sep)">${fmt(sepMto)}</div>
-        </div>
-        <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:var(--ven)">Ventas</div>
-          <div class="res-mobile-val" style="color:var(--ven)">${undR}</div>
-        </div>
-        <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:var(--ven)">Monto Ven.</div>
-          <div class="res-mobile-val money" style="color:var(--ven)">${fmt(mtoR)}</div>
-        </div>
-        <div class="res-mobile-box" style="grid-column:span 2">
-          <div class="res-mobile-label" style="color:${colPct(pU)}">Avance</div>
-          <div class="res-mobile-val" style="color:${colPct(pU)}">${pU}%</div>
-          <div class="bar"><div style="width:${Math.min(100,pU)}%;background:${colPct(pU)}"></div></div>
-        </div>
-        <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:var(--meta)">Meta</div>
-          <div class="res-mobile-val" style="color:var(--meta)">${meta.und}</div>
-        </div>
-        <div class="res-mobile-box">
-          <div class="res-mobile-label" style="color:var(--meta)">Monto Meta</div>
-          <div class="res-mobile-val money" style="color:var(--meta)">${fmt(meta.monto)}</div>
-        </div>
-      </div>
-    </div>`;
+    html += `<details class="mrow"><summary>
+        <span class="mname"><i class="pdot" style="background:${col}"></i><span>${pn}</span></span>
+        <span class="mnum" style="color:var(--sep)">${sepTot}</span>
+        <span class="mnum" style="color:var(--ven)">${undR}</span>
+        <span class="mpct" style="color:${colPct(pU)};background:color-mix(in srgb, ${colPct(pU)} 12%, #fff)">${pU}%</span>
+      </summary>
+      <div class="mdet">
+        <div class="mtile"><small><i style="background:var(--sep)"></i>Monto sep.</small><b>S/ ${Math.round(sepMto).toLocaleString('es-PE')}</b></div>
+        <div class="mtile"><small><i style="background:var(--ven)"></i>Monto ven.</small><b>S/ ${Math.round(mtoR).toLocaleString('es-PE')}</b></div>
+        <div class="mtile"><small><i style="background:var(--meta)"></i>Meta</small><b>${meta.und}<span> unid.</span></b></div>
+        <div class="mtile"><small><i style="background:var(--meta)"></i>Monto meta</small><b>S/ ${Math.round(meta.monto).toLocaleString('es-PE')}</b></div>
+      </div></details>`;
   });
+  html += `<div class="mhint">Toca un proyecto para ver montos y meta</div></div>`;
 
   html += renderStock(F.p);
   wrap.innerHTML = html;
