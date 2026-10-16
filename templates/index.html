@@ -2750,8 +2750,49 @@ function anaSnapshot(){
     }
     Object.keys(pm).sort().forEach(k=>{ const v=pm[k]; delete pm[k]; pm[k]=v; });
   });
+  // Metas y minutas por firmar (hojas METAS y MINUTAS_PF): las pestañas Resumen y Avance se basan en ellas.
+  const metas = {};
+  Object.entries(METAS_SHEET).forEach(([k,v])=>{ const [pn,mes]=k.split('|'); (metas[pn]=metas[pn]||{})[mes]={und:v.und,monto:Math.round(v.monto)}; });
+  const minutas_por_firmar = {};
+  Object.entries(PF_MAP).forEach(([k,v])=>{ minutas_por_firmar[k]={und:v.und,monto:Math.round(v.monto)}; });
+  // Stock de departamentos por proyecto (pestaña Resumen) + lista de disponibles con precio de lista y S/ por m².
+  const stock_departamentos = {}, disponibles_detalle = [];
+  PROJ.filter(pe=>!LOMAS_ANT.includes(pe)).forEach(pe=>{
+    const st = S.filter(x=>x.p===pe && (x.t||'').toLowerCase().includes('departamento'));
+    const listo = x=>x.e.includes('listo') && x.e.includes('entreg');
+    const nm = PROJ_MAP[pe]||pe;
+    stock_departamentos[nm] = {
+      total: st.length,
+      disponibles: st.filter(x=>x.e.includes('disponible')).length,
+      separados: st.filter(x=>x.e.includes('separac')).length,
+      vendidos: st.filter(x=>x.e.includes('minuta')||x.e.includes('cancelado')||listo(x)||x.e.includes('pagando')).length,
+      entregados: st.filter(x=>x.e.includes('entreg') && !listo(x)).length,
+    };
+    st.filter(x=>x.e.includes('disponible')).forEach(x=>{
+      disponibles_detalle.push([nm,x.i,x.mo,Math.round(x.pl||0),x.m2e>0?Math.round(x.m2e*100)/100:'',(x.m2e>0&&x.pl>0)?Math.round(x.pl/x.m2e):''].join('|'));
+    });
+  });
+  // Avance por proyecto y mes (pestaña Avance): minutas firmadas = ventas de departamentos + pagando sin minuta.
+  // Carabayllo 1-3 se suman a Carabayllo 4, igual que en el dashboard. Sin COMERCIO.
+  const kp = d => LOMAS_ANT.includes(d.p) ? LOMAS_4 : d.p;
+  const avance_firmadas_deptos = {};
+  const addAv = (d,t,tipoPag)=>{
+    if(!d.md || d.md.getTime()<=0 || !(t||'').toLowerCase().includes('departamento') || (d.mo||'').includes('COMERCIO')) return;
+    const nm = PROJ_MAP[kp(d)]||kp(d), k = d.md.toISOString().slice(0,7);
+    const o = ((avance_firmadas_deptos[nm]=avance_firmadas_deptos[nm]||{})[k]=avance_firmadas_deptos[nm][k]||{und:0,pagando_sin_minuta:0});
+    o.und++; if(tipoPag) o.pagando_sin_minuta++;
+  };
+  V.forEach(d=>addAv(d,d.ti,false));
+  S.filter(d=>d.e.includes('pagando') && !d.p.includes('CARABAYLLO')).forEach(d=>addAv(d,d.t,true));
   return {
     fecha_hoy: new Date().toISOString().slice(0,10),
+    metas_por_proyecto_mes: metas,
+    metas_nota: 'Las metas están por NOMBRE de mes y se repiten cada año (no hay metas por año). Avance de meta = avance_firmadas_deptos.und ÷ meta.und del mes.',
+    minutas_por_firmar,
+    stock_departamentos,
+    disponibles_formato: 'proyecto|inmueble|modelo|precio_lista_soles|m2|soles_por_m2',
+    disponibles_detalle: disponibles_detalle.join('\n'),
+    avance_firmadas_deptos,
     precio_m2_por_proyecto_mes: pm2_mes,
     ventas_detalle_formato: 'proyecto|tipo|inmueble|fecha|monto_soles|m2|soles_por_m2 (m2 y soles_por_m2 vacíos si no hay dato)',
     ventas_detalle: princ.map(d=>{ const m2=m2De(d); return [d.pn,d.ti,d.in,iso(d),Math.round(d.pr),m2>0?Math.round(m2*100)/100:'',m2>0?Math.round(d.pr/m2):''].join('|'); }).join('\n'),
