@@ -2721,8 +2721,27 @@ function anaSnapshot(){
     por_proyecto_mes[yr] = o;
   });
   const act = base.filter(d=>d.yr===anios[0]);
+  // Detalle venta por venta de unidades principales (sin estacionamientos/depósitos), con m² y S/ por m².
+  // m² = área efectiva de la unidad (techada + 50% libre) tomada del stock; vacío si no hay dato.
+  const m2De = d => { const m = LISTA_MAP[d.p+'|'+d.ti+'|'+d.in]; return m ? m.m2 : 0; };
+  const iso = d => d.md.toISOString().slice(0,10);
+  const princ = base.filter(d=>!/estac|dep[oó]s|cochera/i.test(d.ti||'') && d.md && d.md.getTime()>0).sort((a,b)=>a.md-b.md);
+  const pm2_mes = {};
+  princ.forEach(d=>{
+    const m2 = m2De(d), k = iso(d).slice(0,7);
+    const o = ((pm2_mes[d.pn] = pm2_mes[d.pn]||{})[k] = pm2_mes[d.pn][k]||{u:0,monto:0,m2:0,n_con_m2:0});
+    o.u++; o.monto += d.pr; if(m2>0){ o.m2 += m2; o.n_con_m2++; o.monto_con_m2 = (o.monto_con_m2||0) + d.pr; }
+  });
+  Object.values(pm2_mes).forEach(pm=>Object.values(pm).forEach(o=>{
+    o.soles_por_m2 = o.m2>0 ? Math.round(o.monto_con_m2/o.m2) : null;
+    o.ticket_prom = Math.round(o.monto/o.u);
+    delete o.monto; delete o.monto_con_m2; delete o.m2;
+  }));
   return {
     fecha_hoy: new Date().toISOString().slice(0,10),
+    precio_m2_por_proyecto_mes: pm2_mes,
+    ventas_detalle_formato: 'proyecto|tipo|inmueble|fecha|monto_soles|m2|soles_por_m2 (m2 y soles_por_m2 vacíos si no hay dato)',
+    ventas_detalle: princ.map(d=>{ const m2=m2De(d); return [d.pn,d.ti,d.in,iso(d),Math.round(d.pr),m2>0?Math.round(m2*100)/100:'',m2>0?Math.round(d.pr/m2):''].join('|'); }).join('\n'),
     mes_en_curso: MESES_ANA[new Date().getMonth()],
     nota: 'El mes en curso está incompleto: no lo compares como si estuviera cerrado.',
     resumen_anual, ventas_por_mes, por_proyecto_mes,
@@ -2798,20 +2817,29 @@ function anaSend(txt){
       }
       const b = row.querySelector('.ana-bubble');
       if(resp.error){ b.innerHTML = '❌ '+anaEsc(resp.error); return; }
-      if(resp.type==='chart' && resp.chart){
-        const cid = 'aic'+Date.now();
-        b.className = 'ana-chart-bubble';
-        b.innerHTML = `<div class="ana-chart-lbl">${anaEsc(resp.title||'Gráfico')}</div><div class="cw"><canvas id="${cid}"></canvas></div>`;
-        const cfg = resp.chart;
-        cfg.options = cfg.options || {};
-        cfg.options.responsive = true; cfg.options.maintainAspectRatio = false;
-        try{ if(cfg.options.plugins?.tooltip?.callbacks) delete cfg.options.plugins.tooltip.callbacks; }catch(e){}
-        try{ new Chart($(cid).getContext('2d'), cfg); }
-        catch(e){ b.className='ana-bubble'; b.innerHTML = '❌ Error al renderizar: '+anaEsc(e.message); }
-      } else {
-        b.className = 'ana-bubble ana-md';
-        b.innerHTML = anaMd(resp.content||resp.response||'Sin respuesta');
-      }
+      // El servidor puede devolver varios bloques (texto + gráfico + texto) en una sola respuesta.
+      const blocks = Array.isArray(resp.blocks) ? resp.blocks : [resp];
+      // Chart.js no admite funciones serializadas ({__fn:...}): se quitan para que no rompan el gráfico.
+      const strip = o => { if(o && typeof o==='object'){ Object.keys(o).forEach(k=>{ if(o[k] && typeof o[k]==='object' && '__fn' in o[k]) delete o[k]; else strip(o[k]); }); } };
+      let holder = b, first = true;
+      blocks.forEach(bl=>{
+        if(!first){ holder = anaAddMsg('ai','').querySelector('.ana-bubble'); }
+        first = false;
+        if(bl.type==='chart' && bl.chart){
+          const cid = 'aic'+Date.now()+Math.floor(Math.random()*1e4);
+          holder.className = 'ana-chart-bubble';
+          holder.innerHTML = `<div class="ana-chart-lbl">${anaEsc(bl.title||'Gráfico')}</div><div class="cw"><canvas id="${cid}"></canvas></div>`;
+          const cfg = bl.chart;
+          strip(cfg);
+          cfg.options = cfg.options || {};
+          cfg.options.responsive = true; cfg.options.maintainAspectRatio = false;
+          try{ new Chart($(cid).getContext('2d'), cfg); }
+          catch(e){ holder.className='ana-bubble'; holder.innerHTML = '❌ Error al renderizar: '+anaEsc(e.message); }
+        } else {
+          holder.className = 'ana-bubble ana-md';
+          holder.innerHTML = anaMd(bl.content||bl.response||'Sin respuesta');
+        }
+      });
       $('ana-chat-msgs').scrollTop = $('ana-chat-msgs').scrollHeight;
     })
     .catch(()=>{ row.querySelector('.ana-bubble').innerHTML = '❌ Error de conexión con el asistente.'; })

@@ -107,30 +107,53 @@ def api_ai():
             "Las separaciones vigentes están en separaciones_activas (total, por_proyecto con canal/vendedor/tipo, y detalle); "
             "las ventas por canal y vendedor de cada proyecto están en ventas_por_proyecto_canal y ventas_por_proyecto_vendedor. "
             "Úsalos antes de decir que no tienes un dato. "
+            "PRECIO POR M²: ventas_detalle trae CADA venta de unidad principal en formato "
+            "proyecto|tipo|inmueble|fecha|monto_soles|m2|soles_por_m2, y precio_m2_por_proyecto_mes ya trae el S/ por m² "
+            "ponderado (suma de montos ÷ suma de m²) por proyecto y mes, con n_con_m2 = ventas con m² conocido. "
+            "Para evolución de precio por m² usa precio_m2_por_proyecto_mes (o agrupa ventas_detalle tú mismo); "
+            "los montos ya están en soles. Los estacionamientos y depósitos no están en ventas_detalle. "
+            "REGLAS: nunca rechaces una pregunta ni digas que 'el dataset no incluye' algo sin haber revisado estos campos. "
+            "Si falta un dato exacto, usa el mejor indicador disponible, entrégalo igual y acláralo en UNA línea breve. "
+            "Ignora meses sin datos (null) en los gráficos. Mes en curso incompleto: indícalo. "
+            "Para gráficos de línea/barras con varios meses ordena cronológicamente, pon títulos de ejes en español y "
+            "NO uses funciones JavaScript ni callbacks en la config (solo JSON puro). "
+            "FORMATO: devuelve UN solo objeto JSON, o un objeto {\"blocks\":[...]} con varios bloques "
+            "(p. ej. texto breve, gráfico, lectura del gráfico). Nunca devuelvas varios objetos JSON sueltos. "
             "En \"content\" puedes usar markdown (listas, **negritas**). "
             "NO incluyas texto fuera del JSON. Responde en español."
         )
         context = (
             f"Proyectos: {', '.join(proyectos)}.\n"
-            f"Datos de ventas (JSON):\n{json.dumps(sales_data, ensure_ascii=False, indent=1)}"
+            f"Datos de ventas (JSON):\n{json.dumps(sales_data, ensure_ascii=False, separators=(',', ':'))}"
         )
         msg = client.messages.create(
             model='claude-sonnet-4-6',
-            max_tokens=2048,
+            max_tokens=6000,
             system=system,
             messages=[{'role': 'user', 'content': context + '\n\nPregunta: ' + question}]
         )
         raw = msg.content[0].text.strip()
-        # El modelo a veces envuelve el JSON en ```json ... ``` o agrega texto alrededor
-        parsed = None
-        ini, fin = raw.find('{'), raw.rfind('}')
-        if ini != -1 and fin > ini:
+        # El modelo a veces envuelve el JSON en ```json ... ``` o emite varios objetos seguidos:
+        # se extraen todos los objetos JSON consecutivos y se devuelven como bloques.
+        blocks, dec, pos = [], json.JSONDecoder(strict=False), 0
+        while True:
+            ini = raw.find('{', pos)
+            if ini == -1:
+                break
             try:
-                parsed = json.loads(raw[ini:fin + 1], strict=False)
+                obj, pos = dec.raw_decode(raw, ini)
             except Exception:
-                parsed = None
-        if isinstance(parsed, dict) and parsed.get('type') in ('text', 'chart'):
-            return jsonify(parsed)
+                pos = ini + 1
+                continue
+            if isinstance(obj, dict):
+                if isinstance(obj.get('blocks'), list):
+                    blocks += [b for b in obj['blocks'] if isinstance(b, dict) and b.get('type') in ('text', 'chart')]
+                elif obj.get('type') in ('text', 'chart'):
+                    blocks.append(obj)
+        if len(blocks) == 1:
+            return jsonify(blocks[0])
+        if blocks:
+            return jsonify({'blocks': blocks})
         return jsonify({'type': 'text', 'content': raw})
     except Exception as e:
         return jsonify({'error': str(e)})
