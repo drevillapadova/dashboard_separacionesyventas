@@ -2737,6 +2737,19 @@ function anaSnapshot(){
     o.ticket_prom = Math.round(o.monto/o.u);
     delete o.monto; delete o.monto_con_m2; delete o.m2;
   }));
+  // Rellena los meses sin ventas (entre la 1.ª venta del proyecto y hoy) para que la IA no los salte.
+  const hoyK = new Date().toISOString().slice(0,7);
+  Object.values(pm2_mes).forEach(pm=>{
+    const ks = Object.keys(pm).sort(); if(!ks.length) return;
+    let [y,m] = ks[0].split('-').map(Number);
+    for(;;){
+      const k = y+'-'+String(m).padStart(2,'0');
+      if(k>hoyK) break;
+      if(!pm[k]) pm[k] = {u:0,n_con_m2:0,soles_por_m2:null,ticket_prom:null};
+      if(++m>12){ m=1; y++; }
+    }
+    Object.keys(pm).sort().forEach(k=>{ const v=pm[k]; delete pm[k]; pm[k]=v; });
+  });
   return {
     fecha_hoy: new Date().toISOString().slice(0,10),
     precio_m2_por_proyecto_mes: pm2_mes,
