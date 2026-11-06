@@ -2238,11 +2238,11 @@ function renderAvance(){
     const sepVivCount = sepDepa.length;
     const sepClientes = new Set(sepDepa.map(d => d.cl).filter(Boolean));
     const sepVivMto = S.filter(d =>
-      d.p===pe && d.e.includes('separac') && !d.mo.includes('COMERCIO') &&
+      d.p===pe && d.e.includes('separac') &&
       d.cl && sepClientes.has(d.cl)
     ).reduce((t,x) => t + (x.pr||0), 0);
 
-    // Minutas Firmadas: CANTIDAD solo departamentos, MONTO todas las unidades (excluye COMERCIO)
+    // Minutas Firmadas: CANTIDAD solo departamentos, MONTO todas las unidades (incluye COMERCIO)
     const firmadasDepa = V.filter(d => {
       if(!pesV.includes(d.p)) return false;
       if(f.desde && d.md && d.md < f.desde) return false;
@@ -2253,7 +2253,7 @@ function renderAvance(){
       if(!pesV.includes(d.p)) return false;
       if(f.desde && d.md && d.md < f.desde) return false;
       if(f.hasta && d.md && d.md > f.hasta) return false;
-      return !d.mo.includes('COMERCIO');
+      return true;
     }).reduce((t,x) => t + (x.pr||0), 0);
 
     // PAGANDO SIN MINUTA: cantidad solo departamentos, monto todas las unidades
@@ -2271,7 +2271,7 @@ function renderAvance(){
       if(d.p.includes('CARABAYLLO')) return false;
       if(f.desde && d.yr && d.md < f.desde) return false;
       if(f.hasta && d.yr && d.md > f.hasta) return false;
-      return !d.mo.includes('COMERCIO');
+      return true;
     }).reduce((t,x) => t + (x.pr||0), 0);
     const firmCount = firmadasDepa.length + pagandoStock.length;
     const firmMto = firmMtoV + pagandoMto;
