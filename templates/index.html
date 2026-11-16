@@ -2149,7 +2149,7 @@ function rOps(){
         <td style="font-variant-numeric:tabular-nums;color:var(--faint)">${x.in || '—'}</td>
         <td>${x.cl || '—'}</td>
         <td style="font-variant-numeric:tabular-nums;color:var(--muted)">${x.pm2 ? 'S/ '+Math.round(x.pm2).toLocaleString('es-PE') : '—'}</td>
-        <td style="font-variant-numeric:tabular-nums;font-weight:700;color:var(--ven)">${x.pr ? 'S/ '+Math.round(x.pr).toLocaleString('es-PE') : '—'}</td>
+        <td style="font-variant-numeric:tabular-nums;font-weight:700;color:var(--ven)">${x.pr ? 'S/ '+x.pr.toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'}</td>
         <td style="color:var(--muted)">${x.vnd||'—'}</td>
         <td style="color:var(--muted)">${x.ca||'—'}</td>
         <td style="color:var(--muted)">${x.tf||'—'}</td>
