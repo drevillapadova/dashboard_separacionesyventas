@@ -1686,12 +1686,12 @@ function getProyData(pe){
   const mes = getMesFromRange(f);
   const meta = getMetaForRange(pn, f);
 
-  // Precio por m² vendido: solo departamentos; precio lista / m² efectivo (techada + libre × 0.5), del stock.
+  // Precio por m² vendido: solo departamentos; precio de venta / m² efectivo (techada + libre × 0.5, m² del stock).
   const m2ef = {m2:0, lista:0};
   const sumar = (arr, tk, ik) => arr.forEach(d => {
     if(!(d[tk]||'').toLowerCase().includes('departamento')) return;
     const x = LISTA_MAP[d.p + '|' + d[tk] + '|' + d[ik]];
-    if(x){ m2ef.m2 += x.m2; m2ef.lista += x.lista; }
+    if(x && d.pr > 0){ m2ef.m2 += x.m2; m2ef.lista += d.pr; }
   });
   sumar(ventas, 'ti', 'in');
   sumar(pagando, 't', 'i');
@@ -2032,9 +2032,9 @@ function updateSortHeaders(){
   });
 }
 
-// Precio por m² de la unidad = precio lista / m² efectivo (techada + libre × 0.5)
-const pm2Venta = x => { const m = LISTA_MAP[x.p + '|' + x.ti + '|' + x.in]; return m ? m.lista / m.m2 : 0; };
-const pm2Stock = x => (x.m2e > 0 && x.pl > 0) ? x.pl / x.m2e : 0;
+// PM2 = precio de venta (columna Precio S/) / m² efectivo (techada + libre × 0.5)
+const pm2Venta = x => { const m = LISTA_MAP[x.p + '|' + x.ti + '|' + x.in]; return (m && x.pr > 0) ? x.pr / m.m2 : 0; };
+const pm2Stock = x => (x.m2e > 0 && x.pr > 0) ? x.pr / x.m2e : 0;
 
 function sortRows(rows){
   const dir = OPS_SORT.dir === 'asc' ? 1 : -1;
